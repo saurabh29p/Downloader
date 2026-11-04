@@ -31,6 +31,10 @@ export default defineConfig({
     {
       command: `uv run --project ../api uvicorn anyget.main:app --host 127.0.0.1 --port ${apiPort}`,
       url: `http://127.0.0.1:${apiPort}/api/health`,
+      env: {
+        ANYGET_DATA_DIR: ".e2e/data",
+        ANYGET_DOWNLOADS_DIR: ".e2e/downloads",
+      },
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
     },

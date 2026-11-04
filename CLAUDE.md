@@ -8,8 +8,9 @@ Read this file at the start of every session. The full research doc lives in `do
 
 - [x] Phase 0 — prerequisites, CLAUDE.md
 - [x] Phase 1 — monorepo skeleton
-- [ ] Phase 2 — core and security (next)
-- [ ] Phases 3–10 — see roadmap below
+- [x] Phase 2 — core and security
+- [ ] Phase 3 — website foundation (next)
+- [ ] Phases 4–10 — see roadmap below
 
 Update this checklist at the end of every phase.
 
@@ -88,6 +89,8 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `make e2e` | Playwright end-to-end + axe (starts api on :8100 and a production web build on :3100) |
 | `make up` / `make down` / `make logs` | Docker Compose |
 | `make up-public` | Compose + Cloudflare Tunnel |
+| `uv run anyget get URL… [-i list.txt]` | download in-process with progress bars; Ctrl+C pauses, rerun resumes |
+| `uv run anyget probe URL` / `anyget jobs` | inspect a link / list jobs |
 
 ## Architecture rules
 
@@ -114,7 +117,9 @@ Adding a new site = adding one handler file and registering it. Plugins (phase 9
 10. Fallback: HEAD/GET. File Content-Type → http_generic. HTML → webpage (save HTML/PDF, list media/doc links to pick).
 
 ### Jobs and queue
-- SQLite (SQLModel) at `./data/anyget.db`. States: `queued → probing → downloading → done | failed`, plus `paused`.
+- SQLite (SQLModel) at `./data/anyget.db`. States: `queued → probing → downloading → done | failed`, plus `paused` and `canceled`.
+- Code: `core/jobs.py` (table + `JobStore`), `core/queue.py` (`DownloadQueue`), `core/events.py` (bus + SSE), `core/services.py` (wires everything; used by the API lifespan and the CLI).
+- Partial files are `.anyget-<job id>.part` in the downloads folder (`handlers.base.part_path`), so a paused or interrupted job resumes after restarts.
 - asyncio worker pool: global limit 3 (setting), per-host limits (archive.org 2).
 - Progress via Server-Sent Events. Resume via HTTP Range into `.part` files; yt-dlp continues partial files.
 - Verify md5/sha1 when the source gives one. Dedupe by hash or source ID.
@@ -178,6 +183,12 @@ Personal use only. Download only what the user owns, what is public domain or op
 - `/healthz` on web is liveness only; `/api/health` goes through the rewrite to FastAPI.
 - If Playwright's bundled Chromium is missing, set `PW_CHROMIUM_PATH=/path/to/chrome`.
 - Vitest 5: when mocking a module function that must reject, use a plain async function instead of `vi.fn().mockRejectedValue` (the latter fails the test).
+
+- All outgoing HTTP goes through `core/net.Net` (never a bare `httpx` client): it re-checks every redirect hop and its connection pool refuses private IPs at connect time (`GuardedBackend`). Legacy IPv4 forms (`2130706433`, `0x7f.1`) are treated as IPs.
+- `ANYGET_NET_ALLOWLIST=host:port,…` lets tests/e2e reach local fixture servers. Never set it in normal use.
+- `ANYGET_PROXY` is the only proxy used (env `HTTP(S)_PROXY` is ignored on purpose). With a proxy, only the pre-flight DNS check runs.
+- Tests fake DNS (`tests/conftest.py::fake_dns`): every host resolves to a public IP unless a test sets it. Use `respx` for HTTP.
+- Stream bodies with `response.aiter_bytes()` (no chunk size) so data reaches disk before a dropped connection; buffered chunks are lost.
 
 ## Working agreement for each phase
 1. Read this file and `prompts/phase-NN-*.md`.

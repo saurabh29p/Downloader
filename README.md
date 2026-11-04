@@ -37,4 +37,4 @@ make up / make down / make logs
 
 ## Status
 
-Phase 1 (monorepo skeleton) done. Downloading arrives in phase 2.
+Phase 2 done: direct file links download with resume, from the CLI (`uv run anyget get <link>`) or the API. The website flow arrives in phase 3.

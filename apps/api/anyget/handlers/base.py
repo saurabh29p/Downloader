@@ -1,10 +1,11 @@
 """The contract every download handler implements.
 
 Adding a new site means adding one file in this package with a class that
-satisfies `Handler`, then registering it (registry arrives in phase 2).
+satisfies `Handler`, then registering it in `registry.py`.
 """
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
@@ -47,11 +48,42 @@ class DownloadResult(BaseModel):
 
 
 class JobRef(Protocol):
-    """The minimal view of a job a handler needs (full model arrives in phase 2)."""
+    """The minimal view of a job a handler needs."""
+
+    @property
+    def id(self) -> str: ...
+
+    @property
+    def url(self) -> str: ...
+
+    @property
+    def output_dir(self) -> Path: ...
+
+
+@dataclass(frozen=True)
+class JobContext:
+    """Concrete JobRef the queue hands to handlers."""
 
     id: str
     url: str
     output_dir: Path
+
+
+class HandlerError(Exception):
+    """A problem the user should see, with a stable code for the UI.
+
+    Codes: unsupported, upstream, not_found, incomplete, checksum, unsafe_path.
+    """
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
+def part_path(output_dir: Path, job_id: str) -> Path:
+    """Where a job's partial download lives (stable across restarts, so it can resume)."""
+    return output_dir / f".anyget-{job_id}.part"
 
 
 ProgressCallback = Callable[[Progress], None]
