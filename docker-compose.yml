@@ -6,6 +6,7 @@ services:
   api:
     build:
       context: ./apps/api
+      target: runtime
     restart: unless-stopped
     env_file:
       - path: .env
@@ -31,6 +32,19 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
+
+  # Live network tests in a container with ffmpeg + Deno: `make live`.
+  api-test:
+    profiles: ["test"]
+    build:
+      context: ./apps/api
+      target: test
+    environment:
+      ANYGET_DOWNLOADS_DIR: /downloads
+      ANYGET_DATA_DIR: /data
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      ANYGET_LIVE_PLAYLIST: ${ANYGET_LIVE_PLAYLIST:-}
 
   web:
     build:

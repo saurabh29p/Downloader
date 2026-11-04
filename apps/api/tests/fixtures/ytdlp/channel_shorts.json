@@ -1,0 +1,52 @@
+{
+ "_type": "playlist",
+ "id": "UCSMOQeBJ2RAnuFungnQOxLg",
+ "title": "Blender - Shorts",
+ "extractor_key": "YoutubeTab",
+ "extractor": "youtube:tab",
+ "webpage_url": "https://www.youtube.com/@BlenderStudio/shorts",
+ "uploader": "Blender",
+ "playlist_count": 3,
+ "entries": [
+  {
+   "_type": "url",
+   "ie_key": "Youtube",
+   "id": "short000001",
+   "url": "https://www.youtube.com/shorts/short000001",
+   "title": "Short one",
+   "duration": 30,
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/short000001/default.jpg",
+     "width": 120,
+     "height": 90
+    },
+    {
+     "url": "https://i.ytimg.com/vi/short000001/hqdefault.jpg",
+     "width": 480,
+     "height": 360
+    }
+   ]
+  },
+  {
+   "_type": "url",
+   "ie_key": "Youtube",
+   "id": "short000002",
+   "url": "https://www.youtube.com/shorts/short000002",
+   "title": "Short two",
+   "duration": 45,
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/short000002/default.jpg",
+     "width": 120,
+     "height": 90
+    },
+    {
+     "url": "https://i.ytimg.com/vi/short000002/hqdefault.jpg",
+     "width": 480,
+     "height": 360
+    }
+   ]
+  }
+ ]
+}

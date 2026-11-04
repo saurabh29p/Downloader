@@ -75,25 +75,45 @@ def _ip_literal(host: str) -> IPAddress | None:
     return None
 
 
-async def vetted_ips(host: str, port: int, allowlist: Iterable[str] = ()) -> list[str]:
-    """Return the host's IPs if they are all public (or host:port is allowlisted)."""
-    allowed = f"{host}:{port}" in set(allowlist)
-    literal = _ip_literal(host)
-    if literal is not None:
-        ips = [str(literal)]
-    else:
-        try:
-            ips = await resolve_host(host, port)
-        except OSError as exc:
-            raise BlockedURLError(f"could not resolve host {host!r}") from exc
+def resolve_host_sync(host: str, port: int) -> list[str]:
+    """Blocking resolver for code running in worker threads (yt-dlp). Tests replace it."""
+    infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    return list(dict.fromkeys(str(info[4][0]) for info in infos))
+
+
+def _vet(host: str, port: int, ips: list[str], allowlist: Iterable[str]) -> list[str]:
     if not ips:
         raise BlockedURLError(f"could not resolve host {host!r}")
-    if allowed:
+    if f"{host}:{port}" in set(allowlist):
         return ips
     for raw in ips:
         if not is_public_ip(ipaddress.ip_address(raw)):
             raise BlockedURLError(f"{host} resolves to a private or reserved address")
     return ips
+
+
+async def vetted_ips(host: str, port: int, allowlist: Iterable[str] = ()) -> list[str]:
+    """Return the host's IPs if they are all public (or host:port is allowlisted)."""
+    literal = _ip_literal(host)
+    if literal is not None:
+        return _vet(host, port, [str(literal)], allowlist)
+    try:
+        ips = await resolve_host(host, port)
+    except OSError as exc:
+        raise BlockedURLError(f"could not resolve host {host!r}") from exc
+    return _vet(host, port, ips, allowlist)
+
+
+def vetted_ips_sync(host: str, port: int, allowlist: Iterable[str] = ()) -> list[str]:
+    """Blocking version of vetted_ips for worker threads."""
+    literal = _ip_literal(host)
+    if literal is not None:
+        return _vet(host, port, [str(literal)], allowlist)
+    try:
+        ips = resolve_host_sync(host, port)
+    except OSError as exc:
+        raise BlockedURLError(f"could not resolve host {host!r}") from exc
+    return _vet(host, port, ips, allowlist)
 
 
 async def check_url(url: str | httpx.URL, allowlist: Iterable[str] = ()) -> httpx.URL:

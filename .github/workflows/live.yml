@@ -1,0 +1,30 @@
+name: Live tests
+
+# Manual: real downloads from YouTube and Vimeo (Creative Commons / test media).
+# Not a required check: sites sometimes rate-limit or bot-check CI runners.
+on:
+  workflow_dispatch:
+    inputs:
+      playlist:
+        description: "Playlist or channel URL for the 3-item test (optional)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: yt-dlp live (Docker, ffmpeg + Deno)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build the test image
+        run: docker compose --profile test build api-test
+      - name: Tool versions
+        run: docker compose --profile test run --rm api-test sh -c 'yt-dlp --version; deno --version | head -1; ffmpeg -version | head -1'
+      - name: Live tests
+        env:
+          ANYGET_LIVE_PLAYLIST: ${{ inputs.playlist }}
+        run: docker compose --profile test run --rm api-test

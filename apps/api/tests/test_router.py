@@ -38,7 +38,7 @@ def test_normalize_empty() -> None:
 @pytest.fixture
 async def router(settings: Settings) -> Router:
     net = Net(settings)
-    return Router(build_registry(net), net)
+    return Router(build_registry(net, settings), net)
 
 
 @respx.mock

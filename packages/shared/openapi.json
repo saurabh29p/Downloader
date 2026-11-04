@@ -71,8 +71,68 @@
         "title": "Choice",
         "type": "object"
       },
-      "CreateJobs": {
+      "CookiesStatus": {
         "properties": {
+          "lines": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lines"
+          },
+          "present": {
+            "title": "Present",
+            "type": "boolean"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "present"
+        ],
+        "title": "CookiesStatus",
+        "type": "object"
+      },
+      "CookiesUpload": {
+        "properties": {
+          "content": {
+            "maxLength": 1048576,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "CookiesUpload",
+        "type": "object"
+      },
+      "CreateJobs": {
+        "description": "Either `urls` (all share `options`) or `items` (each has its own), or both.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/JobItem"
+            },
+            "maxItems": 1000,
+            "title": "Items",
+            "type": "array"
+          },
           "options": {
             "additionalProperties": true,
             "title": "Options",
@@ -83,14 +143,10 @@
               "type": "string"
             },
             "maxItems": 500,
-            "minItems": 1,
             "title": "Urls",
             "type": "array"
           }
         },
-        "required": [
-          "urls"
-        ],
         "title": "CreateJobs",
         "type": "object"
       },
@@ -108,6 +164,13 @@
               "$ref": "#/components/schemas/RejectedUrl"
             },
             "title": "Rejected",
+            "type": "array"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/RejectedUrl"
+            },
+            "title": "Skipped",
             "type": "array"
           }
         },
@@ -133,6 +196,9 @@
       },
       "Health": {
         "properties": {
+          "components": {
+            "$ref": "#/components/schemas/ToolVersions"
+          },
           "status": {
             "const": "ok",
             "title": "Status",
@@ -140,9 +206,31 @@
           }
         },
         "required": [
-          "status"
+          "status",
+          "components"
         ],
         "title": "Health",
+        "type": "object"
+      },
+      "JobItem": {
+        "description": "One link with its own options (e.g. a playlist entry with its index).",
+        "properties": {
+          "options": {
+            "additionalProperties": true,
+            "title": "Options",
+            "type": "object"
+          },
+          "url": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "JobItem",
         "type": "object"
       },
       "JobOut": {
@@ -201,6 +289,20 @@
             ],
             "title": "Filename"
           },
+          "files": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Files"
+          },
           "finished_at": {
             "anyOf": [
               {
@@ -227,6 +329,17 @@
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
           },
           "options": {
             "additionalProperties": true,
@@ -327,6 +440,11 @@
       },
       "ProbeRequest": {
         "properties": {
+          "options": {
+            "additionalProperties": true,
+            "title": "Options",
+            "type": "object"
+          },
           "url": {
             "maxLength": 8192,
             "minLength": 1,
@@ -427,6 +545,62 @@
           "message"
         ],
         "title": "RejectedUrl",
+        "type": "object"
+      },
+      "ToolVersions": {
+        "properties": {
+          "deno": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deno"
+          },
+          "ffmpeg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ffmpeg"
+          },
+          "yt_dlp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yt Dlp"
+          },
+          "yt_dlp_ejs": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yt Dlp Ejs"
+          }
+        },
+        "required": [
+          "yt_dlp",
+          "yt_dlp_ejs",
+          "deno",
+          "ffmpeg"
+        ],
+        "title": "ToolVersions",
         "type": "object"
       },
       "ValidationError": {
@@ -1369,6 +1543,118 @@
         "summary": "Probe",
         "tags": [
           "probe"
+        ]
+      }
+    },
+    "/api/settings/cookies": {
+      "delete": {
+        "operationId": "deleteCookies",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Delete Cookies",
+        "tags": [
+          "settings"
+        ]
+      },
+      "get": {
+        "operationId": "getCookiesStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CookiesStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Cookies",
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "operationId": "putCookies",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CookiesUpload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CookiesStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Put Cookies",
+        "tags": [
+          "settings"
         ]
       }
     },

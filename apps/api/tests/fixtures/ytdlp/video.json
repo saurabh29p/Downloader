@@ -1,0 +1,226 @@
+{
+ "id": "aqz-KE-bpKQ",
+ "title": "Big Buck Bunny 60fps 4K - Official Blender Foundation Short Film",
+ "extractor_key": "Youtube",
+ "extractor": "youtube",
+ "webpage_url": "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+ "duration": 635,
+ "uploader": "Blender",
+ "channel": "Blender",
+ "upload_date": "20140411",
+ "live_status": "not_live",
+ "thumbnail": "https://i.ytimg.com/vi/aqz-KE-bpKQ/maxresdefault.jpg",
+ "width": 1920,
+ "height": 1080,
+ "chapters": [
+  {
+   "start_time": 0,
+   "end_time": 100,
+   "title": "Intro"
+  },
+  {
+   "start_time": 100,
+   "end_time": 635,
+   "title": "Story"
+  }
+ ],
+ "subtitles": {
+  "en": [
+   {
+    "ext": "vtt",
+    "url": "https://example.invalid/en.vtt"
+   }
+  ],
+  "live_chat": [
+   {
+    "ext": "json"
+   }
+  ]
+ },
+ "automatic_captions": {
+  "en": [
+   {
+    "ext": "vtt"
+   }
+  ],
+  "hi": [
+   {
+    "ext": "vtt"
+   }
+  ],
+  "ar": [
+   {
+    "ext": "vtt"
+   }
+  ]
+ },
+ "formats": [
+  {
+   "format_id": "sb0",
+   "ext": "mhtml",
+   "vcodec": "none",
+   "acodec": "none",
+   "protocol": "mhtml",
+   "format_note": "storyboard"
+  },
+  {
+   "format_id": "139",
+   "ext": "m4a",
+   "vcodec": "none",
+   "acodec": "mp4a.40.5",
+   "protocol": "https",
+   "abr": 48.8,
+   "filesize": 600000
+  },
+  {
+   "format_id": "140",
+   "ext": "m4a",
+   "vcodec": "none",
+   "acodec": "mp4a.40.2",
+   "protocol": "https",
+   "abr": 129.5,
+   "filesize": 1600000
+  },
+  {
+   "format_id": "251",
+   "ext": "webm",
+   "vcodec": "none",
+   "acodec": "opus",
+   "protocol": "https",
+   "abr": 135.1,
+   "filesize": 1700000
+  },
+  {
+   "format_id": "160",
+   "ext": "mp4",
+   "vcodec": "avc1.4d400c",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 144,
+   "width": 256,
+   "fps": 30,
+   "tbr": 100,
+   "filesize": 900000
+  },
+  {
+   "format_id": "133",
+   "ext": "mp4",
+   "vcodec": "avc1.4d4015",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 240,
+   "width": 426,
+   "fps": 30,
+   "tbr": 200,
+   "filesize": 1800000
+  },
+  {
+   "format_id": "134",
+   "ext": "mp4",
+   "vcodec": "avc1.4d401e",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 360,
+   "width": 640,
+   "fps": 30,
+   "tbr": 400,
+   "filesize": 3500000
+  },
+  {
+   "format_id": "18",
+   "ext": "mp4",
+   "vcodec": "avc1.42001E",
+   "acodec": "mp4a.40.2",
+   "protocol": "https",
+   "height": 360,
+   "width": 640,
+   "fps": 30,
+   "tbr": 500,
+   "filesize_approx": 4400000
+  },
+  {
+   "format_id": "135",
+   "ext": "mp4",
+   "vcodec": "avc1.4d401f",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 480,
+   "width": 854,
+   "fps": 30,
+   "tbr": 800,
+   "filesize": 7000000
+  },
+  {
+   "format_id": "136",
+   "ext": "mp4",
+   "vcodec": "avc1.4d401f",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 720,
+   "width": 1280,
+   "fps": 30,
+   "tbr": 1500,
+   "filesize": 13000000
+  },
+  {
+   "format_id": "247",
+   "ext": "webm",
+   "vcodec": "vp9",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 720,
+   "width": 1280,
+   "fps": 30,
+   "tbr": 1300,
+   "filesize": 11000000
+  },
+  {
+   "format_id": "298",
+   "ext": "mp4",
+   "vcodec": "avc1.4d4020",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 720,
+   "width": 1280,
+   "fps": 60,
+   "tbr": 2500,
+   "filesize": 21000000
+  },
+  {
+   "format_id": "137",
+   "ext": "mp4",
+   "vcodec": "avc1.640028",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 1080,
+   "width": 1920,
+   "fps": 30,
+   "tbr": 3000,
+   "filesize": 26000000
+  },
+  {
+   "format_id": "248",
+   "ext": "webm",
+   "vcodec": "vp9",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 1080,
+   "width": 1920,
+   "fps": 30,
+   "tbr": 2600,
+   "filesize_approx": 23000000
+  },
+  {
+   "format_id": "drm1",
+   "ext": "mp4",
+   "vcodec": "avc1.640028",
+   "acodec": "none",
+   "protocol": "https",
+   "height": 1080,
+   "width": 1920,
+   "fps": 30,
+   "tbr": 3000,
+   "has_drm": true
+  }
+ ]
+}

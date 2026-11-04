@@ -1,0 +1,14 @@
+{
+ "drm": "ERROR: [youtube] aqz-KE-bpKQ: This video is DRM protected",
+ "members_only": "ERROR: [youtube] abc: Join this channel to get access to members-only content like this video, and other exclusive perks.",
+ "paid": "ERROR: [youtube] abc: This video requires payment to watch.",
+ "private": "ERROR: [youtube] abc: Private video. Sign in if you've been granted access to this video",
+ "age_restricted": "ERROR: [youtube] abc: Sign in to confirm your age. This video may be inappropriate for some users.",
+ "geo_blocked": "ERROR: [youtube] abc: The uploader has not made this video available in your country",
+ "live_not_finished": "ERROR: [youtube] abc: This live event will begin in 3 hours.",
+ "bot_check": "ERROR: [youtube] abc: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication.",
+ "login_required": "ERROR: [vimeo] 123: This video is only available for registered users",
+ "unavailable": "ERROR: [youtube] abc: Video unavailable. This video has been removed by the uploader",
+ "unsupported": "ERROR: Unsupported URL: https://example.com/page",
+ "upstream": "ERROR: [youtube] abc: HTTP Error 500: Internal Server Error"
+}

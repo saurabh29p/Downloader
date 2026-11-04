@@ -10,7 +10,8 @@
       "label": "Main",
       "home": "Home",
       "downloads": "Downloads",
-      "activeCount": "{count, plural, one {# active download} other {# active downloads}}"
+      "activeCount": "{count, plural, one {# active download} other {# active downloads}}",
+      "youtube": "YouTube"
     },
     "theme": {
       "label": "Theme",
@@ -44,7 +45,8 @@
   },
   "Preview": {
     "handlers": {
-      "http": "Direct file"
+      "http": "Direct file",
+      "media": "Video"
     },
     "size": "Size",
     "unknown": "Unknown",
@@ -85,7 +87,20 @@
       "retry": "Try again",
       "cancel": "Cancel",
       "remove": "Remove from list"
-    }
+    },
+    "notes": {
+      "merging": "Merging video and audio",
+      "extracting_audio": "Extracting audio",
+      "remuxing": "Changing container",
+      "embedding_subtitles": "Adding subtitles",
+      "converting_subtitles": "Converting subtitles",
+      "adding_metadata": "Adding details",
+      "embedding_thumbnail": "Adding cover image",
+      "converting_thumbnail": "Preparing cover image",
+      "already_downloaded": "Already downloaded before",
+      "outside_date_range": "Skipped: outside the chosen dates"
+    },
+    "finishedMany": "{count, plural, one {Downloaded # file} other {Downloaded # files}}"
   },
   "Errors": {
     "blocked_url": "This link points to a private or local network address, or isn't http(s), so it can't be downloaded.",
@@ -97,7 +112,18 @@
     "checksum": "The file was damaged in transfer (checksum mismatch). Try again.",
     "incomplete": "The download stopped before the end. Try again to resume.",
     "unsafe_path": "The file name wasn't safe to save.",
-    "generic": "Something went wrong. Try again."
+    "generic": "Something went wrong. Try again.",
+    "drm": "This is DRM-protected (paid streaming). AnyGet never downloads DRM content.",
+    "members_only": "Only channel members can watch this. AnyGet does not get around that.",
+    "paid": "This video must be bought or rented first. AnyGet does not get around that.",
+    "private": "This video is private.",
+    "age_restricted": "This video needs an age check. If you are signed in on your own account, add your cookies.txt in Settings.",
+    "login_required": "The site wants you to sign in. You can add a cookies.txt from your own account in Settings.",
+    "bot_check": "The site asked to confirm you're not a bot. Try again later, or add a cookies.txt from your own account in Settings.",
+    "geo_blocked": "Not available in your region. AnyGet does not get around region blocks.",
+    "live_not_finished": "This is a live or upcoming stream. Try again after it ends.",
+    "unavailable": "This video is unavailable or was removed.",
+    "invalid_cookies": "That isn't a cookies.txt file (Netscape format)."
   },
   "Downloads": {
     "title": "Downloads",
@@ -131,12 +157,83 @@
     "theme": "Theme",
     "themeLight": "Light theme",
     "themeDark": "Dark theme",
-    "themeSystem": "System theme"
+    "themeSystem": "System theme",
+    "goYoutube": "YouTube and video sites",
+    "goSettings": "Settings"
   },
   "Status": {
     "checking": "Checking the server…",
     "online": "Server online",
     "offline": "Server offline",
     "retry": "Try again"
+  },
+  "Media": {
+    "title": "YouTube and video sites",
+    "subtitle": "Videos, Shorts, playlists and channels from YouTube, Vimeo, Bilibili, SoundCloud and many more. Pick the quality, or just the audio.",
+    "linkLabel": "Video, playlist or channel link",
+    "check": "Check link",
+    "needLink": "Paste a link first.",
+    "notMedia": "That link isn't a video site. Use the Home page for direct file links.",
+    "cookiesHint": "Signed in to a site with your own account? <link>Add your cookies.txt in Settings</link> so downloads work the same as in your browser.",
+    "legal": "Only download your own videos, Creative Commons or other content you are allowed to save. Members-only, paid, DRM and region-blocked videos are never bypassed.",
+    "quality": "Quality",
+    "best": "Best",
+    "audioOnly": "Audio only",
+    "audioFormat": "Audio format",
+    "container": "File type",
+    "exactFormat": "Exact format",
+    "automatic": "Automatic",
+    "subtitles": "Subtitles",
+    "autoCaptions": "{count, plural, one {# automatic caption language} other {# automatic caption languages}}",
+    "subtitlesMode": "How to save subtitles",
+    "subtitlesSrt": "Separate .srt files",
+    "subtitlesEmbed": "Inside the video",
+    "extras": "Extras",
+    "embedThumbnail": "Add the thumbnail as cover",
+    "embedMetadata": "Add title, artist and date",
+    "chapters": "Keep chapters",
+    "chaptersCount": "{count, plural, one {Keep # chapter} other {Keep # chapters}}",
+    "infoJson": "Also save info.json",
+    "duration": "{time}",
+    "short": "Short",
+    "savedBefore": "Saved before",
+    "liveNow": "Live",
+    "downloadVideo": "Download video",
+    "downloadAudio": "Download audio",
+    "skippedSaved": "{count, plural, one {# item was saved before and skipped} other {# items were saved before and skipped}}",
+    "channel": "Channel",
+    "playlist": "Playlist",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "tabs": "Channel section",
+    "tab": {
+      "videos": "Videos",
+      "shorts": "Shorts",
+      "streams": "Live"
+    },
+    "dateAfter": "Uploaded after",
+    "dateBefore": "Uploaded before",
+    "firstN": "First",
+    "dateHint": "Items outside these dates are skipped when they download.",
+    "selectAll": "{count, plural, one {Select # item} other {Select all # items}}",
+    "items": "Items",
+    "downloadSelected": "{count, plural, =0 {Choose items to download} one {Download # item} other {Download # items}}",
+    "selectedCount": "{count, plural, one {# of {total} selected} other {# of {total} selected}}",
+    "listInPreview": "{count, plural, one {This list has # item.} other {This list has # items.}} Choose which ones to download on the YouTube page.",
+    "chooseVideos": "Choose videos"
+  },
+  "Settings": {
+    "title": "Settings",
+    "subtitle": "More settings arrive in a later version.",
+    "cookiesTitle": "Cookies for sites you are signed in to",
+    "cookiesHelp": "Export cookies.txt (Netscape format) from your own browser with a cookies extension, then upload it here. yt-dlp then sees what your account can see, such as age-checked videos.",
+    "cookiesLegal": "Use only your own account. The file stays on this computer, is readable only by AnyGet, and is never shown again.",
+    "cookiesPresent": "{count, plural, one {A cookies file with # cookie is saved} other {A cookies file with # cookies is saved}} ({date}).",
+    "cookiesNone": "No cookies file saved.",
+    "cookiesUpload": "Upload cookies.txt",
+    "cookiesReplace": "Replace cookies.txt",
+    "cookiesRemove": "Remove",
+    "cookiesSaved": "Cookies saved",
+    "cookiesRemoved": "Cookies removed",
+    "cookiesTooBig": "That file is too big (max 1 MB)."
   }
 }

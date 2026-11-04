@@ -16,7 +16,13 @@ from anyget.core.jobs import ACTIVE_STATES, Job, JobOut, JobState, JobStore
 from anyget.core.net import BlockedURLError, HostLimiter
 from anyget.core.router import Router
 from anyget.core.settings import Settings
-from anyget.handlers.base import HandlerError, JobContext, Progress, part_path
+from anyget.handlers.base import (
+    HandlerError,
+    JobContext,
+    Progress,
+    partial_size,
+    remove_partials,
+)
 
 log = logging.getLogger(__name__)
 
@@ -86,7 +92,7 @@ class DownloadQueue:
         if job.state not in (*ACTIVE_STATES, JobState.paused, JobState.failed):
             raise InvalidStateError(f"cannot cancel a {job.state} job")
         job = await self._halt(job_id, JobState.canceled)
-        part_path(self.output_dir, job_id).unlink(missing_ok=True)
+        remove_partials(self.output_dir, job_id)
         return job
 
     def resume(self, job_id: str) -> Job:
@@ -108,10 +114,12 @@ class DownloadQueue:
         job = self._require(job_id)
         if job_id in self._tasks:
             await self._halt(job_id, JobState.canceled)
-        part_path(self.output_dir, job_id).unlink(missing_ok=True)
-        if delete_file and job.rel_path:
-            with contextlib.suppress(UnsafePathError, FileNotFoundError):
-                ensure_inside(self.output_dir, self.output_dir / job.rel_path).unlink()
+        remove_partials(self.output_dir, job_id)
+        if delete_file:
+            for rel in [job.rel_path, *(job.files or [])]:
+                if rel:
+                    with contextlib.suppress(UnsafePathError, FileNotFoundError):
+                        ensure_inside(self.output_dir, self.output_dir / rel).unlink()
         self.store.delete(job_id)
         self.bus.publish({"type": "job.deleted", "job": {"id": job_id}})
 
@@ -150,10 +158,10 @@ class DownloadQueue:
             with contextlib.suppress(asyncio.CancelledError):
                 await task
         self._stop_as.pop(job_id, None)
-        part = part_path(self.output_dir, job_id)
         changes: dict[str, Any] = {"state": state, "speed": None}
-        if part.exists():
-            changes["downloaded"] = part.stat().st_size
+        size = partial_size(self.output_dir, job_id)
+        if size is not None:
+            changes["downloaded"] = size
         return self._update(job_id, **changes)
 
     async def _run(self, job_id: str) -> None:
@@ -183,7 +191,7 @@ class DownloadQueue:
             self._update(job_id, state=JobState.failed, error=str(exc), error_code="internal")
 
     async def _download(self, job: Job) -> None:
-        self._update(job.id, state=JobState.probing, error=None, error_code=None)
+        self._update(job.id, state=JobState.probing, error=None, error_code=None, note=None)
         url, handler = await self.router.resolve(job.url)
         probe = await handler.probe(url)
         job = self._update(
@@ -200,17 +208,23 @@ class DownloadQueue:
         options = {**job.options, "probe": probe.model_dump(mode="json")}
         result = await handler.download(context, options, tracker)
 
+        if not result.paths:  # nothing new saved, e.g. already in the download archive
+            self._update(job.id, state=JobState.done, speed=None, note=result.note)
+            return
+        root = self.output_dir.resolve()
         final = result.paths[0]
         size = final.stat().st_size
         self._update(
             job.id,
             state=JobState.done,
-            rel_path=final.relative_to(self.output_dir.resolve()).as_posix(),
+            rel_path=final.relative_to(root).as_posix(),
+            files=[p.relative_to(root).as_posix() for p in result.paths[1:]] or None,
             filename=final.name,
             downloaded=size,
             total=size,
             speed=None,
             checksum_ok=result.checksum_ok,
+            note=result.note,
         )
 
 
@@ -232,6 +246,8 @@ class _ProgressTracker:
         speed = (progress.downloaded - first_b) / (now - first_t) if now > first_t else None
 
         self.job.downloaded = progress.downloaded
+        if progress.message is not None:
+            self.job.note = progress.message
         self.job.total = progress.total if progress.total is not None else self.job.total
         self.job.speed = speed
         # Fresh timestamp so clients never mistake live progress for a stale copy.
@@ -242,5 +258,9 @@ class _ProgressTracker:
         if now - self._last_db >= DB_INTERVAL:
             self._last_db = now
             self.queue.store.update(
-                self.job.id, downloaded=self.job.downloaded, total=self.job.total, speed=speed
+                self.job.id,
+                downloaded=self.job.downloaded,
+                total=self.job.total,
+                speed=speed,
+                note=self.job.note,
             )

@@ -12,6 +12,17 @@ const KNOWN = new Set([
   "checksum",
   "incomplete",
   "unsafe_path",
+  "drm",
+  "members_only",
+  "paid",
+  "private",
+  "age_restricted",
+  "login_required",
+  "bot_check",
+  "geo_blocked",
+  "live_not_finished",
+  "unavailable",
+  "invalid_cookies",
 ]);
 
 type ErrorsT = ReturnType<typeof useTranslations<"Errors">>;

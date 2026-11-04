@@ -5,6 +5,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (Phase 4 — YouTube and media)
+- yt-dlp handler (YouTube, Vimeo, Bilibili, SoundCloud and 1,800+ sites) running in a worker thread: probe with normalized formats, quality presets (best, 2160–360, audio), mp4/mkv/webm, mp3/m4a/opus at best quality, embedded thumbnail, metadata and chapters, subtitles (manual and auto, srt or embedded), optional info.json, live progress over SSE, pause/cancel.
+- Playlists and channels (Videos, Shorts, Live tabs) with flat probing, item selection, date range and first-N, numbered files in a folder, per-source download archive so saved items are skipped.
+- Clear reasons for DRM, members-only, paid, private, age-restricted, sign-in, bot-check, region-blocked, unfinished live and removed videos. Nothing is bypassed.
+- Private-network guard for yt-dlp's own connections (all handlers, connect time) and for ffmpeg inputs; geo bypass forced off.
+- Optional cookies.txt in Settings (0600, never returned or logged).
+- `/api/health` reports yt-dlp, yt-dlp-ejs, Deno and ffmpeg versions.
+- Website: YouTube page (video card with format picker, playlist/channel table with select all, Shorts grid, tabs), the same picker in the Home preview drawer, Settings page, YouTube nav item; en/hi/ar strings.
+- CLI: `anyget get URL -q 720` / `-x mp3`; playlists expand into numbered items.
+- Docker `test` image + `make live`; manual "Live tests" GitHub workflow.
+
+### Changed
+- `POST /api/jobs` accepts `items` (each with its own options) and returns `skipped`; `POST /api/probe` accepts `options`.
+- Jobs gain `note` and `files`; old databases are migrated automatically.
+- `Button` no longer supports `asChild` (smaller first-load JS).
+- Finished-download toasts that arrive together are grouped ("Downloaded 3 files").
+
 ### Added
 - Phase 0: `CLAUDE.md` project memory, `docs/plan.md`, `docs/setup.md`, phase prompts 0–10.
 - Phase 1: monorepo skeleton — pnpm + Turborepo workspace, FastAPI `anyget` package with `/api/health` and `/api/version`, handler contract, Typer CLI, Next.js 16 web app (Tailwind 4 tokens, shadcn/ui, next-intl en/hi/ar with RTL, TanStack Query), `@anyget/shared` typed client generated from OpenAPI, Dockerfiles, Docker Compose with healthchecks on 127.0.0.1, Cloudflare Tunnel compose stub, Makefile, pre-commit, GitHub Actions CI.

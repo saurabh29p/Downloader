@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from anyget import __version__
 from anyget.api import jobs, probe, system
+from anyget.api import settings as settings_api
 from anyget.core.filenames import UnsafePathError
 from anyget.core.net import BlockedURLError
 from anyget.core.queue import InvalidStateError, JobNotFoundError
@@ -68,7 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=exc.status_code, content=exc.detail)
         return _error(exc.status_code, "error", str(exc.detail))
 
-    for module in (system, probe, jobs):
+    for module in (system, probe, jobs, settings_api):
         app.include_router(module.router, prefix="/api")
     return app
 

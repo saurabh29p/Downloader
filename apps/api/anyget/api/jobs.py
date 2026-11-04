@@ -1,10 +1,11 @@
 """Job endpoints: create (single or batch), list, control, delete, fetch the file."""
 
+import re
 from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from anyget.api.deps import ERROR_RESPONSES, ServicesDep
 from anyget.core.events import sse_stream
@@ -12,15 +13,32 @@ from anyget.core.filenames import UnsafePathError, ensure_inside
 from anyget.core.jobs import JobOut, JobState
 from anyget.core.net import BlockedURLError
 from anyget.core.router import normalize
+from anyget.handlers.ytdlp_support.archive import archive_path, contains
 
 router = APIRouter(tags=["jobs"])
 
 SSE_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
 
 
-class CreateJobs(BaseModel):
-    urls: list[str] = Field(min_length=1, max_length=500)
+class JobItem(BaseModel):
+    """One link with its own options (e.g. a playlist entry with its index)."""
+
+    url: str = Field(min_length=1, max_length=8192)
     options: dict[str, Any] = Field(default_factory=dict)
+
+
+class CreateJobs(BaseModel):
+    """Either `urls` (all share `options`) or `items` (each has its own), or both."""
+
+    urls: list[str] = Field(default_factory=list, max_length=500)
+    items: list[JobItem] = Field(default_factory=list, max_length=1000)
+    options: dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _not_empty(self) -> "CreateJobs":
+        if not self.urls and not self.items:
+            raise ValueError("give at least one url or item")
+        return self
 
 
 class RejectedUrl(BaseModel):
@@ -32,6 +50,8 @@ class RejectedUrl(BaseModel):
 class CreateJobsResult(BaseModel):
     jobs: list[JobOut]
     rejected: list[RejectedUrl]
+    # Items already in their download archive (saved before), not queued again.
+    skipped: list[RejectedUrl] = Field(default_factory=list)
 
 
 def _not_found() -> HTTPException:
@@ -47,8 +67,12 @@ def _not_found() -> HTTPException:
 async def create_jobs(body: CreateJobs, services: ServicesDep) -> CreateJobsResult:
     jobs: list[JobOut] = []
     rejected: list[RejectedUrl] = []
+    skipped: list[RejectedUrl] = []
     seen: set[str] = set()
-    for raw in body.urls:
+    pending = [(raw, body.options) for raw in body.urls] + [
+        (item.url, {**body.options, **item.options}) for item in body.items
+    ]
+    for raw, options in pending:
         if not raw.strip():
             continue
         try:
@@ -61,9 +85,24 @@ async def create_jobs(body: CreateJobs, services: ServicesDep) -> CreateJobsResu
         if url in seen:
             continue
         seen.add(url)
-        job = services.queue.submit(url, body.options)
+        if _already_saved(services, options):
+            skipped.append(
+                RejectedUrl(url=raw, code="already_downloaded", message="saved before; skipped")
+            )
+            continue
+        job = services.queue.submit(url, options)
         jobs.append(JobOut.model_validate(job))
-    return CreateJobsResult(jobs=jobs, rejected=rejected)
+    return CreateJobsResult(jobs=jobs, rejected=rejected, skipped=skipped)
+
+
+def _already_saved(services: Any, options: dict[str, Any]) -> bool:
+    """True if a media item's archive id is already in its download archive."""
+    key, entry = options.get("archive"), options.get("archive_id")
+    if not isinstance(key, str) or not isinstance(entry, str):
+        return False
+    if not re.fullmatch(r"[\w.-]{1,160}", key):
+        return False
+    return contains(archive_path(services.settings.data_dir, key), entry)
 
 
 @router.get("/jobs", operation_id="listJobs")

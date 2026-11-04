@@ -7,7 +7,7 @@ export PUID ?= $(shell id -u)
 export PGID ?= $(shell id -g)
 
 .DEFAULT_GOAL := help
-.PHONY: help setup dev dev-api dev-web gen gen-check lint format typecheck test check e2e build up down logs ps up-public
+.PHONY: help setup dev dev-api dev-web gen gen-api gen-check lint format typecheck test check e2e live build up down logs ps up-public
 
 help: ## Show this help
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -28,6 +28,8 @@ dev-web:
 
 gen: ## Regenerate packages/shared from the API OpenAPI schema
 	pnpm gen
+
+gen-api: gen ## Same as `make gen`
 
 gen-check: gen ## Fail if the generated client is out of date
 	git diff --exit-code -- packages/shared
@@ -53,6 +55,9 @@ check: lint typecheck test ## lint + typecheck + test
 
 e2e: ## Playwright + axe (starts api and web itself)
 	pnpm e2e
+
+live: ## Live network tests (YouTube, Vimeo) in the Docker test image with ffmpeg + Deno
+	docker compose --profile test run --rm --build api-test
 
 build: ## Build Docker images
 	docker compose build

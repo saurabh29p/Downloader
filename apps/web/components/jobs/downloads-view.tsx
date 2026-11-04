@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 
 import { JobRow } from "@/components/jobs/job-row";
 import { useConnection } from "@/components/shell/job-events-bridge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
 import { matchesFilter, type JobFilter } from "@/lib/jobs";
@@ -88,9 +88,9 @@ export function DownloadsView() {
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
           <InboxIcon className="size-8 text-muted-foreground" aria-hidden="true" />
           <p className="text-muted-foreground">{t(`empty.${filter}`)}</p>
-          <Button asChild variant="outline">
-            <Link href="/">{t("emptyAction")}</Link>
-          </Button>
+          <Link href="/" className={buttonVariants({ variant: "outline" })}>
+            {t("emptyAction")}
+          </Link>
         </div>
       ) : (
         <ul className="flex flex-col gap-2" aria-label={t(`filters.${filter}`)}>

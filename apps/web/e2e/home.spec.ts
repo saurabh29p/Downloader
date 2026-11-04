@@ -11,7 +11,9 @@ test("root redirects to English and shows the API as online", async ({ page }) =
 test("API rewrite proxies /api/health", async ({ request }) => {
   const response = await request.get("/api/health");
   expect(response.ok()).toBeTruthy();
-  expect(await response.json()).toEqual({ status: "ok" });
+  const body = await response.json();
+  expect(body.status).toBe("ok");
+  expect(body.components).toHaveProperty("yt_dlp");
 });
 
 test("Arabic page is right-to-left", async ({ page }) => {

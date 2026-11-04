@@ -62,7 +62,8 @@ export function PasteBox() {
   });
 
   const queueMutation = useMutation({
-    mutationFn: (urls: string[]) => createJobs(urls),
+    mutationFn: ({ urls, options }: { urls: string[]; options?: Record<string, unknown> }) =>
+      createJobs(urls, options),
     onSuccess: (result) => {
       void queryClient.invalidateQueries({ queryKey: JOBS_KEY });
       if (result.jobs.length > 0) toast.success(tJobs("added", { count: result.jobs.length }));
@@ -87,7 +88,7 @@ export function PasteBox() {
       return;
     }
     if (links.length === 1) probeMutation.mutate(links[0]!);
-    else queueMutation.mutate(links);
+    else queueMutation.mutate({ urls: links });
   }
 
   function addText(value: string) {
@@ -221,7 +222,7 @@ export function PasteBox() {
           open={sheetOpen}
           onOpenChange={setSheetOpen}
           pending={queueMutation.isPending}
-          onDownload={() => queueMutation.mutate([probe.normalized_url])}
+          onDownload={(options) => queueMutation.mutate({ urls: [probe.normalized_url], options })}
         />
       )}
     </>

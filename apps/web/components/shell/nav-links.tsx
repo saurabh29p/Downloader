@@ -1,6 +1,6 @@
 "use client";
 
-import { DownloadIcon, HomeIcon } from "lucide-react";
+import { ClapperboardIcon, DownloadIcon, HomeIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Link, usePathname } from "@/i18n/navigation";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/", key: "home", icon: HomeIcon },
+  { href: "/youtube", key: "youtube", icon: ClapperboardIcon },
   { href: "/downloads", key: "downloads", icon: DownloadIcon },
 ] as const;
 
@@ -65,7 +66,7 @@ export function BottomNav() {
       aria-label={t("label")}
       className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
     >
-      <ul className="grid h-(--bottom-nav-height) grid-cols-2">
+      <ul className="grid h-(--bottom-nav-height) grid-cols-3">
         {items.map(({ href, key, icon: Icon }) => {
           const current = pathname === href;
           return (

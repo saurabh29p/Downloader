@@ -1,11 +1,13 @@
 from pathlib import Path
 
 import httpx
+import pytest
 import respx
 from typer.testing import CliRunner
 
 from anyget import __version__
 from anyget.cli.main import app
+from anyget.core.settings import Settings
 
 runner = CliRunner()
 DATA = b"x" * 5000
@@ -73,3 +75,41 @@ def test_probe_command(env_settings: Path) -> None:
     result = runner.invoke(app, ["probe", "https://files.test/a.bin"])
     assert result.exit_code == 0
     assert "5,000 bytes" in result.stdout
+
+
+async def test_playlist_expands_into_numbered_items(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from anyget.cli.main import _plan
+    from anyget.core.services import Services
+    from anyget.handlers.base import Probe
+    from anyget.handlers.ytdlp import YtDlpHandler
+
+    entries = [
+        {"index": 1, "url": "https://www.youtube.com/watch?v=a1", "archive_id": "youtube a1"},
+        {
+            "index": 2,
+            "url": "https://www.youtube.com/watch?v=a2",
+            "archive_id": "youtube a2",
+            "saved": True,
+        },
+        {"index": 3, "url": "https://www.youtube.com/watch?v=a3", "archive_id": "youtube a3"},
+    ]
+
+    async def fake_probe(self: YtDlpHandler, url: str, options: object = None) -> Probe:
+        extra = {"kind": "playlist", "entries": entries, "archive": "youtubetab-PL", "id": "PL"}
+        return Probe(url=url, handler="ytdlp", title="Open / Movies", extra=extra)
+
+    monkeypatch.setattr(YtDlpHandler, "probe", fake_probe)
+    services = Services.build(settings)
+    plan = await _plan(services, "https://www.youtube.com/playlist?list=PL", {"preset": "720"})
+    await services.stop()
+    assert [url for url, _ in plan] == [entries[0]["url"], entries[2]["url"]]  # saved one skipped
+    first = plan[0][1]
+    assert first == {
+        "preset": "720",
+        "folder": "Open _ Movies",
+        "index": 1,
+        "archive": "youtubetab-PL",
+        "archive_id": "youtube a1",
+    }

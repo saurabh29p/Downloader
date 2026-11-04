@@ -10,8 +10,9 @@ Read this file at the start of every session. The full research doc lives in `do
 - [x] Phase 1 — monorepo skeleton
 - [x] Phase 2 — core and security
 - [x] Phase 3 — website foundation
-- [ ] Phase 4 — YouTube and media (next)
-- [ ] Phases 5–10 — see roadmap below
+- [x] Phase 4 — YouTube and media (PR open for review)
+- [ ] Phase 5 — archive.org and Wayback (next)
+- [ ] Phases 6–10 — see roadmap below
 
 Update this checklist at the end of every phase.
 
@@ -93,6 +94,9 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `make up-public` | Compose + Cloudflare Tunnel |
 | `uv run anyget get URL… [-i list.txt]` | download in-process with progress bars; Ctrl+C pauses, rerun resumes |
 | `uv run anyget probe URL` / `anyget jobs` | inspect a link / list jobs |
+| `uv run anyget get URL -q 720` / `-x mp3` | video at a quality / audio only; playlists expand into numbered items |
+| `make live` | live network tests (YouTube, Vimeo) in the Docker `test` image with ffmpeg + Deno; also the manual "Live tests" GitHub workflow |
+| `make gen-api` | alias of `make gen` |
 
 ## Architecture rules
 
@@ -193,8 +197,21 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Tests fake DNS (`tests/conftest.py::fake_dns`): every host resolves to a public IP unless a test sets it. Use `respx` for HTTP.
 - Stream bodies with `response.aiter_bytes()` (no chunk size) so data reaches disk before a dropped connection; buffered chunks are lost.
 
+### Media (yt-dlp) gotchas
+- `handlers/ytdlp.py` + `handlers/ytdlp_support/` (formats, options, errors, archive). yt-dlp runs in a worker thread; progress hooks raise `DownloadCancelled` when the job is paused/canceled, and the coroutine waits for the thread to stop.
+- Safety params live in `ytdlp_support/options.SAFETY_PARAMS` and must never be user-controlled: `geo_bypass: False` (yt-dlp's default fakes X-Forwarded-For), no unplayable/DRM formats, `external_downloader: {"default": "native"}` so ffmpeg never fetches URLs.
+- yt-dlp's sockets are guarded by `core/net_guard.py` (patches yt-dlp's `create_connection` everywhere it is referenced, plus urllib3's; checks ffmpeg inputs). `tests/test_net_guard.py` proves it with real yt-dlp; rerun it after every yt-dlp upgrade.
+- The probe's raw info is cached for 10 minutes so the download does not extract twice (re-extracted when cookies are used).
+- Per-source download archives: `data/archives/<extractor>-<source id>.txt`; single videos share `<extractor>-videos.txt`. Playlist items are queued one job each with `folder`, `index`, `archive`, `archive_id`; `POST /api/jobs` returns already-saved items in `skipped`.
+- Unavailable reasons are mapped in `ytdlp_support/errors.py` (fixtures: `tests/fixtures/ytdlp/errors.json`). New codes need a translation in `Errors` and an entry in `lib/errors.ts`.
+- Cookies: `data/cookies.txt` (0600), never returned or logged; copied per job into the job's temp folder and deleted afterwards.
+- New job columns (`note`, `files`) are added to old databases by `Database._add_missing_columns` (nullable additions only).
+- Tests fake DNS for both resolvers (`resolve_host`, `resolve_host_sync`); tests marked `live` use real DNS.
+
 ### Frontend gotchas
-- First-load JS is at the 170 KB budget (≈169.6 KB on Home). `e2e/budget.spec.ts` fails CI if it goes over: lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet and command palette).
+- First-load JS is at the 170 KB budget (Home ≈169.0 KB, Downloads ≈168.1, YouTube ≈166.5, Settings ≈165.7). `e2e/budget.spec.ts` checks all four and fails CI if one goes over: lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, format picker, video card and playlist view).
+- `Button` has no `asChild` (Radix Slot was dropped to save bytes): style links with `buttonVariants()`.
+- Media pills (`components/media/choice.tsx`) are native radios/checkboxes hidden inside labels; in Playwright click the label (`pick()` in `e2e/youtube.spec.ts`), not the input.
 - No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).
 - Toasts are our own (`lib/toast.ts` + `components/ui/toaster.tsx`), not sonner. Language and theme use styled native `<select>` (`components/ui/native-select.tsx`), not Radix menus.
 - next-intl messages are precompiled at build time (`next.config.ts`); ICU plurals need all Arabic forms (zero, one, two, few, many, other).
