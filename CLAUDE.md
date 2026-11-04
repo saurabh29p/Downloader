@@ -7,9 +7,11 @@ Read this file at the start of every session. The full research doc lives in `do
 ## Current status
 
 - [x] Phase 0 — prerequisites, CLAUDE.md
-- [ ] Phase 1 — monorepo skeleton (next)
-- [ ] Phase 2 — core and security
-- [ ] Phases 3–10 — see roadmap below
+- [x] Phase 1 — monorepo skeleton
+- [x] Phase 2 — core and security
+- [x] Phase 3 — website foundation
+- [ ] Phase 4 — YouTube and media (next)
+- [ ] Phases 5–10 — see roadmap below
 
 Update this checklist at the end of every phase.
 
@@ -85,9 +87,12 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `make gen` | regenerate `packages/shared` from the API's OpenAPI schema |
 | `make lint` / `make typecheck` / `make test` | ruff+eslint+prettier / mypy+tsc / pytest+vitest |
 | `make check` | lint + typecheck + test (run before every commit) |
-| `make e2e` | Playwright end-to-end + axe against local servers |
+| `make e2e` | Playwright end-to-end + axe (starts a fixture file server on :8200, api on :8100, production web build on :3100) |
+| `pnpm --filter @anyget/web lighthouse <url>` | Lighthouse budgets against a running production build (`CHROME_PATH` for the browser) |
 | `make up` / `make down` / `make logs` | Docker Compose |
 | `make up-public` | Compose + Cloudflare Tunnel |
+| `uv run anyget get URL… [-i list.txt]` | download in-process with progress bars; Ctrl+C pauses, rerun resumes |
+| `uv run anyget probe URL` / `anyget jobs` | inspect a link / list jobs |
 
 ## Architecture rules
 
@@ -114,7 +119,9 @@ Adding a new site = adding one handler file and registering it. Plugins (phase 9
 10. Fallback: HEAD/GET. File Content-Type → http_generic. HTML → webpage (save HTML/PDF, list media/doc links to pick).
 
 ### Jobs and queue
-- SQLite (SQLModel) at `./data/anyget.db`. States: `queued → probing → downloading → done | failed`, plus `paused`.
+- SQLite (SQLModel) at `./data/anyget.db`. States: `queued → probing → downloading → done | failed`, plus `paused` and `canceled`.
+- Code: `core/jobs.py` (table + `JobStore`), `core/queue.py` (`DownloadQueue`), `core/events.py` (bus + SSE), `core/services.py` (wires everything; used by the API lifespan and the CLI).
+- Partial files are `.anyget-<job id>.part` in the downloads folder (`handlers.base.part_path`), so a paused or interrupted job resumes after restarts.
 - asyncio worker pool: global limit 3 (setting), per-host limits (archive.org 2).
 - Progress via Server-Sent Events. Resume via HTTP Range into `.part` files; yt-dlp continues partial files.
 - Verify md5/sha1 when the source gives one. Dedupe by hash or source ID.
@@ -171,6 +178,30 @@ Personal use only. Download only what the user owns, what is public domain or op
 | 8 Library, watch, settings | Daily-use app | offline library with previews, tags, dedupe, schedules, clipboard, settings, Help and Legal | previews work; watch only queues new items |
 | 9 PWA, extension, plugins | Phone and browser | PWA share target, Termux doc, browser extension, plugin system, optional torrent | share opens preview; example plugin loads |
 | 10 Deploy and release | Worldwide access | cloudflared service, Access JWT check, deploy + Tailscale docs, backups, v1.0.0 | `https://dl.<domain>` opens after email code |
+
+## Gotchas
+- `API_URL` is read when the web app is **built** (Next.js rewrites are baked in). Compose builds with `http://api:8000`; local dev uses `http://127.0.0.1:8000`.
+- Next.js 16 uses `proxy.ts` (formerly `middleware.ts`) for next-intl locale routing. Keep `api` and `healthz` excluded from its matcher.
+- `/healthz` on web is liveness only; `/api/health` goes through the rewrite to FastAPI.
+- If Playwright's bundled Chromium is missing, set `PW_CHROMIUM_PATH=/path/to/chrome`.
+- Vitest 5: when mocking a module function that must reject, use a plain async function instead of `vi.fn().mockRejectedValue` (the latter fails the test).
+
+- All outgoing HTTP goes through `core/net.Net` (never a bare `httpx` client): it re-checks every redirect hop and its connection pool refuses private IPs at connect time (`GuardedBackend`). Legacy IPv4 forms (`2130706433`, `0x7f.1`) are treated as IPs.
+- `ANYGET_NET_ALLOWLIST=host:port,…` lets tests/e2e reach local fixture servers. Never set it in normal use.
+- The API container starts as root only to match `PUID`/`PGID` (default 1000; `make up` passes your ids) and make `/data` and `/downloads` writable, then drops to the `anyget` user (`apps/api/docker-entrypoint.sh`). Without it, Docker-created bind-mount folders are root-owned and SQLite cannot open.
+- `ANYGET_PROXY` is the only proxy used (env `HTTP(S)_PROXY` is ignored on purpose). With a proxy, only the pre-flight DNS check runs.
+- Tests fake DNS (`tests/conftest.py::fake_dns`): every host resolves to a public IP unless a test sets it. Use `respx` for HTTP.
+- Stream bodies with `response.aiter_bytes()` (no chunk size) so data reaches disk before a dropped connection; buffered chunks are lost.
+
+### Frontend gotchas
+- First-load JS is at the 170 KB budget (≈169.6 KB on Home). `e2e/budget.spec.ts` fails CI if it goes over: lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet and command palette).
+- No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).
+- Toasts are our own (`lib/toast.ts` + `components/ui/toaster.tsx`), not sonner. Language and theme use styled native `<select>` (`components/ui/native-select.tsx`), not Radix menus.
+- next-intl messages are precompiled at build time (`next.config.ts`); ICU plurals need all Arabic forms (zero, one, two, few, many, other).
+- RTL: wrap LTR values (sizes, speeds, hosts) with `isolate()` from `lib/format.ts`; don't rely on `<bdi>` auto-direction for strings that mix Arabic with numbers (Chrome resolves them as LTR).
+- Live updates: one EventSource in `JobEventsBridge` writes into the TanStack Query `["jobs"]` cache; refetches are merged by `updated_at` (`mergeJobs`) so they never undo a newer live event.
+- The shadcn registry may be unreachable from sandboxes; components in `components/ui` are written by hand in shadcn style.
+- E2E downloads come from `e2e/fixture-server.mjs` (Range, Content-MD5, `?slow=1`), reachable because Playwright starts the API with `ANYGET_NET_ALLOWLIST=127.0.0.1:8200`.
 
 ## Working agreement for each phase
 1. Read this file and `prompts/phase-NN-*.md`.

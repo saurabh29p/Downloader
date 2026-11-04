@@ -1,0 +1,142 @@
+{
+  "Meta": {
+    "title": "AnyGet",
+    "description": "Paste any public link, get the file."
+  },
+  "Shell": {
+    "skip": "Skip to content",
+    "legal": "Personal use only. Download what you own, what is public domain or openly licensed, or what the site allows.",
+    "nav": {
+      "label": "Main",
+      "home": "Home",
+      "downloads": "Downloads",
+      "activeCount": "{count, plural, one {# active download} other {# active downloads}}"
+    },
+    "theme": {
+      "label": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "closeToast": "Dismiss"
+  },
+  "Nav": {
+    "language": "Language"
+  },
+  "Home": {
+    "title": "Paste any link, get the file",
+    "subtitle": "Direct file links work today. Videos, archive.org, books and more are coming.",
+    "pasteLabel": "Links to download",
+    "pasteHint": "One link, or many (one per line). You can also drop a .txt file here.",
+    "linkCount": "{count, plural, one {# link} other {# links}}",
+    "notALink": "That doesn't look like a link. Try something like https://example.com/file.pdf",
+    "noLinks": "Paste a link first.",
+    "clipboardDenied": "The browser didn't allow reading the clipboard. Paste with Ctrl+V instead.",
+    "fileTooBig": "That file is too big. Use a .txt list under 2 MB.",
+    "queueMany": "{count, plural, one {Queue # link} other {Queue # links}}",
+    "check": "Check link",
+    "pasteButton": "Paste",
+    "openFile": "Open .txt list",
+    "recent": "Recent downloads",
+    "viewAll": "View all",
+    "noRecent": "Nothing downloaded yet. Paste a link above to start.",
+    "statusHeading": "Server status"
+  },
+  "Preview": {
+    "handlers": {
+      "http": "Direct file"
+    },
+    "size": "Size",
+    "unknown": "Unknown",
+    "type": "Type",
+    "resumable": "Can resume",
+    "yes": "Yes",
+    "no": "No",
+    "checksum": "Checksum",
+    "checksumWillVerify": "{algos} will be checked after download",
+    "source": "Link",
+    "cancel": "Cancel",
+    "download": "Download",
+    "close": "Close"
+  },
+  "Jobs": {
+    "added": "{count, plural, one {Added # download} other {Added # downloads}}",
+    "rejected": "{count, plural, one {# link was skipped} other {# links were skipped}}",
+    "finished": "Downloaded {name}",
+    "failedToast": "Download failed: {name}",
+    "states": {
+      "queued": "Waiting",
+      "probing": "Checking",
+      "downloading": "Downloading",
+      "paused": "Paused",
+      "done": "Done",
+      "failed": "Failed",
+      "canceled": "Canceled"
+    },
+    "checksumOk": "Checksum OK",
+    "progress": "{done} of {total}",
+    "speed": "{speed}/s",
+    "eta": "{time} left",
+    "progressLabel": "Progress of {name}",
+    "actions": {
+      "save": "Save file",
+      "pause": "Pause",
+      "resume": "Resume",
+      "retry": "Try again",
+      "cancel": "Cancel",
+      "remove": "Remove from list"
+    }
+  },
+  "Errors": {
+    "blocked_url": "This link points to a private or local network address, or isn't http(s), so it can't be downloaded.",
+    "unsupported": "This link isn't supported yet. Web pages and video sites come in later versions.",
+    "not_found": "The server says this file doesn't exist.",
+    "upstream": "The other server returned an error. Try again later.",
+    "network": "Couldn't reach the server. Check your connection and try again.",
+    "invalid_state": "That action isn't possible right now.",
+    "checksum": "The file was damaged in transfer (checksum mismatch). Try again.",
+    "incomplete": "The download stopped before the end. Try again to resume.",
+    "unsafe_path": "The file name wasn't safe to save.",
+    "generic": "Something went wrong. Try again."
+  },
+  "Downloads": {
+    "title": "Downloads",
+    "subtitle": "Everything you've queued, with live progress.",
+    "live": "Live",
+    "reconnecting": "Reconnecting…",
+    "filtersLabel": "Show",
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "done": "Done",
+      "failed": "Failed"
+    },
+    "loadError": "Couldn't load your downloads.",
+    "retry": "Try again",
+    "empty": {
+      "all": "No downloads yet.",
+      "active": "Nothing is downloading right now.",
+      "done": "No finished downloads yet.",
+      "failed": "No failed downloads. Nice."
+    },
+    "emptyAction": "Paste a link"
+  },
+  "Command": {
+    "title": "Quick menu",
+    "placeholder": "Type a command…",
+    "empty": "No matches.",
+    "pages": "Go to",
+    "goHome": "Home",
+    "goDownloads": "Downloads",
+    "theme": "Theme",
+    "themeLight": "Light theme",
+    "themeDark": "Dark theme",
+    "themeSystem": "System theme"
+  },
+  "Status": {
+    "checking": "Checking the server…",
+    "online": "Server online",
+    "offline": "Server offline",
+    "retry": "Try again"
+  }
+}

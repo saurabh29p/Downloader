@@ -1,0 +1,161 @@
+"""Job endpoints: create (single or batch), list, control, delete, fetch the file."""
+
+from typing import Annotated, Any
+
+from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi.responses import FileResponse, StreamingResponse
+from pydantic import BaseModel, Field
+
+from anyget.api.deps import ERROR_RESPONSES, ServicesDep
+from anyget.core.events import sse_stream
+from anyget.core.filenames import UnsafePathError, ensure_inside
+from anyget.core.jobs import JobOut, JobState
+from anyget.core.net import BlockedURLError
+from anyget.core.router import normalize
+
+router = APIRouter(tags=["jobs"])
+
+SSE_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
+
+
+class CreateJobs(BaseModel):
+    urls: list[str] = Field(min_length=1, max_length=500)
+    options: dict[str, Any] = Field(default_factory=dict)
+
+
+class RejectedUrl(BaseModel):
+    url: str
+    code: str
+    message: str
+
+
+class CreateJobsResult(BaseModel):
+    jobs: list[JobOut]
+    rejected: list[RejectedUrl]
+
+
+def _not_found() -> HTTPException:
+    return HTTPException(status.HTTP_404_NOT_FOUND, {"code": "not_found", "message": "no such job"})
+
+
+@router.post(
+    "/jobs",
+    operation_id="createJobs",
+    status_code=status.HTTP_201_CREATED,
+    responses=ERROR_RESPONSES,
+)
+async def create_jobs(body: CreateJobs, services: ServicesDep) -> CreateJobsResult:
+    jobs: list[JobOut] = []
+    rejected: list[RejectedUrl] = []
+    seen: set[str] = set()
+    for raw in body.urls:
+        if not raw.strip():
+            continue
+        try:
+            url = normalize(raw)
+            if not url.startswith("magnet:"):
+                await services.net.check(url)
+        except BlockedURLError as exc:
+            rejected.append(RejectedUrl(url=raw, code="blocked_url", message=str(exc)))
+            continue
+        if url in seen:
+            continue
+        seen.add(url)
+        job = services.queue.submit(url, body.options)
+        jobs.append(JobOut.model_validate(job))
+    return CreateJobsResult(jobs=jobs, rejected=rejected)
+
+
+@router.get("/jobs", operation_id="listJobs")
+async def list_jobs(
+    services: ServicesDep,
+    state: Annotated[list[JobState] | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=1000)] = 200,
+) -> list[JobOut]:
+    jobs = services.store.list_jobs(set(state) if state else None, limit=limit)
+    return [JobOut.model_validate(job) for job in jobs]
+
+
+@router.get("/jobs/{job_id}", operation_id="getJob", responses=ERROR_RESPONSES)
+async def get_job(job_id: str, services: ServicesDep) -> JobOut:
+    job = services.store.get(job_id)
+    if job is None:
+        raise _not_found()
+    return JobOut.model_validate(job)
+
+
+@router.post("/jobs/{job_id}/pause", operation_id="pauseJob", responses=ERROR_RESPONSES)
+async def pause_job(job_id: str, services: ServicesDep) -> JobOut:
+    return JobOut.model_validate(await services.queue.pause(job_id))
+
+
+@router.post("/jobs/{job_id}/resume", operation_id="resumeJob", responses=ERROR_RESPONSES)
+async def resume_job(job_id: str, services: ServicesDep) -> JobOut:
+    return JobOut.model_validate(services.queue.resume(job_id))
+
+
+@router.post("/jobs/{job_id}/retry", operation_id="retryJob", responses=ERROR_RESPONSES)
+async def retry_job(job_id: str, services: ServicesDep) -> JobOut:
+    return JobOut.model_validate(services.queue.retry(job_id))
+
+
+@router.post("/jobs/{job_id}/cancel", operation_id="cancelJob", responses=ERROR_RESPONSES)
+async def cancel_job(job_id: str, services: ServicesDep) -> JobOut:
+    return JobOut.model_validate(await services.queue.cancel(job_id))
+
+
+@router.delete(
+    "/jobs/{job_id}",
+    operation_id="deleteJob",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses=ERROR_RESPONSES,
+)
+async def delete_job(job_id: str, services: ServicesDep, delete_file: bool = False) -> Response:
+    await services.queue.delete(job_id, delete_file=delete_file)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
+    "/jobs/{job_id}/file",
+    operation_id="getJobFile",
+    response_class=FileResponse,
+    responses=ERROR_RESPONSES,
+)
+async def get_job_file(job_id: str, services: ServicesDep) -> FileResponse:
+    job = services.store.get(job_id)
+    if job is None or job.state != JobState.done or not job.rel_path:
+        raise _not_found()
+    root = services.settings.downloads_dir
+    try:
+        path = ensure_inside(root, root / job.rel_path)
+    except UnsafePathError as exc:
+        raise _not_found() from exc
+    if not path.is_file():
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, {"code": "not_found", "message": "the file was removed"}
+        )
+    return FileResponse(path, filename=path.name)
+
+
+@router.get(
+    "/jobs/{job_id}/events",
+    operation_id="jobEvents",
+    response_class=StreamingResponse,
+    responses={200: {"content": {"text/event-stream": {}}}},
+)
+async def job_events(job_id: str, services: ServicesDep) -> StreamingResponse:
+    return StreamingResponse(
+        sse_stream(services.bus, job_id), media_type="text/event-stream", headers=SSE_HEADERS
+    )
+
+
+@router.get(
+    "/events",
+    operation_id="allEvents",
+    response_class=StreamingResponse,
+    responses={200: {"content": {"text/event-stream": {}}}},
+)
+async def all_events(services: ServicesDep) -> StreamingResponse:
+    return StreamingResponse(
+        sse_stream(services.bus), media_type="text/event-stream", headers=SSE_HEADERS
+    )

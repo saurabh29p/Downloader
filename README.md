@@ -37,4 +37,4 @@ make up / make down / make logs
 
 ## Status
 
-Phase 0 done (project memory and plan). Phase 1 builds the skeleton.
+Phase 3 done: paste direct file links on the website (or use `uv run anyget get <link>`), watch live progress, pause/resume, and save the file. YouTube and media arrive in phase 4.
