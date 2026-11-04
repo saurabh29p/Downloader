@@ -122,3 +122,9 @@ def test_file_not_ready(client: TestClient, settings: Settings) -> None:
 
 def test_create_validation(client: TestClient) -> None:
     assert client.post("/api/jobs", json={"urls": []}).status_code == 422
+
+
+def test_timestamps_are_utc(client: TestClient) -> None:
+    job_id = client.post("/api/jobs", json={"urls": [URL]}).json()["jobs"][0]["id"]
+    body = client.get(f"/api/jobs/{job_id}").json()
+    assert body["created_at"].endswith(("Z", "+00:00"))

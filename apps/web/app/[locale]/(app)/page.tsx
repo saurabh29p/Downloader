@@ -3,56 +3,40 @@ import { setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
 import { ApiStatus } from "@/components/api-status";
-import { Button } from "@/components/ui/button";
+import { RecentJobs } from "@/components/jobs/recent-jobs";
+import { PasteBox } from "@/components/paste/paste-box";
 import type { Locale } from "@/i18n/routing";
 
 export default function HomePage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params);
   setRequestLocale(locale);
   const t = useTranslations("Home");
+  const tShell = useTranslations("Shell");
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          {t("title")}
-        </h1>
-        <p className="max-w-prose text-muted-foreground">{t("subtitle")}</p>
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            {t("title")}
+          </h1>
+          <p className="max-w-prose text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        <PasteBox />
       </div>
 
-      <form className="flex flex-col gap-2" aria-describedby="paste-note">
-        <label htmlFor="paste" className="text-sm font-medium">
-          {t("pasteLabel")}
-        </label>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <input
-            id="paste"
-            name="url"
-            type="url"
-            inputMode="url"
-            dir="ltr"
-            placeholder="https://"
-            disabled
-            className="h-11 w-full min-w-0 rounded-md border border-input bg-card px-3 text-base shadow-xs placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
-          />
-          <Button type="submit" disabled>
-            {t("download")}
-          </Button>
-        </div>
-        <p id="paste-note" className="text-sm text-muted-foreground">
-          {t("comingSoon")}
-        </p>
-      </form>
+      <RecentJobs />
 
       <section
         aria-labelledby="status-heading"
-        className="rounded-lg border bg-card p-4 shadow-card"
+        className="flex flex-col gap-2 rounded-lg border bg-card p-4"
       >
-        <h2 id="status-heading" className="mb-2 text-sm font-medium">
+        <h2 id="status-heading" className="text-sm font-medium">
           {t("statusHeading")}
         </h2>
         <ApiStatus />
       </section>
+      <p className="text-sm text-muted-foreground sm:hidden">{tShell("legal")}</p>
     </div>
   );
 }

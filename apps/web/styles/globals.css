@@ -34,13 +34,40 @@
     "Inter Variable", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans CJK SC",
     "Noto Sans JP", system-ui, sans-serif;
   --shadow-card: 0 1px 2px oklch(0 0 0 / 0.06), 0 4px 12px oklch(0 0 0 / 0.04);
+  /* Motion */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --duration-fast: 120ms;
   --duration-normal: 200ms;
+  --duration-slow: 320ms;
+  /* Layout */
+  --bottom-nav-height: 4rem;
+}
+
+/* Dark: an explicit choice (.dark, set by the theme script) or the system setting. */
+:root.dark {
+  --background: oklch(0.16 0.01 260);
+  --foreground: oklch(0.96 0.005 260);
+  --card: oklch(0.2 0.01 260);
+  --card-foreground: oklch(0.96 0.005 260);
+  --popover: oklch(0.2 0.01 260);
+  --popover-foreground: oklch(0.96 0.005 260);
+  --primary: oklch(0.72 0.14 260);
+  --primary-foreground: oklch(0.16 0.01 260);
+  --secondary: oklch(0.26 0.01 260);
+  --secondary-foreground: oklch(0.96 0.005 260);
+  --muted: oklch(0.26 0.01 260);
+  --muted-foreground: oklch(0.75 0.01 260);
+  --accent: oklch(0.28 0.02 260);
+  --accent-foreground: oklch(0.96 0.005 260);
+  --destructive: oklch(0.7 0.17 25);
+  --success: oklch(0.75 0.14 150);
+  --border: oklch(0.3 0.01 260);
+  --input: oklch(0.34 0.01 260);
+  --ring: oklch(0.72 0.14 260);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
+  :root:not(.light):not(.dark) {
     --background: oklch(0.16 0.01 260);
     --foreground: oklch(0.96 0.005 260);
     --card: oklch(0.2 0.01 260);
@@ -91,12 +118,28 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+@keyframes indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   html {
     -webkit-text-size-adjust: 100%;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  [dir="rtl"] [data-flip-rtl] {
+    transform: scaleX(-1);
   }
   body {
     @apply bg-background font-sans text-foreground antialiased;

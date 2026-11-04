@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const webPort = 3100;
 const apiPort = 8100;
+export const fixturePort = 8200;
 // Use a preinstalled Chromium when the bundled one is missing (e.g. sandboxes): PW_CHROMIUM_PATH=/path/to/chrome
 const executablePath = process.env.PW_CHROMIUM_PATH || undefined;
 
@@ -29,11 +30,19 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `uv run --project ../api uvicorn anyget.main:app --host 127.0.0.1 --port ${apiPort}`,
+      command: `node e2e/fixture-server.mjs`,
+      url: `http://127.0.0.1:${fixturePort}/health`,
+      env: { FIXTURE_PORT: String(fixturePort) },
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      // Fresh data every run; the allowlist lets the API reach only the fixture server.
+      command: `rm -rf .e2e && uv run --project ../api uvicorn anyget.main:app --host 127.0.0.1 --port ${apiPort}`,
       url: `http://127.0.0.1:${apiPort}/api/health`,
       env: {
         ANYGET_DATA_DIR: ".e2e/data",
         ANYGET_DOWNLOADS_DIR: ".e2e/downloads",
+        ANYGET_NET_ALLOWLIST: `127.0.0.1:${fixturePort}`,
       },
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,

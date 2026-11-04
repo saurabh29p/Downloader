@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import logging
 import time
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -233,6 +234,8 @@ class _ProgressTracker:
         self.job.downloaded = progress.downloaded
         self.job.total = progress.total if progress.total is not None else self.job.total
         self.job.speed = speed
+        # Fresh timestamp so clients never mistake live progress for a stale copy.
+        self.job.updated_at = datetime.now(UTC)
         if now - self._last_publish >= PUBLISH_INTERVAL:
             self._last_publish = now
             self.queue._publish("job.updated", self.job)

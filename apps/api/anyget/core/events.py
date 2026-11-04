@@ -1,6 +1,7 @@
 """In-process publish/subscribe for job updates, streamed to clients as SSE."""
 
 import asyncio
+import contextlib
 import json
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -59,4 +60,6 @@ async def sse_stream(
     finally:
         if pending is not None:
             pending.cancel()
+            with contextlib.suppress(asyncio.CancelledError, StopAsyncIteration):
+                await pending  # let the generator stop before closing it
         await events.aclose()

@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 
 import { dirFor, routing } from "@/i18n/routing";
 import { Providers } from "@/lib/providers";
+import { themeScript } from "@/lib/theme";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -46,7 +47,11 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} dir={dirFor(locale)}>
+    <html lang={locale} dir={dirFor(locale)} suppressHydrationWarning>
+      <head>
+        {/* Static theme script (no user input); runs before paint to avoid a flash. */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="min-h-dvh">
         <NextIntlClientProvider>
           <Providers>{children}</Providers>

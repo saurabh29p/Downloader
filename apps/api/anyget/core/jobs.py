@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel, col, select
 
@@ -151,3 +151,11 @@ class JobOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     finished_at: datetime | None
+
+    @field_validator("created_at", "updated_at", "finished_at", mode="after")
+    @classmethod
+    def _as_utc(cls, value: datetime | None) -> datetime | None:
+        """SQLite drops the timezone; every stored time is UTC."""
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value

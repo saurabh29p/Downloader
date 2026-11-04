@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 
 from anyget.core.events import EventBus, format_sse, sse_stream
 
@@ -18,5 +19,18 @@ async def test_stream_filters_and_heartbeats() -> None:
     bus.publish({"type": "job.updated", "job": {"id": "a", "state": "done"}})
     text = await asyncio.wait_for(anext(stream), 1)
     assert text.startswith("event: job.updated") and '"id": "a"' in text
+    await stream.aclose()
+    assert bus.subscriber_count == 0
+
+
+async def test_closing_while_waiting_does_not_error() -> None:
+    bus = EventBus()
+    stream = sse_stream(bus, heartbeat=5)
+    await anext(stream)
+    waiting = asyncio.ensure_future(anext(stream))
+    await asyncio.sleep(0.01)
+    waiting.cancel()  # client disconnects mid-wait
+    with contextlib.suppress(asyncio.CancelledError):
+        await waiting
     await stream.aclose()
     assert bus.subscriber_count == 0

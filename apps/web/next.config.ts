@@ -19,5 +19,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+const withNextIntl = createNextIntlPlugin({
+  requestConfig: "./i18n/request.ts",
+  // Compile ICU messages at build time so the message parser is not shipped to browsers.
+  experimental: {
+    messages: { format: "json", path: "./messages", locales: "infer", precompile: true },
+  },
+});
 export default withNextIntl(nextConfig);

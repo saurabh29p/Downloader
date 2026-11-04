@@ -37,4 +37,4 @@ make up / make down / make logs
 
 ## Status
 
-Phase 2 done: direct file links download with resume, from the CLI (`uv run anyget get <link>`) or the API. The website flow arrives in phase 3.
+Phase 3 done: paste direct file links on the website (or use `uv run anyget get <link>`), watch live progress, pause/resume, and save the file. YouTube and media arrive in phase 4.
