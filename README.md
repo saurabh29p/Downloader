@@ -37,4 +37,4 @@ make up / make down / make logs
 
 ## Status
 
-Phase 0 done (project memory and plan). Phase 1 builds the skeleton.
+Phase 1 (monorepo skeleton) done. Downloading arrives in phase 2.

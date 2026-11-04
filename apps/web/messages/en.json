@@ -1,0 +1,27 @@
+{
+  "Meta": {
+    "title": "AnyGet",
+    "description": "Paste any public link, get the file."
+  },
+  "Shell": {
+    "skip": "Skip to content",
+    "legal": "Personal use only. Download what you own, what is public domain or openly licensed, or what the site allows."
+  },
+  "Nav": {
+    "language": "Language"
+  },
+  "Home": {
+    "title": "Paste any link, get the file",
+    "subtitle": "Videos, audio, archive.org items, books, code and more — saved to your own computer.",
+    "pasteLabel": "Link to download",
+    "download": "Download",
+    "comingSoon": "Downloading is coming soon. This is the project skeleton.",
+    "statusHeading": "Server status"
+  },
+  "Status": {
+    "checking": "Checking the server…",
+    "online": "Server online",
+    "offline": "Server offline",
+    "retry": "Try again"
+  }
+}

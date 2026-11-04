@@ -1,0 +1,14 @@
+# Worldwide access through Cloudflare Tunnel (phase 10). Use with: make up-public
+# Needs TUNNEL_TOKEN in .env. Configure routes and Access in the Cloudflare dashboard (docs/plan.md).
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.7
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?Set TUNNEL_TOKEN in .env}
+    depends_on:
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy

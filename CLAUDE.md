@@ -7,8 +7,8 @@ Read this file at the start of every session. The full research doc lives in `do
 ## Current status
 
 - [x] Phase 0 — prerequisites, CLAUDE.md
-- [ ] Phase 1 — monorepo skeleton (next)
-- [ ] Phase 2 — core and security
+- [x] Phase 1 — monorepo skeleton
+- [ ] Phase 2 — core and security (next)
 - [ ] Phases 3–10 — see roadmap below
 
 Update this checklist at the end of every phase.
@@ -85,7 +85,7 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `make gen` | regenerate `packages/shared` from the API's OpenAPI schema |
 | `make lint` / `make typecheck` / `make test` | ruff+eslint+prettier / mypy+tsc / pytest+vitest |
 | `make check` | lint + typecheck + test (run before every commit) |
-| `make e2e` | Playwright end-to-end + axe against local servers |
+| `make e2e` | Playwright end-to-end + axe (starts api on :8100 and a production web build on :3100) |
 | `make up` / `make down` / `make logs` | Docker Compose |
 | `make up-public` | Compose + Cloudflare Tunnel |
 
@@ -171,6 +171,13 @@ Personal use only. Download only what the user owns, what is public domain or op
 | 8 Library, watch, settings | Daily-use app | offline library with previews, tags, dedupe, schedules, clipboard, settings, Help and Legal | previews work; watch only queues new items |
 | 9 PWA, extension, plugins | Phone and browser | PWA share target, Termux doc, browser extension, plugin system, optional torrent | share opens preview; example plugin loads |
 | 10 Deploy and release | Worldwide access | cloudflared service, Access JWT check, deploy + Tailscale docs, backups, v1.0.0 | `https://dl.<domain>` opens after email code |
+
+## Gotchas
+- `API_URL` is read when the web app is **built** (Next.js rewrites are baked in). Compose builds with `http://api:8000`; local dev uses `http://127.0.0.1:8000`.
+- Next.js 16 uses `proxy.ts` (formerly `middleware.ts`) for next-intl locale routing. Keep `api` and `healthz` excluded from its matcher.
+- `/healthz` on web is liveness only; `/api/health` goes through the rewrite to FastAPI.
+- If Playwright's bundled Chromium is missing, set `PW_CHROMIUM_PATH=/path/to/chrome`.
+- Vitest 5: when mocking a module function that must reject, use a plain async function instead of `vi.fn().mockRejectedValue` (the latter fails the test).
 
 ## Working agreement for each phase
 1. Read this file and `prompts/phase-NN-*.md`.
