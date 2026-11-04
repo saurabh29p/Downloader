@@ -45,6 +45,7 @@ services:
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
       ANYGET_LIVE_PLAYLIST: ${ANYGET_LIVE_PLAYLIST:-}
+      ANYGET_LIVE_COOKIES: ${ANYGET_LIVE_COOKIES:-}
 
   web:
     build:

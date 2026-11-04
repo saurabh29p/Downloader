@@ -207,6 +207,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Cookies: `data/cookies.txt` (0600), never returned or logged; copied per job into the job's temp folder and deleted afterwards.
 - New job columns (`note`, `files`) are added to old databases by `Database._add_missing_columns` (nullable additions only).
 - Tests fake DNS for both resolvers (`resolve_host`, `resolve_host_sync`); tests marked `live` use real DNS.
+- Live tests: YouTube bot-checks CI runners ("confirm you're not a bot") and Vimeo now asks for sign-in. Set the `ANYGET_LIVE_COOKIES` secret (a cookies.txt from your own account) or run `make live` from home. The PeerTube CC video needs no account. Never add `curl_cffi` impersonation: it uses libcurl sockets that bypass `net_guard`.
 
 ### Frontend gotchas
 - First-load JS is at the 170 KB budget (Home ≈169.0 KB, Downloads ≈168.1, YouTube ≈166.5, Settings ≈165.7). `e2e/budget.spec.ts` checks all four and fails CI if one goes over: lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, format picker, video card and playlist view).

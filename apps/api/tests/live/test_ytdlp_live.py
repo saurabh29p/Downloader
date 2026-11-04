@@ -9,8 +9,14 @@ Media used (all openly licensed or published for testing):
   https://www.youtube.com/watch?v=aqz-KE-bpKQ
 - Blender Studio channel uploads (CC BY), first 3 of the Videos tab
   https://www.youtube.com/@BlenderStudio/videos   (override: ANYGET_LIVE_PLAYLIST)
-- yt-dlp's own Vimeo test video
+- yt-dlp's own Vimeo test video (Vimeo now asks for sign-in: needs your cookies)
   https://vimeo.com/56015672
+- "What is PeerTube?" by Framasoft, CC BY-SA, on framatube.org (no sign-in needed)
+  https://framatube.org/w/9c9de5e8-0a1e-484a-b099-e80766180a6d
+
+YouTube often answers datacenter IPs (CI runners) with "confirm you're not a bot".
+To run against your own account, put a cookies.txt from it in ANYGET_LIVE_COOKIES
+(a GitHub secret for the Live tests workflow); it is written to the test's data dir.
 """
 
 import json
@@ -24,19 +30,26 @@ from typing import Any
 import pytest
 
 from anyget.core.settings import Settings
-from anyget.handlers.base import DownloadResult, JobContext
+from anyget.handlers.base import DownloadResult, HandlerError, JobContext
 from anyget.handlers.ytdlp import YtDlpHandler
 
 pytestmark = [pytest.mark.live]
 
 YOUTUBE_VIDEO = "https://www.youtube.com/watch?v=aqz-KE-bpKQ"
-PLAYLIST = os.environ.get("ANYGET_LIVE_PLAYLIST", "https://www.youtube.com/@BlenderStudio/videos")
+PLAYLIST = os.environ.get("ANYGET_LIVE_PLAYLIST") or "https://www.youtube.com/@BlenderStudio/videos"
 VIMEO_VIDEO = "https://vimeo.com/56015672"
+PEERTUBE_VIDEO = "https://framatube.org/w/9c9de5e8-0a1e-484a-b099-e80766180a6d"
+COOKIES = os.environ.get("ANYGET_LIVE_COOKIES", "")
 JS_RUNTIME_WARNINGS = ("JavaScript runtime", "No supported JavaScript runtime")
 
 
 @pytest.fixture
 def handler(settings: Settings) -> YtDlpHandler:
+    if COOKIES.strip():
+        settings.data_dir.mkdir(parents=True, exist_ok=True)
+        cookie_file = settings.data_dir / "cookies.txt"
+        cookie_file.write_text(COOKIES if COOKIES.endswith("\n") else COOKIES + "\n")
+        cookie_file.chmod(0o600)
     return YtDlpHandler(settings)
 
 
@@ -132,8 +145,27 @@ async def test_three_items_from_a_playlist(handler: YtDlpHandler, settings: Sett
 
 
 async def test_vimeo_video(handler: YtDlpHandler, settings: Settings) -> None:
-    result = await download(handler, settings, VIMEO_VIDEO, "live-vimeo", preset="360")
+    try:
+        result = await download(handler, settings, VIMEO_VIDEO, "live-vimeo", preset="360")
+    except HandlerError as exc:
+        if exc.code == "login_required" and not COOKIES.strip():
+            pytest.xfail(
+                "Vimeo's web client needs sign-in without browser impersonation;"
+                " set ANYGET_LIVE_COOKIES"
+            )
+        raise
     assert result.paths and result.paths[0].stat().st_size > 10_000
+
+
+async def test_peertube_video(handler: YtDlpHandler, settings: Settings) -> None:
+    """A non-YouTube site with an openly licensed video that needs no account."""
+    probe = await handler.probe(PEERTUBE_VIDEO)
+    assert probe.extra["kind"] == "video"
+    result = await download(
+        handler, settings, PEERTUBE_VIDEO, "live-peertube", preset="480", container="mp4"
+    )
+    video = result.paths[0]
+    assert video.suffix == ".mp4" and video.stat().st_size > 100_000
 
 
 def test_tools_present() -> None:

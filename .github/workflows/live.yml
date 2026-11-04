@@ -32,4 +32,6 @@ jobs:
       - name: Live tests
         env:
           ANYGET_LIVE_PLAYLIST: ${{ inputs.playlist }}
+          # Optional: a cookies.txt from your own account (YouTube bot checks, Vimeo sign-in).
+          ANYGET_LIVE_COOKIES: ${{ secrets.ANYGET_LIVE_COOKIES }}
         run: docker compose --profile test run --rm api-test
