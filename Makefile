@@ -2,6 +2,9 @@
 SHELL := /bin/bash
 API := apps/api
 UV := uv run --project $(API)
+# Downloads are owned by you, not root (read by docker-compose.yml).
+export PUID ?= $(shell id -u)
+export PGID ?= $(shell id -g)
 
 .DEFAULT_GOAL := help
 .PHONY: help setup dev dev-api dev-web gen gen-check lint format typecheck test check e2e build up down logs ps up-public

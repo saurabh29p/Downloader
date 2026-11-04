@@ -26,7 +26,9 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
 
 RUN useradd --create-home --uid 1000 anyget \
     && mkdir -p /downloads /data && chown anyget:anyget /downloads /data
-USER anyget
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+# Starts as root, then drops to the "anyget" user with the host's PUID/PGID.
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 ENV ANYGET_DOWNLOADS_DIR=/downloads \
     ANYGET_DATA_DIR=/data \

@@ -14,3 +14,4 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Fixed
 - SSE stream cleanup raised errors when a browser disconnected.
 - Live progress could be dropped by the browser after a page refresh (stale timestamps); job times are now always sent as UTC.
+- API container could not create its database when Docker created the `data` folder as root (CI Docker job). The container now adopts `PUID`/`PGID` and fixes folder ownership before dropping privileges.
