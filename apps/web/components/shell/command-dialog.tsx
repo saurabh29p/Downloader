@@ -17,6 +17,7 @@ import {
   MonitorIcon,
   MoonIcon,
   SearchIcon,
+  PlugIcon,
   SettingsIcon,
   SunIcon,
 } from "lucide-react";
@@ -112,6 +113,13 @@ export default function CommandDialog({
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/downloads"))}>
             <DownloadIcon aria-hidden="true" />
             {t("goDownloads")}
+          </Command.Item>
+          <Command.Item
+            className={itemClass}
+            onSelect={() => run(() => router.push("/connections"))}
+          >
+            <PlugIcon aria-hidden="true" />
+            {t("goConnections")}
           </Command.Item>
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/settings"))}>
             <SettingsIcon aria-hidden="true" />

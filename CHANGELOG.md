@@ -5,6 +5,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (v2 Phase 2 — Connections)
+- **Connections page** (in the main nav, replacing the YouTube tab; YouTube stays in Ctrl+K and Home):
+  - Sign-in sites by cookies.txt: YouTube, Instagram, X, Facebook, Reddit, Vimeo, Patreon, archive.org.
+  - Key sites: GitHub, Hugging Face, Civitai, Kaggle, TMDB, OpenRouter, Europeana, DPLA, Trove, DigitalNZ, BHL, DDB.
+  - Each site shows Connected, Expired (from the cookies' own expiry), Set on the server, or Not connected, with the date it was connected.
+- **One cookies.txt for many sites:** "Add cookies.txt" keeps only the cookies of the listed sites, one connection each; cookies for any other site are dropped. Each site card also takes its own file.
+- **Encrypted at rest** with Fernet (`ANYGET_SECRETS_KEY` from `anyget gen-key`, or a key made once in `data/secrets.key`). Values are never returned or logged; the page shows status and dates only.
+- **yt-dlp uses the link's site cookies** when probing and downloading (only that site's cookies, in a 0600 file for the job), and that site's optional proxy (HTTP or SOCKS).
+- **Key connections fill the matching settings**, so every source keeps working; removing one brings back the server's environment value. `TMDB_API_KEY` and `OPENROUTER_API_KEY` are read too.
+- **Test** checks GitHub, Hugging Face, TMDB and OpenRouter keys with one small request each; cookie connections are checked from their expiry dates, with no request.
+- "Connect your <site> account" on a failed download links to that site's card (`/connections#youtube`).
+
+### Changed
+- API keys and cookies are no longer part of Settings. On the first start, keys saved there and `data/cookies.txt` move into Connections, and the plain-text copies are deleted.
+- `/api/settings/cookies` and `/api/settings/keys` are removed (use `/api/connections`).
+- Backups include `data/secrets.key` and `data/session.key` when those keys are kept in the data folder.
+
 ### Security (v2 Phase 1 — lock it down)
 - **Owner sign-in.** Set `ANYGET_OWNER_EMAIL` and `ANYGET_OWNER_PASSWORD_HASH` (from `anyget hash-password`, argon2id). `POST /api/auth/login` sets a signed, HTTP-only session cookie (30 days; `ANYGET_SESSION_SECRET`, or a random key kept in `data/session.key`). Changing the password signs every session out.
 - **Every `/api/*` route needs a sign-in** (the session cookie, `Authorization: Bearer ANYGET_API_TOKEN`, or Cloudflare Access) except `/api/health` and `/api/auth/*`. Before this, a hosted AnyGet (Vercel → Railway) treated every request as local, so its API was open.

@@ -113,27 +113,6 @@ test("Home preview drawer uses the same format picker for media links", async ({
   expect(sent[0]!.options).toMatchObject({ preset: "480" });
 });
 
-test("cookies.txt can be uploaded and removed; content is never shown", async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "one run is enough (shared server state)");
-  await page.goto("/en/settings");
-  await expect(page.getByTestId("cookies-status")).toHaveText("No cookies file saved.");
-  const content =
-    "# Netscape HTTP Cookie File\n.example.com\tTRUE\t/\tTRUE\t0\tSID\tsecret-value\n";
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({ name: "cookies.txt", mimeType: "text/plain", buffer: Buffer.from(content) });
-  await expect(page.getByTestId("cookies-status")).toContainText(
-    "A cookies file with 1 cookie is saved",
-  );
-  await expect(page.getByText("secret-value")).toHaveCount(0);
-  const api = await page.request.get("/api/settings/cookies");
-  expect(await api.text()).not.toContain("secret-value");
-  await page.getByRole("button", { name: "Remove" }).click();
-  await expect(page.getByTestId("cookies-status")).toHaveText("No cookies file saved.");
-});
-
 for (const locale of ["en", "hi", "ar"]) {
   test(`axe: YouTube page with a video and a playlist (${locale})`, async ({ page }) => {
     await mockApi(page, video);
@@ -155,7 +134,7 @@ for (const locale of ["en", "hi", "ar"]) {
 
   test(`axe: Settings page (${locale})`, async ({ page }) => {
     await page.goto(`/${locale}/settings`);
-    await expect(page.getByTestId("cookies-status")).toBeVisible();
+    await expect(page.getByTestId("app-settings")).toBeVisible();
     const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
     expect(results.violations).toEqual([]);
   });

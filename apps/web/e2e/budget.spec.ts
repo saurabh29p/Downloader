@@ -10,6 +10,7 @@ for (const path of [
   "/en/downloads",
   "/en/youtube",
   "/en/settings",
+  "/en/connections",
   "/en/archive",
   "/en/wayback",
   "/en/code",

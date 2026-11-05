@@ -1,6 +1,6 @@
 "use client";
 
-import { ClapperboardIcon, DownloadIcon, HomeIcon } from "lucide-react";
+import { DownloadIcon, HomeIcon, PlugIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Link, usePathname } from "@/i18n/navigation";
@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/", key: "home", icon: HomeIcon },
-  { href: "/youtube", key: "youtube", icon: ClapperboardIcon },
   { href: "/downloads", key: "downloads", icon: DownloadIcon },
+  { href: "/connections", key: "connections", icon: PlugIcon },
 ] as const;
 
 function useActiveCount() {

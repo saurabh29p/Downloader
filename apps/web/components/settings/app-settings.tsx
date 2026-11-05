@@ -2,8 +2,8 @@
 
 import type { SettingsUpdate, SettingsView } from "@anyget/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2Icon, Loader2Icon, SaveIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Loader2Icon, SaveIcon } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -15,20 +15,6 @@ import { isolate } from "@/lib/format";
 import { toast } from "@/lib/toast";
 
 const KEY = ["settings", "app"] as const;
-const SECRET_NAMES = [
-  "github_token",
-  "hf_token",
-  "civitai_token",
-  "kaggle_username",
-  "kaggle_key",
-  "europeana_key",
-  "dpla_key",
-  "trove_key",
-  "digitalnz_key",
-  "bhl_key",
-  "ddb_key",
-] as const;
-type Secret = (typeof SECRET_NAMES)[number];
 
 const input =
   "h-11 w-full min-w-0 rounded-md border border-input bg-card px-3 text-base shadow-xs placeholder:text-muted-foreground";
@@ -101,6 +87,7 @@ export function example(template: string): string {
 
 function SettingsForm({ initial }: { initial: SettingsView }) {
   const t = useTranslations("Settings");
+  const locale = useLocale();
   const tErrors = useTranslations("Errors");
   const id = useId();
   const queryClient = useQueryClient();
@@ -118,14 +105,12 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
       .map(([host, n]) => `${host}=${n}`)
       .join(", "),
   });
-  const [secrets, setSecrets] = useState<Partial<Record<Secret, string>>>({});
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((cur) => ({ ...cur, [key]: value }));
   const save = useMutation({
     mutationFn: (body: SettingsUpdate) => putSettings(body),
     onSuccess: (view) => {
       queryClient.setQueryData(KEY, view);
-      setSecrets({});
       toast.success(t("saved"));
     },
     onError: (err) => toast.error(errorMessage(tErrors, err)),
@@ -140,9 +125,6 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
         .map(([host, n]) => [host, Number(n)]),
     );
     const body: SettingsUpdate = { ...form, host_limits };
-    for (const [name, value] of Object.entries(secrets)) {
-      if (value !== undefined) (body as Record<string, unknown>)[name] = value;
-    }
     save.mutate(body);
   };
   const view = queryClient.getQueryData<SettingsView>(KEY) ?? initial;
@@ -297,52 +279,15 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
       </Section>
 
       <Section title={t("keys")}>
-        <p className="text-sm text-muted-foreground">{t("keysHint")}</p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {SECRET_NAMES.map((name) => {
-            const isSet = view.secrets?.[name] ?? false;
-            return (
-              <Field
-                key={name}
-                id={`${id}-${name}`}
-                label={t(`keyNames.${name}`)}
-                hint={
-                  isSet ? (
-                    <span className="inline-flex items-center gap-1">
-                      <CheckCircle2Icon className="size-4 text-success" aria-hidden="true" />
-                      {t("keySet")}
-                    </span>
-                  ) : (
-                    t("keyNotSet")
-                  )
-                }
-              >
-                <div className="flex gap-2">
-                  <input
-                    id={`${id}-${name}`}
-                    type="password"
-                    autoComplete="off"
-                    value={secrets[name] ?? ""}
-                    onChange={(e) => setSecrets((cur) => ({ ...cur, [name]: e.target.value }))}
-                    placeholder={isSet ? "••••••••" : ""}
-                    aria-describedby={`${id}-${name}-hint`}
-                    className={input}
-                  />
-                  {isSet && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => save.mutate({ [name]: "" } as SettingsUpdate)}
-                      aria-label={`${t("clearKey")}: ${t(`keyNames.${name}`)}`}
-                    >
-                      {t("clearKey")}
-                    </Button>
-                  )}
-                </div>
-              </Field>
-            );
-          })}
-        </div>
+        <p className="text-sm text-muted-foreground">
+          {t("keysMoved")}{" "}
+          <a
+            href={`/${locale}/connections`}
+            className="font-medium text-primary underline underline-offset-4"
+          >
+            {t("openConnections")}
+          </a>
+        </p>
       </Section>
 
       <div className="sticky bottom-20 flex justify-end sm:bottom-4">

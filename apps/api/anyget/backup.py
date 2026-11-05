@@ -1,5 +1,6 @@
-"""Backups of AnyGet's data folder: database (jobs, library, watches, saved settings),
-cookies.txt and download archives. Downloaded files themselves are not included.
+"""Backups of AnyGet's data folder: database (jobs, library, watches, saved settings,
+encrypted Connections), the Connections and session keys when they are kept in the
+data folder, v1's cookies.txt and download archives. Downloaded files are not included.
 
 The database is copied with SQLite's online backup, so a backup taken while AnyGet runs
 is consistent. Restoring replaces the data folder's files; stop AnyGet first.
@@ -18,7 +19,7 @@ from pathlib import Path, PurePosixPath
 from anyget import __version__
 
 DB_NAME = "anyget.db"
-EXTRA = ("cookies.txt", "archives")
+EXTRA = ("cookies.txt", "secrets.key", "session.key", "archives")
 MANIFEST = "anyget-backup.json"
 
 
@@ -108,7 +109,8 @@ def restore(archive: Path, data_dir: Path, *, env_target: Path | None = None) ->
             if env_target is not None and env.is_file():
                 env.replace(env_target)
                 restored.append(".env")
-    cookies = data_dir / "cookies.txt"
-    if cookies.exists():
-        cookies.chmod(0o600)
+    for private in ("cookies.txt", "secrets.key", "session.key"):
+        path = data_dir / private
+        if path.exists():
+            path.chmod(0o600)
     return restored

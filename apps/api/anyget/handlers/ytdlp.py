@@ -11,6 +11,7 @@ import contextlib
 import logging
 import re
 import shutil
+import tempfile
 import threading
 import time
 from collections import OrderedDict
@@ -18,7 +19,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Protocol
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, Field
@@ -129,17 +130,29 @@ def _tab_of(url: str) -> str | None:
     return "streams" if tab == "live" else tab
 
 
+class CookieSource(Protocol):
+    """Connections (anyget/connections/store.py): the user's cookies and proxy per site."""
+
+    def write_cookie_file(self, url_host: str, target: Path) -> bool: ...
+
+    def proxy_for(self, url_host: str) -> str | None: ...
+
+
+def _host_port(proxy: str) -> str | None:
+    parts = urlsplit(proxy)
+    return f"{parts.hostname}:{parts.port}" if parts.hostname and parts.port else None
+
+
 class YtDlpHandler:
     name = "ytdlp"
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, connections: CookieSource | None = None) -> None:
         self.settings = settings
-        allow = list(settings.net_allowlist)
-        if settings.proxy:
-            proxy = urlsplit(settings.proxy)
-            if proxy.hostname and proxy.port:
-                allow.append(f"{proxy.hostname}:{proxy.port}")
-        net_guard.install(allow)
+        self.connections = connections
+        self._allow = list(settings.net_allowlist)
+        if settings.proxy and (hp := _host_port(settings.proxy)):
+            self._allow.append(hp)
+        net_guard.install(self._allow)
         self.cache_dir = settings.data_dir / "ytdlp-cache"
         self._cache: OrderedDict[str, tuple[float, dict[str, Any]]] = OrderedDict()
         self._lock = threading.Lock()
@@ -192,13 +205,34 @@ class YtDlpHandler:
 
         return YoutubeDL({**params, "logger": params.get("logger") or YtDlpLogger()})
 
+    def _proxy(self, url: str) -> str | None:
+        """The connected site's own proxy, else the global one."""
+        host = urlsplit(url).hostname or ""
+        proxy = self.connections.proxy_for(host) if self.connections else None
+        if proxy and (hp := _host_port(proxy)) and hp not in self._allow:
+            self._allow.append(hp)  # the owner chose this proxy for the site
+            net_guard.install(self._allow)
+        return proxy or self.settings.proxy or None
+
     def _extract(self, url: str, opts: ProbeOptions) -> tuple[dict[str, Any], list[str]]:
         params = probe_params(
             max_entries=opts.max_entries,
             cache_dir=self.cache_dir,
             deno=deno_path(),
-            proxy=self.settings.proxy or None,
+            proxy=self._proxy(url),
         )
+        with tempfile.TemporaryDirectory(prefix="anyget-probe-") as tmp:
+            # A connected account (cookies) can see what it is allowed to see.
+            cookies = Path(tmp) / "cookies.txt"
+            if self.connections and self.connections.write_cookie_file(
+                urlsplit(url).hostname or "", cookies
+            ):
+                params["cookiefile"] = str(cookies)
+            return self._extract_with(url, opts, params)
+
+    def _extract_with(
+        self, url: str, opts: ProbeOptions, params: dict[str, Any]
+    ) -> tuple[dict[str, Any], list[str]]:
         try:
             with self._ydl(params) as ydl:
                 info: dict[str, Any] = ydl.extract_info(url, download=False)
@@ -413,7 +447,7 @@ class YtDlpHandler:
             ):
                 return DownloadResult(paths=[], note="outside_date_range")
 
-            cookie_file = self._job_cookies(temp) if opts.use_cookies else None
+            cookie_file = self._job_cookies(temp, job.url) if opts.use_cookies else None
             params = build_params(
                 opts,
                 home=home,
@@ -422,7 +456,7 @@ class YtDlpHandler:
                 archive_file=archive_file,
                 cookie_file=cookie_file,
                 deno=deno_path(),
-                proxy=self.settings.proxy or None,
+                proxy=self._proxy(job.url),
             )
             if self.settings.rate_limit_kbps:
                 params["ratelimit"] = self.settings.rate_limit_kbps * 1024
@@ -461,9 +495,13 @@ class YtDlpHandler:
         shutil.rmtree(temp, ignore_errors=True)
         return DownloadResult(paths=[main, *extras])
 
-    def _job_cookies(self, temp: Path) -> Path | None:
-        """Copy the user's cookies.txt for this job only (yt-dlp rewrites cookie files)."""
-        source = cookies_path(self.settings)
+    def _job_cookies(self, temp: Path, url: str) -> Path | None:
+        """This site's cookies for this job only (yt-dlp rewrites cookie files)."""
+        target = temp / "cookies.txt"
+        host = urlsplit(url).hostname or ""
+        if self.connections is not None and self.connections.write_cookie_file(host, target):
+            return target
+        source = cookies_path(self.settings)  # v1 file, until the start-up migration
         if not source.is_file():
             return None
         target = temp / "cookies.txt"

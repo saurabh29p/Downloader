@@ -20,7 +20,7 @@ Read this file at the start of every session. The full research doc lives in `do
 
 v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-universal-search`):
 - [x] v2 Phase 1 — owner sign-in, per-user rows, bug fixes
-- [ ] v2 Phase 2 — Connections (encrypted cookies/keys per site)
+- [x] v2 Phase 2 — Connections (encrypted cookies/keys per site)
 - [ ] v2 Phase 3 — universal search engine
 - [ ] v2 Phase 4 — Sections (Movies, Books, Music, Video, Declassified, More)
 - [ ] v2 Phase 5 — OpenRouter brain (optional)
@@ -237,7 +237,8 @@ Personal use only. Download only what the user owns, what is public domain or op
 - APIs: `GET /api/archive/search` (`deep=true`/`cursor` → scrape API), `GET /api/archive/items/{id}`, `GET /api/wayback/snapshots?url=`. Web calls live in `lib/api-archive.ts` so Home never loads them.
 
 ### Code / cloud / gallery / AI gotchas
-- `JobOut.connect` (computed, `core/sites.connect_site`) names the site whose account would fix a failed job (`login_required`, `bot_check`, `age_restricted`, `forbidden`); the web shows "Connect your <site> account" from it. Phase 2 grows `core/sites.py` into the Connections registry.
+- `JobOut.connect` / `connect_label` (computed, `core/sites.connect_site`) name the Connections site whose account would fix a failed job (`login_required`, `bot_check`, `age_restricted`, `forbidden`); the web links to `/connections#<id>`.
+- **Connections** (`anyget/connections/`): `sites.py` is the registry (cookie sites with domains + sign-in cookie names; key sites with fields → Settings attributes). `store.ConnectionStore` keeps one Fernet-encrypted row per user and site (`connection` table; key `ANYGET_SECRETS_KEY` or `data/secrets.key`). `apply()` writes key connections into Settings at start and after each change (environment values are restored on delete). yt-dlp gets `write_cookie_file(host, …)` / `proxy_for(host)` through `YtDlpHandler(settings, connections)`; probes use the cookies too. `migrate.migrate_v1` moves v1 setting rows (`settings_store.LEGACY_SECRETS`) and `data/cookies.txt` in and deletes the plain copies. Never log values: log site ids only (`test_secrets_never_reach_the_logs`). Cookie connections are 'tested' by expiry only; key tests live in `api/connections.KEY_TESTS`.
 - `handlers/wikimedia.py` (priority 75, before yt-dlp whose "Wikimedia" extractor saves File: pages as video): MediaWiki `imageinfo` → original file through `HttpGenericHandler` with its sha1. The router also sends any image-suffix link that would go to `ytdlp`/`gallery` to `http` (`router.is_image_link`). Image probes have `extra.kind == "image"` and `thumbnail`.
 - Multi-file handlers (archive.org, git_code, gallery, ai_resources, web pages) build `RemoteFile`s and call `handlers/multi.download_many`; the user's pick arrives as `options["files"]` (choice ids).
 - Handler-only request headers (tokens, Referer) go in `options["_headers"]` / `RemoteFile.headers`. The API drops every option key that starts with `_`, so users can't set them.

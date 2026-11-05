@@ -11,7 +11,8 @@
       "home": "होम",
       "downloads": "डाउनलोड",
       "activeCount": "{count, plural, one {# डाउनलोड चल रहा है} other {# डाउनलोड चल रहे हैं}}",
-      "youtube": "YouTube"
+      "youtube": "YouTube",
+      "connections": "कनेक्शन"
     },
     "theme": {
       "label": "थीम",
@@ -239,7 +240,8 @@
     "goLibraries": "दुनिया भर के पुस्तकालय",
     "goLibrary": "लाइब्रेरी",
     "goWatch": "वॉच",
-    "goHelp": "मदद"
+    "goHelp": "मदद",
+    "goConnections": "कनेक्शन"
   },
   "Status": {
     "checking": "सर्वर जाँचा जा रहा है…",
@@ -304,17 +306,6 @@
   "Settings": {
     "title": "सेटिंग्स",
     "subtitle": "इस कंप्यूटर पर सहेजा गया। बदलाव नए डाउनलोड पर लागू होते हैं।",
-    "cookiesTitle": "जिन साइटों पर आप साइन इन हैं, उनकी कुकीज़",
-    "cookiesHelp": "अपने ब्राउज़र से किसी कुकीज़ एक्सटेंशन के ज़रिए cookies.txt (Netscape फ़ॉर्मैट) निकालें और यहाँ अपलोड करें। तब yt-dlp वही देखता है जो आपका खाता देख सकता है, जैसे उम्र-जाँच वाले वीडियो।",
-    "cookiesLegal": "केवल अपना खाता इस्तेमाल करें। फ़ाइल इसी कंप्यूटर पर रहती है, केवल AnyGet इसे पढ़ सकता है, और यह दोबारा कभी दिखाई नहीं जाती।",
-    "cookiesPresent": "{count, plural, one {# कुकी वाली फ़ाइल सहेजी गई है} other {# कुकीज़ वाली फ़ाइल सहेजी गई है}} ({date})।",
-    "cookiesNone": "कोई कुकीज़ फ़ाइल सहेजी नहीं गई।",
-    "cookiesUpload": "cookies.txt अपलोड करें",
-    "cookiesReplace": "cookies.txt बदलें",
-    "cookiesRemove": "हटाएँ",
-    "cookiesSaved": "कुकीज़ सहेजी गईं",
-    "cookiesRemoved": "कुकीज़ हटा दी गईं",
-    "cookiesTooBig": "यह फ़ाइल बहुत बड़ी है (अधिकतम 1 MB)।",
     "retry": "फिर कोशिश करें",
     "saved": "सेटिंग सहेजी गईं",
     "save": "सेटिंग सहेजें",
@@ -338,23 +329,6 @@
     "contactEmailHint": "archive.org और दूसरे API को भेजा जाता है ताकि गड़बड़ी होने पर वे आपसे संपर्क कर सकें।",
     "watchEnabled": "वॉच तय समय पर चलाएँ",
     "keys": "API कुंजियाँ",
-    "keysHint": "हर साइट की मुफ़्त कुंजियाँ। ये इस कंप्यूटर पर रहती हैं और फिर कभी दिखाई नहीं जातीं।",
-    "keyNames": {
-      "github_token": "GitHub टोकन",
-      "hf_token": "Hugging Face टोकन",
-      "civitai_token": "Civitai टोकन",
-      "kaggle_username": "Kaggle यूज़र नेम",
-      "kaggle_key": "Kaggle कुंजी",
-      "europeana_key": "Europeana कुंजी",
-      "dpla_key": "DPLA कुंजी",
-      "trove_key": "Trove कुंजी",
-      "digitalnz_key": "DigitalNZ कुंजी",
-      "bhl_key": "BHL कुंजी",
-      "ddb_key": "DDB कुंजी"
-    },
-    "keySet": "सेट है",
-    "keyNotSet": "सेट नहीं",
-    "clearKey": "हटाएँ",
     "ytdlp": "yt-dlp",
     "checkUpdates": "अपडेट जाँचें",
     "installed": "AnyGet इस डिवाइस पर इंस्टॉल है।",
@@ -370,7 +344,9 @@
     "torrentsHint": "शुरू में बंद। केवल उन फ़ाइलों के लिए इस्तेमाल करें जिन्हें आप शेयर कर सकते हैं (Linux इमेज, पब्लिक डोमेन फ़िल्में, Creative Commons रिलीज़)। टॉरेंट पीयर दूसरों के कंप्यूटर होते हैं, इसलिए यह ट्रैफ़िक AnyGet के नेटवर्क गार्ड से बाहर है।",
     "torrentsMissing": "टॉरेंट सपोर्ट इंस्टॉल नहीं है। इसे इंस्टॉल करें:",
     "torrentsEnabled": "मैग्नेट लिंक और .torrent फ़ाइलों की अनुमति दें",
-    "torrentsSeed": "डाउनलोड पूरा होने के बाद भी शेयर करते रहें"
+    "torrentsSeed": "डाउनलोड पूरा होने के बाद भी शेयर करते रहें",
+    "keysMoved": "आपके खातों की API कुंजियाँ और कुकीज़ अब कनेक्शन में हैं।",
+    "openConnections": "कनेक्शन खोलें"
   },
   "Archive": {
     "title": "archive.org",
@@ -771,5 +747,58 @@
     "account": "खाता",
     "signedInAs": "इस रूप में साइन इन:",
     "signOut": "साइन आउट करें"
+  },
+  "Connections": {
+    "title": "कनेक्शन",
+    "subtitle": "अपने खाते और कुंजियाँ जोड़ें। तब AnyGet वही डाउनलोड करता है जो आप साइन इन करके देख सकते हैं। यह पेवॉल, DRM, केवल-सदस्य सामग्री या क्षेत्रीय रोक को कभी पार नहीं करता।",
+    "keyFile": "सहेजे गए कनेक्शन डेटा फ़ोल्डर में रखी एक कुंजी से एन्क्रिप्ट होते हैं। अधिक सुरक्षा के लिए सर्वर पर ANYGET_SECRETS_KEY सेट करें (anyget gen-key से बनाएँ)।",
+    "importTitle": "अपने ब्राउज़र से कुकीज़ जोड़ें",
+    "importHelp": "साइन इन रहते हुए अपने ब्राउज़र से cookies.txt फ़ाइल निर्यात करें और यहाँ जोड़ें। AnyGet केवल नीचे दी गई साइटों की कुकीज़ रखता है और उन्हें एन्क्रिप्ट करता है।",
+    "howTitle": "cookies.txt फ़ाइल कैसे पाएँ",
+    "how1": "अपने ब्राउज़र में cookies.txt निर्यातक इंस्टॉल करें, जैसे “Get cookies.txt LOCALLY” (Chrome या Firefox)।",
+    "how2": "अपने खाते से साइट पर साइन इन करें।",
+    "how3": "उस साइट पर एक्सटेंशन खोलें और cookies.txt (Netscape प्रारूप) निर्यात करें।",
+    "how4": "फ़ाइल यहाँ जोड़ें। इसे साझा न करें: यह आपके पासवर्ड की तरह काम करती है।",
+    "importButton": "cookies.txt जोड़ें",
+    "imported": "जुड़ गया: {sites}",
+    "cookieSites": "जिन साइटों पर आप साइन इन करते हैं",
+    "keySites": "API कुंजियाँ",
+    "keysHelp": "मुफ़्त कुंजियाँ और टोकन सीमाएँ बढ़ाते हैं और स्रोत खोलते हैं। ये एन्क्रिप्ट होकर सहेजे जाते हैं और फिर कभी दिखाए नहीं जाते।",
+    "status": {
+      "connected": "जुड़ा हुआ",
+      "expired": "समाप्त",
+      "server": "सर्वर पर सेट",
+      "not_connected": "नहीं जुड़ा"
+    },
+    "connectedOn": "{date} को जुड़ा",
+    "expiresOn": "{date} को समाप्त",
+    "viaProxy": "प्रॉक्सी इस्तेमाल करता है",
+    "uploadCookies": "cookies.txt अपलोड करें",
+    "replaceCookies": "कुकीज़ बदलें",
+    "fields": {
+      "token": "कुंजी या टोकन",
+      "username": "उपयोगकर्ता नाम",
+      "key": "कुंजी"
+    },
+    "keepCurrent": "सहेजा गया — बदलने के लिए लिखें",
+    "saveKey": "सहेजें",
+    "testButton": "जाँचें",
+    "remove": "हटाएँ",
+    "helpCookies": "निर्यात कैसे करें",
+    "helpKey": "कुंजी पाएँ",
+    "proxyTitle": "इस साइट के लिए प्रॉक्सी",
+    "proxySave": "प्रॉक्सी सहेजें",
+    "proxyClear": "प्रॉक्सी हटाएँ",
+    "proxySaved": "प्रॉक्सी सहेजा गया।",
+    "saved": "{site} जुड़ गया।",
+    "removed": "{site} हटा दिया गया।",
+    "retry": "फिर से कोशिश करें",
+    "test": {
+      "ok": "{site} काम कर रहा है।",
+      "rejected": "{site} ने यह कुंजी अस्वीकार की। जाँचकर फिर से सहेजें।",
+      "unreachable": "{site} तक नहीं पहुँच सके। बाद में कोशिश करें।",
+      "expired": "ये {site} कुकीज़ समाप्त हो गई हैं। नई निर्यात करें।",
+      "untested": "सहेजा गया। {site} की जाँच यहाँ से नहीं हो सकती।"
+    }
   }
 }

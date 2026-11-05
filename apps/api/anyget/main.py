@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from anyget import __version__
-from anyget.api import archive, auth, books, jobs, library, probe, system, watches
+from anyget.api import archive, auth, books, connections, jobs, library, probe, system, watches
 from anyget.api import settings as settings_api
 from anyget.core.auth import SecurityMiddleware
 from anyget.core.filenames import UnsafePathError
@@ -76,7 +76,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=exc.status_code, content=exc.detail)
         return _error(exc.status_code, "error", str(exc.detail))
 
-    for module in (system, auth, probe, jobs, settings_api, archive, books, library, watches):
+    for module in (
+        system,
+        auth,
+        connections,
+        probe,
+        jobs,
+        settings_api,
+        archive,
+        books,
+        library,
+        watches,
+    ):
         app.include_router(module.router, prefix="/api")
     # Outermost: access control, rate limits and security headers (core/auth.py).
     app.add_middleware(SecurityMiddleware)

@@ -4,7 +4,6 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
 import { AppSettings } from "@/components/settings/app-settings";
-import { CookiesSettings } from "@/components/settings/cookies-settings";
 import { InstallApp } from "@/components/settings/install-app";
 import { SignOut } from "@/components/auth/sign-out";
 import type { Locale } from "@/i18n/routing";
@@ -31,7 +30,6 @@ export default function SettingsPage({ params }: { params: Promise<{ locale: Loc
       </div>
       <SignOut />
       <InstallApp />
-      <CookiesSettings />
       <AppSettings />
     </div>
   );

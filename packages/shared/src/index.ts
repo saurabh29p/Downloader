@@ -16,7 +16,6 @@ export type CreateJobsResult = components["schemas"]["CreateJobsResult"];
 export type RejectedUrl = components["schemas"]["RejectedUrl"];
 export type ApiErrorBody = components["schemas"]["ApiError"];
 export type JobItem = components["schemas"]["JobItem"];
-export type CookiesStatus = components["schemas"]["CookiesStatus"];
 export type ToolVersions = components["schemas"]["ToolVersions"];
 
 /** Sent with every call: the API refuses cookie-signed writes without it (CSRF). */
@@ -41,7 +40,6 @@ export type Library = components["schemas"]["LibraryOut"];
 export type LibraryList = components["schemas"]["LibraryList"];
 export type UniversalSearch = components["schemas"]["UniversalSearch"];
 export type VideoHit = components["schemas"]["VideoHit"];
-export type KeyStatus = components["schemas"]["KeyStatus"];
 export type LibraryItem = components["schemas"]["LibraryItemOut"];
 export type LibraryPage = components["schemas"]["LibraryPage"];
 export type EpubPreview = components["schemas"]["EpubPreview"];

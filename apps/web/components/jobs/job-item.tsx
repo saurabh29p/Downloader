@@ -146,11 +146,11 @@ function FailedNote({ job }: { job: Job }) {
       </p>
       {job.connect && (
         <a
-          href={`/${locale}/settings#cookies`}
+          href={`/${locale}/connections#${job.connect}`}
           className="self-start font-medium text-primary underline underline-offset-4"
           data-testid="connect-site"
         >
-          {t("connect", { site: job.connect })}
+          {t("connect", { site: job.connect_label ?? job.connect })}
         </a>
       )}
       {job.error && known && (

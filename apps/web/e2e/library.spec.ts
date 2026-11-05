@@ -54,7 +54,7 @@ test("watch: explains what can be watched and shows errors", async ({ page }) =>
   expect(axe.violations).toEqual([]);
 });
 
-test("settings: saved values survive a reload; keys are never shown", async ({
+test("settings: saved values survive a reload; keys live in Connections", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "one browser changes shared settings");
@@ -64,7 +64,6 @@ test("settings: saved values survive a reload; keys are never shown", async ({
   await expect(
     page.getByText("files/video.mp4").or(page.getByText("videos/video.mp4")),
   ).toBeVisible();
-  await page.getByLabel("DPLA key").fill("e2e-secret");
   await page.getByRole("button", { name: "Save settings" }).click();
   await expect(page.getByText("Settings saved")).toBeVisible();
   const axe = await new AxeBuilder({ page }).analyze();
@@ -72,10 +71,10 @@ test("settings: saved values survive a reload; keys are never shown", async ({
 
   await page.reload();
   await expect(page.getByTestId("folder-template")).toHaveValue("{type}");
-  await expect(page.getByText("e2e-secret")).toHaveCount(0);
-  await expect(page.getByRole("textbox", { name: "DPLA key" })).toHaveValue("");
-  await page.getByRole("button", { name: "Clear: DPLA key" }).click();
-  await expect(page.getByText("Settings saved")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open Connections" })).toHaveAttribute(
+    "href",
+    "/en/connections",
+  );
   // Put things back for the other tests.
   await page.getByTestId("folder-template").fill("");
   await page.getByRole("button", { name: "Save settings" }).click();

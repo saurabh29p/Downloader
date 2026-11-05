@@ -518,6 +518,197 @@
         "title": "Choice",
         "type": "object"
       },
+      "ConnectionIn": {
+        "description": "Cookie sites take `cookies` (a cookies.txt); key sites take `fields`.",
+        "properties": {
+          "cookies": {
+            "anyOf": [
+              {
+                "maxLength": 1048576,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookies"
+          },
+          "fields": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fields"
+          },
+          "proxy": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy"
+          }
+        },
+        "title": "ConnectionIn",
+        "type": "object"
+      },
+      "ConnectionView": {
+        "properties": {
+          "connected_on": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connected On"
+          },
+          "cookie_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookie Count"
+          },
+          "expires_on": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires On"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "help_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Help Url"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "cookies",
+              "key"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_test_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test At"
+          },
+          "last_test_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test Ok"
+          },
+          "proxy": {
+            "default": false,
+            "title": "Proxy",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "connected",
+              "not_connected",
+              "expired",
+              "server"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "kind",
+          "fields",
+          "status"
+        ],
+        "title": "ConnectionView",
+        "type": "object"
+      },
+      "ConnectionsView": {
+        "properties": {
+          "key_source": {
+            "enum": [
+              "env",
+              "file"
+            ],
+            "title": "Key Source",
+            "type": "string"
+          },
+          "sites": {
+            "items": {
+              "$ref": "#/components/schemas/ConnectionView"
+            },
+            "title": "Sites",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key_source",
+          "sites"
+        ],
+        "title": "ConnectionsView",
+        "type": "object"
+      },
       "ConvertRequest": {
         "properties": {
           "job_id": {
@@ -560,55 +751,19 @@
         "title": "ConvertRequest",
         "type": "object"
       },
-      "CookiesStatus": {
+      "CookiesImport": {
         "properties": {
-          "lines": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lines"
-          },
-          "present": {
-            "title": "Present",
-            "type": "boolean"
-          },
-          "updated_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Updated At"
-          }
-        },
-        "required": [
-          "present"
-        ],
-        "title": "CookiesStatus",
-        "type": "object"
-      },
-      "CookiesUpload": {
-        "properties": {
-          "content": {
+          "cookies": {
             "maxLength": 1048576,
             "minLength": 1,
-            "title": "Content",
+            "title": "Cookies",
             "type": "string"
           }
         },
         "required": [
-          "content"
+          "cookies"
         ],
-        "title": "CookiesUpload",
+        "title": "CookiesImport",
         "type": "object"
       },
       "CreateJobs": {
@@ -744,6 +899,26 @@
         "title": "Health",
         "type": "object"
       },
+      "ImportResult": {
+        "properties": {
+          "imported": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Imported",
+            "type": "array"
+          },
+          "view": {
+            "$ref": "#/components/schemas/ConnectionsView"
+          }
+        },
+        "required": [
+          "imported",
+          "view"
+        ],
+        "title": "ImportResult",
+        "type": "object"
+      },
       "JobItem": {
         "description": "One link with its own options (e.g. a playlist entry with its index).",
         "properties": {
@@ -788,9 +963,22 @@
                 "type": "null"
               }
             ],
-            "description": "Site whose account would fix this failure (\"YouTube\"), shown as \"Connect …\".",
+            "description": "Connections id of the site whose account would fix this failure (\"youtube\").",
             "readOnly": true,
             "title": "Connect"
+          },
+          "connect_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "That site's name, for \"Connect your YouTube account\".",
+            "readOnly": true,
+            "title": "Connect Label"
           },
           "created_at": {
             "format": "date-time",
@@ -966,7 +1154,8 @@
           "created_at",
           "updated_at",
           "finished_at",
-          "connect"
+          "connect",
+          "connect_label"
         ],
         "title": "JobOut",
         "type": "object"
@@ -983,29 +1172,6 @@
         ],
         "title": "JobState",
         "type": "string"
-      },
-      "KeyStatus": {
-        "properties": {
-          "configured": {
-            "title": "Configured",
-            "type": "boolean"
-          },
-          "env": {
-            "title": "Env",
-            "type": "string"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name",
-          "env",
-          "configured"
-        ],
-        "title": "KeyStatus",
-        "type": "object"
       },
       "LibraryItemOut": {
         "properties": {
@@ -1734,32 +1900,8 @@
         "type": "object"
       },
       "SettingsUpdate": {
-        "description": "Fields to change; omitted fields stay as they are. An empty secret clears it.",
+        "description": "Fields to change; omitted fields stay as they are.",
         "properties": {
-          "bhl_key": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Bhl Key"
-          },
-          "civitai_token": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Civitai Token"
-          },
           "contact_email": {
             "anyOf": [
               {
@@ -1772,54 +1914,6 @@
             ],
             "title": "Contact Email"
           },
-          "ddb_key": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Ddb Key"
-          },
-          "digitalnz_key": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Digitalnz Key"
-          },
-          "dpla_key": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Dpla Key"
-          },
-          "europeana_key": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Europeana Key"
-          },
           "folder_template": {
             "anyOf": [
               {
@@ -1831,30 +1925,6 @@
               }
             ],
             "title": "Folder Template"
-          },
-          "github_token": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Github Token"
-          },
-          "hf_token": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Hf Token"
           },
           "host_limits": {
             "anyOf": [
@@ -1869,30 +1939,6 @@
               }
             ],
             "title": "Host Limits"
-          },
-          "kaggle_key": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Kaggle Key"
-          },
-          "kaggle_username": {
-            "anyOf": [
-              {
-                "maxLength": 200,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Kaggle Username"
           },
           "max_concurrent_downloads": {
             "anyOf": [
@@ -1967,18 +2013,6 @@
             ],
             "title": "Torrent Seed"
           },
-          "trove_key": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trove Key"
-          },
           "watch_enabled": {
             "anyOf": [
               {
@@ -2038,13 +2072,6 @@
             "title": "Restart Needed",
             "type": "array"
           },
-          "secrets": {
-            "additionalProperties": {
-              "type": "boolean"
-            },
-            "title": "Secrets",
-            "type": "object"
-          },
           "torrent_available": {
             "title": "Torrent Available",
             "type": "boolean"
@@ -2074,8 +2101,7 @@
           "watch_enabled",
           "torrent_enabled",
           "torrent_seed",
-          "torrent_available",
-          "secrets"
+          "torrent_available"
         ],
         "title": "SettingsView",
         "type": "object"
@@ -2236,6 +2262,24 @@
           "status"
         ],
         "title": "SourceStatus",
+        "type": "object"
+      },
+      "TestResult": {
+        "properties": {
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "result"
+        ],
+        "title": "TestResult",
         "type": "object"
       },
       "ToolVersions": {
@@ -3457,6 +3501,359 @@
         "summary": "Books Search Stream",
         "tags": [
           "books"
+        ]
+      }
+    },
+    "/api/connections": {
+      "get": {
+        "operationId": "listConnections",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Connections",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/connections/import": {
+      "post": {
+        "description": "One cookies.txt for several sites: each known site gets its own cookies.",
+        "operationId": "importCookies",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CookiesImport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Import Cookies",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/connections/{site_id}": {
+      "delete": {
+        "operationId": "deleteConnection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z_]{1,32}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Delete Connection",
+        "tags": [
+          "connections"
+        ]
+      },
+      "put": {
+        "operationId": "putConnection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z_]{1,32}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Put Connection",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/connections/{site_id}/test": {
+      "post": {
+        "operationId": "testConnection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z_]{1,32}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Test Connection",
+        "tags": [
+          "connections"
         ]
       }
     },
@@ -5292,7 +5689,7 @@
     },
     "/api/settings": {
       "get": {
-        "description": "Current settings. API keys are reported only as set or not set.",
+        "description": "Current settings (API keys and cookies are in Connections).",
         "operationId": "getSettings",
         "responses": {
           "200": {
@@ -5386,144 +5783,6 @@
           }
         },
         "summary": "Put Settings",
-        "tags": [
-          "settings"
-        ]
-      }
-    },
-    "/api/settings/cookies": {
-      "delete": {
-        "operationId": "deleteCookies",
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Delete Cookies",
-        "tags": [
-          "settings"
-        ]
-      },
-      "get": {
-        "operationId": "getCookiesStatus",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CookiesStatus"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Get Cookies",
-        "tags": [
-          "settings"
-        ]
-      },
-      "put": {
-        "operationId": "putCookies",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CookiesUpload"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CookiesStatus"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "Blocked or invalid link"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "Not found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "Action does not fit the job state"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "Link not supported"
-          },
-          "502": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "The remote server failed"
-          }
-        },
-        "summary": "Put Cookies",
-        "tags": [
-          "settings"
-        ]
-      }
-    },
-    "/api/settings/keys": {
-      "get": {
-        "description": "Which optional API keys are set. Values are never returned.",
-        "operationId": "getKeyStatus",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/KeyStatus"
-                  },
-                  "title": "Response Getkeystatus",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Key Status",
         "tags": [
           "settings"
         ]

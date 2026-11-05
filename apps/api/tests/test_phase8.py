@@ -201,23 +201,21 @@ def test_library_api_previews_and_ranges(client: TestClient, env_settings: Path)
     assert client.get(f"/api/library/{video['id']}").status_code == 404
 
 
-def test_settings_are_saved_masked_and_validated(
+def test_settings_are_saved_and_validated(
     client: TestClient, env_settings: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     view = client.get("/api/settings").json()
-    assert view["folder_template"] == "" and view["secrets"]["dpla_key"] is False
+    assert view["folder_template"] == "" and "secrets" not in view  # keys: Connections
     saved = client.put(
         "/api/settings",
         json={
             "folder_template": "{type}/{source}",
             "max_concurrent_downloads": 2,
             "rate_limit_kbps": 500,
-            "dpla_key": "secret-value",
             "proxy": "http://127.0.0.1:3128",
         },
     ).json()
     assert saved["folder_template"] == "{type}/{source}" and saved["max_concurrent_downloads"] == 2
-    assert saved["secrets"]["dpla_key"] is True and "secret-value" not in str(saved)
     assert saved["restart_needed"] == ["proxy"]
     bad = client.put("/api/settings", json={"folder_template": "{oops}"})
     assert bad.status_code == 422
@@ -228,9 +226,7 @@ def test_settings_are_saved_masked_and_validated(
     get_settings.cache_clear()
     with TestClient(create_app()) as again:
         view = again.get("/api/settings").json()
-        assert view["rate_limit_kbps"] == 500 and view["secrets"]["dpla_key"] is True
-        cleared = again.put("/api/settings", json={"dpla_key": ""}).json()
-        assert cleared["secrets"]["dpla_key"] is False
+        assert view["rate_limit_kbps"] == 500
 
 
 @respx.mock
