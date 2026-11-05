@@ -741,5 +741,20 @@
     "title": "Nothing to download",
     "noLink": "The shared text has no link in it. Share a web page or a link to a file.",
     "home": "Go to Home"
+  },
+  "Login": {
+    "title": "Sign in",
+    "subtitle": "AnyGet is private. Only its owner can sign in.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "signingIn": "Signing in…",
+    "wrong": "Wrong email or password.",
+    "limited": "Too many attempts. Wait a minute, then try again.",
+    "noOwner": "No sign-in is set up yet. Set ANYGET_OWNER_EMAIL and ANYGET_OWNER_PASSWORD_HASH on the server.",
+    "network": "AnyGet could not be reached. Try again.",
+    "account": "Account",
+    "signedInAs": "Signed in as",
+    "signOut": "Sign out"
   }
 }

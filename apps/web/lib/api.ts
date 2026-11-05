@@ -23,6 +23,18 @@ function toApiError(error: unknown, response?: Response): ApiError {
   return new ApiError(response ? "http" : "network", "request failed", response?.status);
 }
 
+/** A 401 means the session ended: go to the sign-in page and come back afterwards. */
+function toSignIn() {
+  if (typeof window === "undefined") return;
+  const { pathname, search } = window.location;
+  const [, locale = "en", page] = pathname.split("/");
+  if (page === "login") return;
+  const next = encodeURIComponent(pathname + search);
+  // A full load on purpose: it drops every cached query of the old session.
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+  window.location.assign(`/${locale}/login?next=${next}`);
+}
+
 export async function call<T>(
   promise: Promise<{ data?: T; error?: unknown; response: Response }>,
 ): Promise<T> {
@@ -33,7 +45,9 @@ export async function call<T>(
     throw new ApiError("network", "the server could not be reached");
   }
   if (result.error !== undefined || !result.response.ok) {
-    throw toApiError(result.error, result.response);
+    const error = toApiError(result.error, result.response);
+    if (error.status === 401) toSignIn();
+    throw error;
   }
   return result.data as T;
 }
