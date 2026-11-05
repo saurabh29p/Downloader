@@ -1,7 +1,7 @@
 // Local file server for end-to-end tests. Serves deterministic files with
 // Range support and Content-MD5, plus an HTML page and a slow mode.
 //   GET/HEAD /files/<name>?size=<bytes>&slow=1
-//   GET/HEAD /page.html
+//   GET/HEAD /page.html?id=<tag> (links to report-<tag>.pdf and data-<tag>.zip)
 import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 
@@ -27,7 +27,12 @@ createServer(async (req, res) => {
   if (url.pathname === "/health") return res.end("ok");
   if (url.pathname === "/page.html") {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    return res.end(req.method === "HEAD" ? undefined : "<!doctype html><title>A page</title>");
+    const tag = encodeURIComponent(url.searchParams.get("id") ?? "x");
+    const body =
+      "<!doctype html><title>A page</title>" +
+      `<a href="/files/report-${tag}.pdf?size=40000">Report</a> ` +
+      `<a href="/files/data-${tag}.zip?size=20000">Data</a>`;
+    return res.end(req.method === "HEAD" ? undefined : body);
   }
   if (!url.pathname.startsWith("/files/")) {
     res.writeHead(404);

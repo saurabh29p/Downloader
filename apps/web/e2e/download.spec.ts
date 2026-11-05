@@ -84,16 +84,12 @@ test("pause and resume a slow download", async ({ page }, testInfo) => {
   await expect(row).toHaveAttribute("data-state", "done", { timeout: 60_000 });
 });
 
-test("blocked and unsupported links get clear messages", async ({ page }) => {
+test("blocked links get clear messages", async ({ page }) => {
   await page.goto("/en");
   const input = page.getByLabel("Links to download");
   await input.fill("http://10.0.0.1/router.cfg");
   await page.getByRole("button", { name: "Check link" }).click();
   await expect(page.getByRole("main").getByRole("alert")).toContainText("private or local network");
-
-  await input.fill("http://127.0.0.1:8200/page.html");
-  await page.getByRole("button", { name: "Check link" }).click();
-  await expect(page.getByRole("main").getByRole("alert")).toContainText("isn't supported yet");
 
   await input.fill("hello there");
   await page.getByRole("button", { name: "Check link" }).click();

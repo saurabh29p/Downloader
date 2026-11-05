@@ -12,8 +12,9 @@ Read this file at the start of every session. The full research doc lives in `do
 - [x] Phase 3 — website foundation
 - [x] Phase 4 — YouTube and media
 - [x] Phase 5 — archive.org and Wayback
-- [ ] Phase 6 — code, cloud, images, AI (next)
-- [ ] Phases 7–10 — see roadmap below
+- [x] Phase 6 — code, cloud, images, AI
+- [ ] Phase 7 — books, libraries, search (next)
+- [ ] Phases 8–10 — see roadmap below
 
 Update this checklist at the end of every phase.
 
@@ -216,8 +217,16 @@ Personal use only. Download only what the user owns, what is public domain or op
 - `handlers/wayback.py` downloads `<ts>id_/<url>` (raw bytes, no toolbar); `HttpGenericHandler.probe(..., {"allow_html": True})` lets it keep HTML captures.
 - APIs: `GET /api/archive/search` (`deep=true`/`cursor` → scrape API), `GET /api/archive/items/{id}`, `GET /api/wayback/snapshots?url=`. Web calls live in `lib/api-archive.ts` so Home never loads them.
 
+### Code / cloud / gallery / AI gotchas
+- Multi-file handlers (archive.org, git_code, gallery, ai_resources, web pages) build `RemoteFile`s and call `handlers/multi.download_many`; the user's pick arrives as `options["files"]` (choice ids).
+- Handler-only request headers (tokens, Referer) go in `options["_headers"]` / `RemoteFile.headers`. The API drops every option key that starts with `_`, so users can't set them.
+- `HttpGenericHandler.probe` returns a `kind: "webpage"` probe for HTML (unless `allow_html`); `download` then runs `webpage.download_page`. A cloud link that lands on an HTML page (sign-in, quota) fails with `login_required`; it is never saved as the file.
+- gallery-dl is GPL: run only as `python -m gallery_dl` subprocess, for listing (`-J`). It never downloads; images come through `Net`. `gallery_hosts()` reads `--list-extractors` once (cached) for `can_handle`. Its own requests during listing are outside `net_guard` (separate process) — the URL is pre-checked and only sites with a gallery-dl extractor reach it.
+- Downloads send `Accept-Encoding: identity`; with a `Content-Encoding` response the length is unknown (no size check).
+- Live tests: GitHub works from the sandbox; Flickr and Hugging Face need CI. `ANYGET_LIVE_DRIVE_URL` / `ANYGET_LIVE_FLICKR_ALBUM` are optional repo variables for the Live tests workflow.
+
 ### Frontend gotchas
-- First-load JS is at the 170 KB budget (Home ≈169.3 KB, Downloads ≈168.4, others ≈166–167). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, format picker, video card and playlist view).
+- First-load JS is at the 170 KB budget (Home ≈169.3 KB, Downloads ≈168.4, others ≈166–168). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, format picker, video card and playlist view).
 - `Button` has no `asChild` (Radix Slot was dropped to save bytes): style links with `buttonVariants()`.
 - Media pills (`components/media/choice.tsx`) are native radios/checkboxes hidden inside labels; in Playwright click the label (`pick()` in `e2e/youtube.spec.ts`), not the input.
 - No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).

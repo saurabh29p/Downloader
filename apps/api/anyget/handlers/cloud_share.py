@@ -116,15 +116,12 @@ class CloudShareHandler:
                 )
             return Probe(url=url, handler=self.name, title="MEGA file", extra={"kind": "mega"})
         direct = direct_url(url)
-        try:
-            probe = await self.http.probe(direct)
-        except HandlerError as exc:
-            if exc.code == "unsupported":  # got an HTML page instead of the file
-                raise HandlerError(
-                    "login_required",
-                    "the share link opened a sign-in or quota page; check that it is public",
-                ) from exc
-            raise
+        probe = await self.http.probe(direct)
+        if probe.extra.get("kind") == "webpage":  # got an HTML page instead of the file
+            raise HandlerError(
+                "login_required",
+                "the share link opened a sign-in or quota page; check that it is public",
+            )
         return Probe(
             url=url,
             handler=self.name,

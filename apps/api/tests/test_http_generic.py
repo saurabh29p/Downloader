@@ -210,3 +210,22 @@ async def test_existing_file_gets_new_name(handler: HttpGenericHandler, tmp_path
     result = await handler.download(job(tmp_path), {}, lambda _p: None)
     assert result.paths[0].name == "archive (1).bin"
     assert (out / "archive.bin").read_bytes() == b"old"
+
+
+@respx.mock
+async def test_compressed_response_is_saved_decoded(
+    handler: HttpGenericHandler, tmp_path: Path
+) -> None:
+    import gzip
+
+    text = b"Hello World!\n"
+    packed = gzip.compress(text)
+    encoded = {"Content-Encoding": "gzip", "Content-Length": str(len(packed))}
+    head = respx.head(URL).mock(return_value=httpx.Response(200, headers=encoded))
+    get = respx.get(URL).mock(return_value=httpx.Response(200, headers=encoded, content=packed))
+    probe = await handler.probe(URL)
+    assert probe.size is None  # a compressed length is not the file size
+    result = await handler.download(job(tmp_path), {}, lambda _p: None)
+    assert result.paths[0].read_bytes() == text
+    assert head.calls[0].request.headers["accept-encoding"] == "identity"
+    assert get.calls[-1].request.headers["accept-encoding"] == "identity"

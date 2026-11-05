@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   live:
-    name: yt-dlp live (Docker, ffmpeg + Deno)
+    name: Live tests (Docker, ffmpeg + Deno)
     if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'live-tests'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -34,4 +34,7 @@ jobs:
           ANYGET_LIVE_PLAYLIST: ${{ inputs.playlist }}
           # Optional: a cookies.txt from your own account (YouTube bot checks, Vimeo sign-in).
           ANYGET_LIVE_COOKIES: ${{ secrets.ANYGET_LIVE_COOKIES }}
+          # Optional: a public Drive file you shared yourself; another Flickr album.
+          ANYGET_LIVE_DRIVE_URL: ${{ vars.ANYGET_LIVE_DRIVE_URL }}
+          ANYGET_LIVE_FLICKR_ALBUM: ${{ vars.ANYGET_LIVE_FLICKR_ALBUM }}
         run: docker compose --profile test run --rm api-test

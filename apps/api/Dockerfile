@@ -12,7 +12,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg git ca-certificates \
+    && apt-get install -y --no-install-recommends ffmpeg git megatools ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=deno /deno /usr/local/bin/deno
 COPY --from=uv /uv /usr/local/bin/uv

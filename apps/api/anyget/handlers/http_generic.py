@@ -68,7 +68,18 @@ def checksums_from_headers(headers: httpx.Headers) -> dict[str, str]:
     return found
 
 
+# Ask for the file as stored. Servers that compress anyway (Content-Encoding) send a
+# Content-Length for the compressed body, which says nothing about the file's size.
+IDENTITY = {"Accept-Encoding": "identity"}
+
+
+def _encoded(response: httpx.Response) -> bool:
+    return response.headers.get("content-encoding", "identity").lower() not in ("", "identity")
+
+
 def _total_from(response: httpx.Response) -> int | None:
+    if _encoded(response):
+        return None
     match = _CONTENT_RANGE.match(response.headers.get("content-range", ""))
     if match and match.group(3) != "*":
         return int(match.group(3))
@@ -102,8 +113,8 @@ class HttpGenericHandler:
         return urlsplit(url).scheme in ("http", "https")
 
     async def probe(self, url: str, options: dict[str, Any] | None = None) -> Probe:
-        headers = _private_headers(options)
-        response = await self.net.request("HEAD", url, headers=headers or None)
+        headers = {**IDENTITY, **_private_headers(options)}
+        response = await self.net.request("HEAD", url, headers=headers)
         if response.status_code in (403, 405, 501) or response.status_code >= 500:
             # Some servers refuse HEAD; ask for the first byte instead.
             range_headers = {**headers, "Range": "bytes=0-0"}
@@ -215,8 +226,12 @@ class HttpGenericHandler:
         progress_cb: ProgressCallback,
         extra_headers: dict[str, str] | None = None,
     ) -> tuple[int, int | None]:
-        headers = {**(extra_headers or {}), **({"Range": f"bytes={existing}-"} if existing else {})}
-        async with self.net.stream("GET", url, headers=headers or None) as response:
+        headers = {
+            **IDENTITY,
+            **(extra_headers or {}),
+            **({"Range": f"bytes={existing}-"} if existing else {}),
+        }
+        async with self.net.stream("GET", url, headers=headers) as response:
             if response.status_code == 416 and existing and total in (None, existing):
                 return existing, existing  # already complete
             if response.status_code >= 400:
@@ -228,7 +243,7 @@ class HttpGenericHandler:
                 mode = "ab"
             else:
                 existing, mode = 0, "wb"  # server ignored Range: start over
-            total = _total_from(response) or total
+            total = None if _encoded(response) else (_total_from(response) or total)
             downloaded = existing
             progress_cb(Progress(downloaded=downloaded, total=total))
             with part.open(mode) as fh:

@@ -5,6 +5,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (Phase 6 — code, cloud, images, AI, web pages)
+- Code hosts (GitHub, GitLab, Codeberg, Bitbucket, gists): whole repo as a zip, folders (GitHub tree API, other hosts a zip), single files via raw URLs, release assets, releases with every asset plus the source zip. No `git` process; optional `ANYGET_GITHUB_TOKEN` for API limits.
+- Cloud links: Google Drive files (large-file confirm, Docs/Sheets/Slides exported as PDF/XLSX), Dropbox (`dl=1`), OneDrive/SharePoint shares. MEGA through `megatools` when installed (now in the API image); a sign-in page is never saved as the file.
+- Image galleries through gallery-dl, run as a separate process (GPL): it only lists the images, and every image is fetched through AnyGet's guarded HTTP with per-file resume.
+- AI resources: Hugging Face models, datasets and Spaces (file list with sizes and sha256 checks, gated repos ask for your own `ANYGET_HF_TOKEN`), Civitai model files (sha256), Kaggle datasets with your own API key.
+- Web page fallback: HTML links are no longer "unsupported" — save the page itself and/or pick the documents, images, audio, video and archives it links to.
+- Multi-file downloads share one helper (`handlers/multi.py`): files go into one folder, progress is summed, md5/sha1/sha256 checked per file.
+- Web: a file picker in the Home preview for any link with several files (image grid for galleries), new Code and Image galleries pages, Home "More sources" and Ctrl+K entries; en/hi/ar.
+- Live tests: octocat/Hello-World repo zip and README, a Flickr Commons album (first two images), a tiny Hugging Face test model; a public Drive file when `ANYGET_LIVE_DRIVE_URL` is set.
+
+### Fixed (Phase 6)
+- Downloads ask for `Accept-Encoding: identity`; a server that compresses anyway no longer fails the size check (raw.githubusercontent.com sends gzip with the compressed length).
+- IPv4 addresses are tried before IPv6, so a host without a working IPv6 route doesn't use up the connect timeout (seen on archive.org storage hosts in CI).
+
 ### Added (Phase 5 — archive.org and Wayback)
 - archive.org handler: item metadata (cached), file picker, "all of format X", best-format defaults per media type, multi-file downloads into a folder with Range resume and per-file md5 checks; restricted, lending-library and dark items are explained, never downloaded.
 - Search API with filters (type, collection, creator, years), advancedsearch paging and scrape-API cursor paging; item API.

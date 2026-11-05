@@ -12,6 +12,8 @@ const SOURCES = [
   { href: "/youtube", key: "youtube" },
   { href: "/archive", key: "archive" },
   { href: "/wayback", key: "wayback" },
+  { href: "/code", key: "code" },
+  { href: "/images", key: "images" },
 ] as const;
 
 export default function HomePage({ params }: { params: Promise<{ locale: Locale }> }) {
