@@ -105,6 +105,12 @@ def remove_partials(output_dir: Path, job_id: str) -> None:
     """Delete everything a job left half-done (file or folder)."""
     part_path(output_dir, job_id).unlink(missing_ok=True)
     shutil.rmtree(work_dir(output_dir, job_id), ignore_errors=True)
+    # Multi-file jobs (archive.org items) keep their partials inside their own folder.
+    for stray in output_dir.glob(f"*/.anyget-{job_id}*"):
+        if stray.is_dir():
+            shutil.rmtree(stray, ignore_errors=True)
+        else:
+            stray.unlink(missing_ok=True)
 
 
 def partial_size(output_dir: Path, job_id: str) -> int | None:

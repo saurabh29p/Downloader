@@ -5,6 +5,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (Phase 5 — archive.org and Wayback)
+- archive.org handler: item metadata (cached), file picker, "all of format X", best-format defaults per media type, multi-file downloads into a folder with Range resume and per-file md5 checks; restricted, lending-library and dark items are explained, never downloaded.
+- Search API with filters (type, collection, creator, years), advancedsearch paging and scrape-API cursor paging; item API.
+- Wayback handler: raw `id_` downloads (HTML captures kept), CDX snapshot API grouped by year.
+- Web: archive.org page (search, filters, results, item page with format shortcuts and file table) and Wayback page (year timeline, raw download); Home "More sources" links and Ctrl+K entries; en/hi/ar.
+- Live tests: a Gutenberg PDF on archive.org with md5, a 2005 snapshot of example.com.
+
 ### Added (Phase 4 — YouTube and media)
 - yt-dlp handler (YouTube, Vimeo, Bilibili, SoundCloud and 1,800+ sites) running in a worker thread: probe with normalized formats, quality presets (best, 2160–360, audio), mp4/mkv/webm, mp3/m4a/opus at best quality, embedded thumbnail, metadata and chapters, subtitles (manual and auto, srt or embedded), optional info.json, live progress over SSE, pause/cancel.
 - Playlists and channels (Videos, Shorts, Live tabs) with flat probing, item selection, date range and first-N, numbered files in a folder, per-source download archive so saved items are skipped.

@@ -9,13 +9,17 @@ from anyget.core.net import Net
 from anyget.core.queue import DownloadQueue
 from anyget.core.router import Router
 from anyget.core.settings import Settings
+from anyget.handlers.archive_org import ArchiveOrgHandler
 from anyget.handlers.http_generic import HttpGenericHandler
-from anyget.handlers.registry import PRIORITY_FALLBACK, PRIORITY_YTDLP, Registry
+from anyget.handlers.registry import PRIORITY_ARCHIVE, PRIORITY_FALLBACK, PRIORITY_YTDLP, Registry
+from anyget.handlers.wayback import WaybackHandler
 from anyget.handlers.ytdlp import YtDlpHandler
 
 
 def build_registry(net: Net, settings: Settings) -> Registry:
     registry = Registry()
+    registry.register(ArchiveOrgHandler(net), PRIORITY_ARCHIVE)
+    registry.register(WaybackHandler(net), PRIORITY_ARCHIVE)
     registry.register(YtDlpHandler(settings), PRIORITY_YTDLP)
     registry.register(HttpGenericHandler(net), PRIORITY_FALLBACK)
     return registry

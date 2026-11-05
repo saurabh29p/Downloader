@@ -1,0 +1,29 @@
+{
+ "responseHeader": {
+  "status": 0
+ },
+ "response": {
+  "numFound": 2,
+  "start": 0,
+  "docs": [
+   {
+    "identifier": "alicesadventures00gut",
+    "title": "Alice's Adventures in Wonderland",
+    "mediatype": "texts",
+    "creator": [
+     "Carroll, Lewis"
+    ],
+    "year": "1865",
+    "downloads": 12345
+   },
+   {
+    "identifier": "throughlookingglass",
+    "title": "Through the Looking-Glass",
+    "mediatype": "texts",
+    "creator": "Carroll, Lewis",
+    "date": "1871-01-01",
+    "downloads": 999
+   }
+  ]
+ }
+}

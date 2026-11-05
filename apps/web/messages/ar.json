@@ -41,7 +41,22 @@
     "recent": "التنزيلات الأخيرة",
     "viewAll": "عرض الكل",
     "noRecent": "لم يُنزَّل شيء بعد. الصق رابطًا في الأعلى للبدء.",
-    "statusHeading": "حالة الخادم"
+    "statusHeading": "حالة الخادم",
+    "sources": "مصادر أخرى",
+    "source": {
+      "youtube": {
+        "title": "يوتيوب والفيديو",
+        "text": "مقاطع وShorts وقوائم تشغيل وصوت"
+      },
+      "archive": {
+        "title": "archive.org",
+        "text": "كتب وصوت وأفلام وبرامج"
+      },
+      "wayback": {
+        "title": "آلة Wayback",
+        "text": "نسخ قديمة من صفحات الويب والملفات"
+      }
+    }
   },
   "Preview": {
     "handlers": {
@@ -123,7 +138,9 @@
     "geo_blocked": "غير متاح في منطقتك. لا يتجاوز AnyGet القيود الجغرافية.",
     "live_not_finished": "هذا بث مباشر أو قادم. حاول مرة أخرى بعد انتهائه.",
     "unavailable": "هذا الفيديو غير متاح أو أُزيل.",
-    "invalid_cookies": "هذا ليس ملف cookies.txt (بتنسيق Netscape)."
+    "invalid_cookies": "هذا ليس ملف cookies.txt (بتنسيق Netscape).",
+    "restricted": "يقيّد archive.org الوصول إلى هذا العنصر، لذا لا يمكن تنزيله.",
+    "borrow_only": "لا يمكن إلا استعارة هذا العنصر من مكتبة الإعارة في archive.org. لا يتجاوز AnyGet هذا القيد."
   },
   "Downloads": {
     "title": "التنزيلات",
@@ -159,7 +176,9 @@
     "themeDark": "المظهر الداكن",
     "themeSystem": "مظهر النظام",
     "goYoutube": "يوتيوب ومواقع الفيديو",
-    "goSettings": "الإعدادات"
+    "goSettings": "الإعدادات",
+    "goArchive": "archive.org",
+    "goWayback": "آلة Wayback"
   },
   "Status": {
     "checking": "جارٍ فحص الخادم…",
@@ -235,5 +254,58 @@
     "cookiesSaved": "حُفظت ملفات تعريف الارتباط",
     "cookiesRemoved": "حُذفت ملفات تعريف الارتباط",
     "cookiesTooBig": "الملف كبير جدًا (الحد الأقصى 1 ميغابايت)."
+  },
+  "Archive": {
+    "title": "archive.org",
+    "subtitle": "ابحث في أرشيف الإنترنت ونزّل عناصر كاملة أو الملفات التي تريدها فقط. تُعرض العناصر المقيّدة وعناصر مكتبة الإعارة ولكنها لا تُنزَّل أبدًا.",
+    "searchLabel": "ابحث في archive.org",
+    "searchPlaceholder": "العنوان أو المؤلف أو الموضوع",
+    "search": "ابحث",
+    "filters": "عوامل التصفية",
+    "mediatype": "النوع",
+    "anyType": "أي نوع",
+    "types": {
+      "texts": "كتب ونصوص",
+      "audio": "صوت",
+      "movies": "فيديو",
+      "image": "صور",
+      "software": "برامج",
+      "etree": "موسيقى حية"
+    },
+    "collection": "المجموعة",
+    "creator": "المؤلف",
+    "yearFrom": "من سنة",
+    "yearTo": "إلى سنة",
+    "retry": "حاول مرة أخرى",
+    "resultCount": "{count, plural, =0 {لا نتائج} zero {لا نتائج} one {نتيجة واحدة} two {نتيجتان} few {{shown} نتائج} many {{shown} نتيجة} other {{shown} نتيجة}}",
+    "noResults": "لم يُعثر على شيء. جرّب كلمات أقل أو أزل عامل تصفية.",
+    "loadMore": "عرض المزيد",
+    "etiquette": "ينزّل AnyGet ملفين على الأكثر في آن واحد من archive.org ويبطئ عند الطلب، ليكون ضيفًا مهذبًا.",
+    "backToResults": "العودة إلى النتائج",
+    "viewOnArchive": "اعرض على archive.org",
+    "openOnArchive": "افتح على archive.org",
+    "borrowOnly": "هذا العنصر في مكتبة الإعارة: يمكن استعارته وقراءته على archive.org فقط، ولا يمكن تنزيله.",
+    "restrictedNote": "يقيّد archive.org الوصول إلى هذا العنصر، لذا لا يمكن تنزيله.",
+    "allOfFormat": "اختر كل ملفات تنسيق معيّن",
+    "filesCaption": "ملفات هذا العنصر",
+    "select": "اختيار",
+    "fileName": "الملف",
+    "format": "التنسيق",
+    "size": "الحجم",
+    "selected": "{count, plural, =0 {لم يُختر شيء} zero {لم يُختر شيء} one {اختير ملف واحد ({size})} two {اختير ملفان ({size})} few {اختيرت # ملفات ({size})} many {اختير # ملفًا ({size})} other {اختير # ملف ({size})}}",
+    "downloadSelected": "{count, plural, =0 {اختر ملفات} zero {اختر ملفات} one {نزّل ملفًا واحدًا} two {نزّل ملفين} few {نزّل # ملفات} many {نزّل # ملفًا} other {نزّل # ملف}}"
+  },
+  "Wayback": {
+    "title": "آلة Wayback",
+    "subtitle": "اطّلع على كل نسخة محفوظة من صفحة ويب أو ملف ونزّل الأصل كما التُقط تمامًا.",
+    "urlLabel": "عنوان الصفحة أو الملف",
+    "find": "ابحث عن اللقطات",
+    "needUrl": "أدخل عنوانًا أولًا.",
+    "none": "لا توجد لدى آلة Wayback لقطات لهذا العنوان.",
+    "timeline": "اللقطات",
+    "years": "السنة",
+    "count": "{count, plural, zero {لا لقطات} one {لقطة مميزة واحدة} two {لقطتان مميزتان} few {# لقطات مميزة} many {# لقطة مميزة} other {# لقطة مميزة}}",
+    "view": "اعرض",
+    "downloadRaw": "نزّل الأصل"
   }
 }

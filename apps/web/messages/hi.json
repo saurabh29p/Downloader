@@ -41,7 +41,22 @@
     "recent": "हाल के डाउनलोड",
     "viewAll": "सभी देखें",
     "noRecent": "अभी तक कुछ डाउनलोड नहीं हुआ। शुरू करने के लिए ऊपर लिंक पेस्ट करें।",
-    "statusHeading": "सर्वर की स्थिति"
+    "statusHeading": "सर्वर की स्थिति",
+    "sources": "और स्रोत",
+    "source": {
+      "youtube": {
+        "title": "YouTube और वीडियो",
+        "text": "वीडियो, Shorts, प्लेलिस्ट, ऑडियो"
+      },
+      "archive": {
+        "title": "archive.org",
+        "text": "किताबें, ऑडियो, फ़िल्म और सॉफ़्टवेयर"
+      },
+      "wayback": {
+        "title": "वेबैक मशीन",
+        "text": "वेब पेजों और फ़ाइलों के पुराने संस्करण"
+      }
+    }
   },
   "Preview": {
     "handlers": {
@@ -123,7 +138,9 @@
     "geo_blocked": "आपके क्षेत्र में उपलब्ध नहीं है। AnyGet क्षेत्रीय रोक को पार नहीं करता।",
     "live_not_finished": "यह लाइव या आने वाली स्ट्रीम है। इसके ख़त्म होने के बाद फिर कोशिश करें।",
     "unavailable": "यह वीडियो उपलब्ध नहीं है या हटा दिया गया है।",
-    "invalid_cookies": "यह cookies.txt फ़ाइल (Netscape फ़ॉर्मैट) नहीं है।"
+    "invalid_cookies": "यह cookies.txt फ़ाइल (Netscape फ़ॉर्मैट) नहीं है।",
+    "restricted": "archive.org ने इस आइटम तक पहुँच सीमित की है, इसलिए यह डाउनलोड नहीं हो सकता।",
+    "borrow_only": "यह आइटम केवल archive.org की उधार लाइब्रेरी से उधार लिया जा सकता है। AnyGet इस रोक को पार नहीं करता।"
   },
   "Downloads": {
     "title": "डाउनलोड",
@@ -159,7 +176,9 @@
     "themeDark": "गहरी थीम",
     "themeSystem": "सिस्टम थीम",
     "goYoutube": "YouTube और वीडियो साइटें",
-    "goSettings": "सेटिंग्स"
+    "goSettings": "सेटिंग्स",
+    "goArchive": "archive.org",
+    "goWayback": "वेबैक मशीन"
   },
   "Status": {
     "checking": "सर्वर जाँचा जा रहा है…",
@@ -235,5 +254,58 @@
     "cookiesSaved": "कुकीज़ सहेजी गईं",
     "cookiesRemoved": "कुकीज़ हटा दी गईं",
     "cookiesTooBig": "यह फ़ाइल बहुत बड़ी है (अधिकतम 1 MB)।"
+  },
+  "Archive": {
+    "title": "archive.org",
+    "subtitle": "इंटरनेट आर्काइव में खोजें और पूरे आइटम या सिर्फ़ चुनी हुई फ़ाइलें डाउनलोड करें। प्रतिबंधित और उधार-लाइब्रेरी आइटम दिखाए जाते हैं पर कभी डाउनलोड नहीं होते।",
+    "searchLabel": "archive.org में खोजें",
+    "searchPlaceholder": "शीर्षक, लेखक या विषय",
+    "search": "खोजें",
+    "filters": "फ़िल्टर",
+    "mediatype": "प्रकार",
+    "anyType": "कोई भी प्रकार",
+    "types": {
+      "texts": "किताबें और पाठ",
+      "audio": "ऑडियो",
+      "movies": "वीडियो",
+      "image": "चित्र",
+      "software": "सॉफ़्टवेयर",
+      "etree": "लाइव संगीत"
+    },
+    "collection": "संग्रह",
+    "creator": "रचनाकार",
+    "yearFrom": "इस साल से",
+    "yearTo": "इस साल तक",
+    "retry": "फिर से कोशिश करें",
+    "resultCount": "{count, plural, =0 {कोई परिणाम नहीं} one {# परिणाम} other {{shown} परिणाम}}",
+    "noResults": "कुछ नहीं मिला। कम शब्द आज़माएँ या कोई फ़िल्टर हटाएँ।",
+    "loadMore": "और दिखाएँ",
+    "etiquette": "AnyGet archive.org से एक बार में ज़्यादा से ज़्यादा 2 फ़ाइलें डाउनलोड करता है और कहे जाने पर धीमा हो जाता है।",
+    "backToResults": "परिणामों पर लौटें",
+    "viewOnArchive": "archive.org पर देखें",
+    "openOnArchive": "archive.org पर खोलें",
+    "borrowOnly": "यह आइटम उधार लाइब्रेरी में है: इसे केवल archive.org पर उधार लेकर पढ़ा जा सकता है, डाउनलोड नहीं।",
+    "restrictedNote": "archive.org ने इस आइटम तक पहुँच सीमित की है, इसलिए यह डाउनलोड नहीं हो सकता।",
+    "allOfFormat": "किसी फ़ॉर्मैट की सभी फ़ाइलें चुनें",
+    "filesCaption": "इस आइटम की फ़ाइलें",
+    "select": "चुनें",
+    "fileName": "फ़ाइल",
+    "format": "फ़ॉर्मैट",
+    "size": "आकार",
+    "selected": "{count, plural, =0 {कुछ नहीं चुना} one {# फ़ाइल चुनी ({size})} other {# फ़ाइलें चुनीं ({size})}}",
+    "downloadSelected": "{count, plural, =0 {फ़ाइलें चुनें} one {# फ़ाइल डाउनलोड करें} other {# फ़ाइलें डाउनलोड करें}}"
+  },
+  "Wayback": {
+    "title": "वेबैक मशीन",
+    "subtitle": "किसी वेब पेज या फ़ाइल का हर सहेजा गया संस्करण देखें और मूल फ़ाइल वैसी ही डाउनलोड करें जैसी सहेजी गई थी।",
+    "urlLabel": "पेज या फ़ाइल का पता",
+    "find": "स्नैपशॉट खोजें",
+    "needUrl": "पहले एक पता लिखें।",
+    "none": "वेबैक मशीन के पास इस पते का कोई स्नैपशॉट नहीं है।",
+    "timeline": "स्नैपशॉट",
+    "years": "साल",
+    "count": "{count, plural, one {# अलग स्नैपशॉट} other {# अलग स्नैपशॉट}}",
+    "view": "देखें",
+    "downloadRaw": "मूल फ़ाइल डाउनलोड करें"
   }
 }

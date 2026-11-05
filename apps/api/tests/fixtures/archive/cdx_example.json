@@ -1,0 +1,37 @@
+[
+ [
+  "timestamp",
+  "original",
+  "mimetype",
+  "statuscode",
+  "length"
+ ],
+ [
+  "20050105083000",
+  "http://example.com/",
+  "text/html",
+  "200",
+  "1270"
+ ],
+ [
+  "20050617120000",
+  "http://example.com/",
+  "text/html",
+  "200",
+  "1281"
+ ],
+ [
+  "20120301000000",
+  "http://www.example.com/",
+  "text/html",
+  "301",
+  "-"
+ ],
+ [
+  "20190101101010",
+  "https://example.com/",
+  "text/html",
+  "200",
+  "648"
+ ]
+]

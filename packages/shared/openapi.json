@@ -19,6 +19,190 @@
         "title": "ApiError",
         "type": "object"
       },
+      "ArchiveFile": {
+        "properties": {
+          "format": {
+            "title": "Format",
+            "type": "string"
+          },
+          "md5": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Md5"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "private": {
+            "default": false,
+            "title": "Private",
+            "type": "boolean"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "required": [
+          "name",
+          "format"
+        ],
+        "title": "ArchiveFile",
+        "type": "object"
+      },
+      "ArchiveItemOut": {
+        "properties": {
+          "collections": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Collections",
+            "type": "array"
+          },
+          "creator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "details_url": {
+            "title": "Details Url",
+            "type": "string"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/ArchiveFile"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "formats": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Formats",
+            "type": "array"
+          },
+          "identifier": {
+            "title": "Identifier",
+            "type": "string"
+          },
+          "item_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Size"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "mediatype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediatype"
+          },
+          "restricted": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restricted"
+          },
+          "thumbnail_url": {
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "identifier",
+          "title",
+          "thumbnail_url",
+          "formats",
+          "details_url"
+        ],
+        "title": "ArchiveItemOut",
+        "type": "object"
+      },
       "Choice": {
         "description": "One thing the user can pick after a probe: a format, a file or a playlist item.",
         "properties": {
@@ -547,6 +731,211 @@
         "title": "RejectedUrl",
         "type": "object"
       },
+      "SearchHit": {
+        "properties": {
+          "creator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator"
+          },
+          "downloads": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Downloads"
+          },
+          "identifier": {
+            "title": "Identifier",
+            "type": "string"
+          },
+          "mediatype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediatype"
+          },
+          "thumbnail": {
+            "title": "Thumbnail",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "identifier",
+          "title",
+          "thumbnail"
+        ],
+        "title": "SearchHit",
+        "type": "object"
+      },
+      "SearchPage": {
+        "properties": {
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ],
+        "title": "SearchPage",
+        "type": "object"
+      },
+      "Snapshot": {
+        "properties": {
+          "length": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Length"
+          },
+          "mimetype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mimetype"
+          },
+          "original": {
+            "title": "Original",
+            "type": "string"
+          },
+          "raw_url": {
+            "title": "Raw Url",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "view_url": {
+            "title": "View Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "original",
+          "raw_url",
+          "view_url"
+        ],
+        "title": "Snapshot",
+        "type": "object"
+      },
+      "SnapshotList": {
+        "properties": {
+          "snapshots": {
+            "items": {
+              "$ref": "#/components/schemas/Snapshot"
+            },
+            "title": "Snapshots",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "years": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "object"
+          }
+        },
+        "required": [
+          "url",
+          "total",
+          "years",
+          "snapshots"
+        ],
+        "title": "SnapshotList",
+        "type": "object"
+      },
       "ToolVersions": {
         "properties": {
           "deno": {
@@ -674,6 +1063,328 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/archive/items/{identifier}": {
+      "get": {
+        "operationId": "archiveItem",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "title": "Identifier",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveItemOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Archive Item",
+        "tags": [
+          "archive"
+        ]
+      }
+    },
+    "/api/archive/search": {
+      "get": {
+        "description": "First pages use advancedsearch; `deep=true` or a `cursor` walks with the scrape API.",
+        "operationId": "archiveSearch",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 500,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mediatype",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mediatype"
+            }
+          },
+          {
+            "in": "query",
+            "name": "collection",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9999,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9999,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Language"
+            }
+          },
+          {
+            "in": "query",
+            "name": "creator",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Creator"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rows",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Rows",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "deep",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Deep",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Archive Search",
+        "tags": [
+          "archive"
+        ]
+      }
+    },
     "/api/events": {
       "get": {
         "operationId": "allEvents",
@@ -1676,6 +2387,138 @@
         "summary": "Version",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/wayback/snapshots": {
+      "get": {
+        "operationId": "waybackSnapshots",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "url",
+            "required": true,
+            "schema": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Url",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 2100,
+                  "minimum": 1990,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 2100,
+                  "minimum": 1990,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 1000,
+              "maximum": 5000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Wayback Snapshots",
+        "tags": [
+          "archive"
         ]
       }
     }

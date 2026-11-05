@@ -106,7 +106,8 @@ class HttpGenericHandler:
             raise HandlerError("upstream", f"the server answered {response.status_code}")
 
         content_type = response.headers.get("content-type", "").split(";")[0].strip().lower()
-        if content_type in HTML_TYPES:
+        is_html = content_type in HTML_TYPES
+        if is_html and not (options or {}).get("allow_html"):
             raise HandlerError(
                 "unsupported",
                 "this is a web page, not a direct file link. "
@@ -120,6 +121,8 @@ class HttpGenericHandler:
             or host
         )
         filename = sanitize_filename(raw_name, fallback=host)
+        if is_html and not filename.lower().endswith((".html", ".htm")):
+            filename = sanitize_filename(f"{filename}.html")
         size = _total_from(response)
         resumable = (
             response.headers.get("accept-ranges", "").lower() == "bytes"
@@ -148,7 +151,9 @@ class HttpGenericHandler:
         self, job: JobRef, options: dict[str, Any], progress_cb: ProgressCallback
     ) -> DownloadResult:
         probe_data = options.get("probe")
-        probe = Probe.model_validate(probe_data) if probe_data else await self.probe(job.url)
+        probe = (
+            Probe.model_validate(probe_data) if probe_data else await self.probe(job.url, options)
+        )
         filename = sanitize_filename(str(options.get("filename") or probe.extra["filename"]))
         expected: dict[str, str] = {
             **probe.extra.get("checksums", {}),

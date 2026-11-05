@@ -1,0 +1,47 @@
+{
+  "url": "example.com",
+  "total": 4,
+  "years": {
+    "2005": 2,
+    "2012": 1,
+    "2019": 1
+  },
+  "snapshots": [
+    {
+      "timestamp": "20050105083000",
+      "original": "http://example.com/",
+      "mimetype": "text/html",
+      "status": "200",
+      "length": 1270,
+      "raw_url": "https://web.archive.org/web/20050105083000id_/http://example.com/",
+      "view_url": "https://web.archive.org/web/20050105083000/http://example.com/"
+    },
+    {
+      "timestamp": "20050617120000",
+      "original": "http://example.com/",
+      "mimetype": "text/html",
+      "status": "200",
+      "length": 1281,
+      "raw_url": "https://web.archive.org/web/20050617120000id_/http://example.com/",
+      "view_url": "https://web.archive.org/web/20050617120000/http://example.com/"
+    },
+    {
+      "timestamp": "20120301000000",
+      "original": "http://www.example.com/",
+      "mimetype": "text/html",
+      "status": "301",
+      "length": null,
+      "raw_url": "https://web.archive.org/web/20120301000000id_/http://www.example.com/",
+      "view_url": "https://web.archive.org/web/20120301000000/http://www.example.com/"
+    },
+    {
+      "timestamp": "20190101101010",
+      "original": "https://example.com/",
+      "mimetype": "text/html",
+      "status": "200",
+      "length": 648,
+      "raw_url": "https://web.archive.org/web/20190101101010id_/https://example.com/",
+      "view_url": "https://web.archive.org/web/20190101101010/https://example.com/"
+    }
+  ]
+}

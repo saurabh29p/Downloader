@@ -23,6 +23,8 @@ const KNOWN = new Set([
   "live_not_finished",
   "unavailable",
   "invalid_cookies",
+  "restricted",
+  "borrow_only",
 ]);
 
 type ErrorsT = ReturnType<typeof useTranslations<"Errors">>;

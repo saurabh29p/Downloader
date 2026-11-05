@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from anyget import __version__
-from anyget.api import jobs, probe, system
+from anyget.api import archive, jobs, probe, system
 from anyget.api import settings as settings_api
 from anyget.core.filenames import UnsafePathError
 from anyget.core.net import BlockedURLError
@@ -16,7 +16,12 @@ from anyget.core.services import Services
 from anyget.core.settings import Settings, get_settings
 from anyget.handlers.base import HandlerError
 
-HANDLER_ERROR_STATUS = {"unsupported": 422, "not_found": 404}
+HANDLER_ERROR_STATUS = {
+    "unsupported": 422,
+    "not_found": 404,
+    "restricted": 403,
+    "borrow_only": 403,
+}
 
 
 def _error(status: int, code: str, message: str) -> JSONResponse:
@@ -69,7 +74,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=exc.status_code, content=exc.detail)
         return _error(exc.status_code, "error", str(exc.detail))
 
-    for module in (system, probe, jobs, settings_api):
+    for module in (system, probe, jobs, settings_api, archive):
         app.include_router(module.router, prefix="/api")
     return app
 
