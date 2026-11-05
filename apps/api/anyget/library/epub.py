@@ -57,7 +57,7 @@ def _read(book: zipfile.ZipFile, name: str) -> bytes:
     return book.read(info)
 
 
-def epub_preview(path: Path) -> EpubPreview:
+def epub_preview(path: Path, max_chars: int = MAX_CHARS) -> EpubPreview:
     with zipfile.ZipFile(path) as book:
         container = SafeET.fromstring(_read(book, "META-INF/container.xml"))
         opf_path = next(
@@ -88,7 +88,7 @@ def epub_preview(path: Path) -> EpubPreview:
             parser.feed(_read(book, name).decode("utf-8", errors="replace"))
             chunk = "\n".join(line.strip() for line in "".join(parser.parts).splitlines())
             text += "\n\n" + "\n".join(line for line in chunk.split("\n") if line)
-            if len(text) > MAX_CHARS:
+            if len(text) > max_chars:
                 break
     text = text.strip()
-    return EpubPreview(title=title, text=text[:MAX_CHARS], truncated=len(text) > MAX_CHARS)
+    return EpubPreview(title=title, text=text[:max_chars], truncated=len(text) > max_chars)

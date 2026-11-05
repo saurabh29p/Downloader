@@ -9,6 +9,14 @@ from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
 Kind = Literal["video", "audio", "image", "pdf", "epub", "text", "archive", "other"]
+Licence = Literal["public_domain", "cc", "rights_reserved", "streaming_only", "unknown"]
+LICENCES: tuple[Licence, ...] = (
+    "public_domain",
+    "cc",
+    "rights_reserved",
+    "streaming_only",
+    "unknown",
+)
 
 
 def _now() -> datetime:
@@ -31,6 +39,9 @@ class LibraryItem(SQLModel, table=True):
     duplicate_of: str | None = None
     added_at: datetime = Field(default_factory=_now)
     user_id: str | None = Field(default=None, index=True)
+    # Where it came from in AnyGet (a section id) and its licence, when known.
+    section: str | None = Field(default=None, index=True)
+    licence: str | None = None
 
 
 class LibraryItemOut(BaseModel):
@@ -49,9 +60,19 @@ class LibraryItemOut(BaseModel):
     missing: bool = False
     # A small picture for the Library grid (made on first request), or None.
     thumbnail: str | None = None
+    section: str | None = None
+    licence: Licence = "unknown"
+    # The source site's host (archive.org, youtube.com…), from source_url.
+    source: str | None = None
+    # Text around a full-text match (OCR, PDF text, EPUB, text files).
+    snippet: str | None = None
 
 
 class LibraryPage(BaseModel):
     total: int
     items: list[LibraryItemOut]
     tags: list[str]
+    # What the filters can offer (over all of the user's items).
+    sections: list[str] = []
+    sources: list[str] = []
+    licences: list[Licence] = []

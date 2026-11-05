@@ -12,6 +12,7 @@ import os
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from sqlmodel import col, func, or_, select
 
@@ -19,8 +20,9 @@ from anyget.core.db import Database
 from anyget.core.filenames import UnsafePathError, ensure_inside
 from anyget.core.jobs import Job
 from anyget.core.users import OWNER_ID
+from anyget.library.fulltext import FullText
 from anyget.library.kinds import kind_of
-from anyget.library.models import LibraryItem, LibraryItemOut, LibraryPage
+from anyget.library.models import LICENCES, LibraryItem, LibraryItemOut, LibraryPage, Licence
 from anyget.library.thumbs import KINDS as THUMB_KINDS
 from anyget.library.thumbs import PILLOW_SUFFIXES
 
@@ -45,6 +47,44 @@ def _source_id(job: Job) -> str | None:
     return f"url:{job.url}"
 
 
+# A section for files saved before sections existed (or added by a folder scan).
+SECTION_BY_KIND = {
+    "video": "video",
+    "audio": "music",
+    "pdf": "books",
+    "epub": "books",
+    "image": "photos",
+}
+
+
+def section_of(item: LibraryItem) -> str | None:
+    return item.section or SECTION_BY_KIND.get(item.kind)
+
+
+def source_of(item: LibraryItem) -> str | None:
+    if not item.source_url:
+        return None
+    host = urlsplit(item.source_url).hostname or ""
+    return host.removeprefix("www.") or None
+
+
+def licence_of(item: LibraryItem) -> Licence:
+    return next((lic for lic in LICENCES if lic == item.licence), "unknown")
+
+
+def _job_meta(job: Job) -> tuple[str | None, str | None]:
+    """The section and licence a search result sent with the download, if valid."""
+    from anyget.universal.sections import BY_ID
+
+    options = job.options or {}
+    section = options.get("section")
+    licence = options.get("licence")
+    return (
+        section if isinstance(section, str) and section in BY_ID else None,
+        licence if isinstance(licence, str) and licence in LICENCES else None,
+    )
+
+
 def thumbnail_url(item: LibraryItem) -> str | None:
     if item.kind == "image" and item.rel_path.lower().endswith(".svg"):
         return f"/api/library/{item.id}/file"  # the browser draws SVG itself
@@ -59,6 +99,7 @@ class LibraryIndex:
     def __init__(self, db: Database, downloads_dir: Path) -> None:
         self.db = db
         self.root = downloads_dir
+        self.text = FullText(db.engine)
 
     # ----- paths -----------------------------------------------------------
 
@@ -84,6 +125,8 @@ class LibraryIndex:
         job_id: str | None = None,
         user_id: str = OWNER_ID,
         tags: list[str] | None = None,
+        section: str | None = None,
+        licence: str | None = None,
     ) -> LibraryItem | None:
         rel = self._rel(path)
         if rel is None or not path.is_file():
@@ -100,6 +143,8 @@ class LibraryIndex:
             item.job_id = job_id or item.job_id
             item.duplicate_of = None
             item.user_id = item.user_id or user_id
+            item.section = section or item.section
+            item.licence = licence or item.licence
             if tags:
                 item.tags = sorted({*(item.tags or []), *tags})
             candidates = session.exec(
@@ -122,13 +167,15 @@ class LibraryIndex:
             session.add(item)
             session.commit()
             session.refresh(item)
-            return item
+        self.text.put(item.id, path)
+        return item
 
     def add_job_sync(self, job: Job) -> list[LibraryItem]:
         if not job.rel_path:
             return []
         added = []
         source_id = _source_id(job)
+        section, licence = _job_meta(job)
         raw = (job.options or {}).get("tags")
         tags = (
             [str(t).strip()[:40] for t in raw if str(t).strip()][:10]
@@ -144,6 +191,8 @@ class LibraryIndex:
                 job_id=job.id,
                 user_id=job.user_id or OWNER_ID,
                 tags=tags,
+                section=section,
+                licence=licence,
             )
             if item is not None:
                 added.append(item)
@@ -166,6 +215,7 @@ class LibraryIndex:
             known = {row.rel_path: row for row in session.exec(select(LibraryItem)).all()}
         added = 0
         seen: set[str] = set()
+        has_text = self.text.known()
         for path in self._walk():
             rel = self._rel(path)
             if rel is None:
@@ -175,6 +225,8 @@ class LibraryIndex:
             changed = row is None or row.size != path.stat().st_size
             if changed and self._add(path) is not None and row is None:
                 added += 1
+            elif not changed and row is not None and row.id not in has_text:
+                self.text.put(row.id, path)  # indexed before full-text search existed
         removed = 0
         with self.db.session() as session:
             for rel, row in known.items():
@@ -182,6 +234,7 @@ class LibraryIndex:
                     stale = session.get(LibraryItem, row.id)
                     if stale is not None:
                         session.delete(stale)
+                        self.text.drop(row.id)
                         removed += 1
             session.commit()
         return {"added": added, "removed": removed, "total": len(seen)}
@@ -191,12 +244,21 @@ class LibraryIndex:
 
     # ----- reading ---------------------------------------------------------
 
-    def out(self, item: LibraryItem) -> LibraryItemOut:
+    def out(self, item: LibraryItem, snippet: str | None = None) -> LibraryItemOut:
         try:
             missing = not self.path_of(item).is_file()
         except UnsafePathError:
             missing = True
-        return LibraryItemOut(**item.model_dump(), missing=missing, thumbnail=thumbnail_url(item))
+        data = item.model_dump(exclude={"section", "licence"})
+        return LibraryItemOut(
+            **data,
+            missing=missing,
+            thumbnail=thumbnail_url(item),
+            section=section_of(item),
+            licence=licence_of(item),
+            source=source_of(item),
+            snippet=snippet or None,
+        )
 
     def get(self, item_id: str) -> LibraryItem | None:
         with self.db.session() as session:
@@ -211,30 +273,48 @@ class LibraryIndex:
         offset: int = 0,
         limit: int = 60,
         user_id: str | None = None,
+        section: str | None = None,
+        source: str | None = None,
+        licence: str | None = None,
     ) -> LibraryPage:
+        """Title/path matches plus full-text matches; filters by kind, tag (collection),
+        section, source host and licence."""
+        snippets = self.text.search(q) if q and q.strip() else {}
         with self.db.session() as session:
             query = select(LibraryItem)
-            owned = select(LibraryItem.tags)
             if user_id is not None:
                 query = query.where(LibraryItem.user_id == user_id)
-                owned = owned.where(LibraryItem.user_id == user_id)
-            if q:
+            mine = list(session.exec(query).all())
+            if q and q.strip():
                 like = f"%{q.strip()}%"
-                query = query.where(
-                    or_(col(LibraryItem.title).ilike(like), col(LibraryItem.rel_path).ilike(like))
-                )
+                matches = [
+                    col(LibraryItem.title).ilike(like),
+                    col(LibraryItem.rel_path).ilike(like),
+                ]
+                if snippets:
+                    matches.append(col(LibraryItem.id).in_(list(snippets)))
+                query = query.where(or_(*matches))
             if kind:
                 query = query.where(LibraryItem.kind == kind)
             if duplicates is True:
                 query = query.where(col(LibraryItem.duplicate_of).is_not(None))
             rows = list(session.exec(query.order_by(col(LibraryItem.added_at).desc())).all())
-            all_tags = sorted({t for tags in session.exec(owned).all() for t in tags or []})
-        if tag:  # JSON column: filter in Python (libraries are thousands of rows, not millions)
+        # JSON column and derived fields: filter in Python (thousands of rows, not millions).
+        if tag:
             rows = [r for r in rows if tag in (r.tags or [])]
+        if section:
+            rows = [r for r in rows if section_of(r) == section]
+        if source:
+            rows = [r for r in rows if source_of(r) == source]
+        if licence:
+            rows = [r for r in rows if licence_of(r) == licence]
         return LibraryPage(
             total=len(rows),
-            items=[self.out(r) for r in rows[offset : offset + limit]],
-            tags=all_tags,
+            items=[self.out(r, snippets.get(r.id)) for r in rows[offset : offset + limit]],
+            tags=sorted({t for r in mine for t in r.tags or []}),
+            sections=sorted({s for r in mine if (s := section_of(r))}),
+            sources=sorted({s for r in mine if (s := source_of(r))}),
+            licences=sorted({licence_of(r) for r in mine}),
         )
 
     def count(self) -> int:
@@ -273,4 +353,5 @@ class LibraryIndex:
                 session.add(copy)
             session.delete(item)
             session.commit()
-            return True
+        self.text.drop(item_id)
+        return True
