@@ -69,8 +69,8 @@ async def create_jobs(body: CreateJobs, services: ServicesDep) -> CreateJobsResu
     rejected: list[RejectedUrl] = []
     skipped: list[RejectedUrl] = []
     seen: set[str] = set()
-    pending = [(raw, body.options) for raw in body.urls] + [
-        (item.url, {**body.options, **item.options}) for item in body.items
+    pending = [(raw, _public(body.options)) for raw in body.urls] + [
+        (item.url, _public({**body.options, **item.options})) for item in body.items
     ]
     for raw, options in pending:
         if not raw.strip():
@@ -93,6 +93,11 @@ async def create_jobs(body: CreateJobs, services: ServicesDep) -> CreateJobsResu
         job = services.queue.submit(url, options)
         jobs.append(JobOut.model_validate(job))
     return CreateJobsResult(jobs=jobs, rejected=rejected, skipped=skipped)
+
+
+def _public(options: dict[str, Any]) -> dict[str, Any]:
+    """Keys starting with "_" are internal (e.g. auth headers set by handlers)."""
+    return {k: v for k, v in options.items() if not k.startswith("_")}
 
 
 def _already_saved(services: Any, options: dict[str, Any]) -> bool:

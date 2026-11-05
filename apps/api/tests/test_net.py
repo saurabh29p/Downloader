@@ -237,3 +237,11 @@ async def test_host_limiter() -> None:
     sem.release()
     sem.release()
     await asyncio.sleep(0)
+
+
+async def test_ipv4_addresses_are_tried_first(fake_dns: FakeDNS) -> None:
+    from anyget.core.net import vetted_ips, vetted_ips_sync
+
+    fake_dns.set("dual.test", "2606:4700:4700::1111", "1.1.1.1")
+    assert await vetted_ips("dual.test", 443) == ["1.1.1.1", "2606:4700:4700::1111"]
+    assert vetted_ips_sync("dual.test", 443) == ["1.1.1.1", "2606:4700:4700::1111"]

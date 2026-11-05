@@ -121,6 +121,17 @@
             "title": "Details Url",
             "type": "string"
           },
+          "dir": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dir"
+          },
           "files": {
             "items": {
               "$ref": "#/components/schemas/ArchiveFile"
@@ -183,6 +194,13 @@
               }
             ],
             "title": "Restricted"
+          },
+          "servers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Servers",
+            "type": "array"
           },
           "thumbnail_url": {
             "title": "Thumbnail Url",

@@ -84,12 +84,13 @@ def resolve_host_sync(host: str, port: int) -> list[str]:
 def _vet(host: str, port: int, ips: list[str], allowlist: Iterable[str]) -> list[str]:
     if not ips:
         raise BlockedURLError(f"could not resolve host {host!r}")
-    if f"{host}:{port}" in set(allowlist):
-        return ips
-    for raw in ips:
-        if not is_public_ip(ipaddress.ip_address(raw)):
-            raise BlockedURLError(f"{host} resolves to a private or reserved address")
-    return ips
+    if f"{host}:{port}" not in set(allowlist):
+        for raw in ips:
+            if not is_public_ip(ipaddress.ip_address(raw)):
+                raise BlockedURLError(f"{host} resolves to a private or reserved address")
+    # IPv4 first: many hosts (CI runners, home routers) have no working IPv6 route,
+    # and a dead IPv6 attempt can use up the whole connect timeout.
+    return sorted(ips, key=lambda raw: ipaddress.ip_address(raw).version)
 
 
 async def vetted_ips(host: str, port: int, allowlist: Iterable[str] = ()) -> list[str]:

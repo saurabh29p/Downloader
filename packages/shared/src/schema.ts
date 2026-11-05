@@ -324,6 +324,8 @@ export interface components {
             description?: string | null;
             /** Details Url */
             details_url: string;
+            /** Dir */
+            dir?: string | null;
             /** Files */
             files?: components["schemas"]["ArchiveFile"][];
             /** Formats */
@@ -340,6 +342,8 @@ export interface components {
             mediatype?: string | null;
             /** Restricted */
             restricted?: string | null;
+            /** Servers */
+            servers?: string[];
             /** Thumbnail Url */
             thumbnail_url: string;
             /** Title */

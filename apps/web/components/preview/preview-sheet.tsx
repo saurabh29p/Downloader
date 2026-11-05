@@ -23,6 +23,10 @@ import { hostOf } from "@/lib/links";
 const MediaPreview = dynamic(() =>
   import("@/components/preview/media-preview").then((m) => m.MediaPreview),
 );
+// Repos, galleries, AI repos and web pages list several files to pick from.
+const FilesPreview = dynamic(() =>
+  import("@/components/preview/files-preview").then((m) => m.FilesPreview),
+);
 
 type Props = {
   probe: ProbeResult | null;
@@ -40,15 +44,21 @@ export function PreviewSheet({ probe, open, onOpenChange, onDownload, pending }:
     content_type?: string | null;
     resumable?: boolean;
     checksums?: Record<string, string>;
+    kind?: string;
   };
   const checksums = Object.keys(extra.checksums ?? {});
   const isMedia = probe.handler === "ytdlp";
+  const isFiles = !isMedia && (probe.choices.length > 1 || extra.kind === "webpage");
   const handlerLabel =
-    probe.handler === "http"
-      ? t("handlers.http")
-      : isMedia
-        ? String((probe.extra as { extractor?: string }).extractor ?? t("handlers.media"))
-        : probe.handler;
+    extra.kind === "webpage"
+      ? t("handlers.webpage")
+      : probe.handler === "http"
+        ? t("handlers.http")
+        : isMedia
+          ? String((probe.extra as { extractor?: string }).extractor ?? t("handlers.media"))
+          : t.has(`handlers.${probe.handler as "http"}`)
+            ? t(`handlers.${probe.handler as "http"}`)
+            : probe.handler;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -61,6 +71,8 @@ export function PreviewSheet({ probe, open, onOpenChange, onDownload, pending }:
 
         {isMedia ? (
           <MediaPreview probe={probe} onDownload={onDownload} pending={pending} />
+        ) : isFiles ? (
+          <FilesPreview probe={probe} onDownload={onDownload} pending={pending} />
         ) : (
           <>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 text-sm">

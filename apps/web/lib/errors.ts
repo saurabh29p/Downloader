@@ -25,6 +25,7 @@ const KNOWN = new Set([
   "invalid_cookies",
   "restricted",
   "borrow_only",
+  "rate_limited",
 ]);
 
 type ErrorsT = ReturnType<typeof useTranslations<"Errors">>;

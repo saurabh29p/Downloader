@@ -55,13 +55,28 @@
       "wayback": {
         "title": "Wayback Machine",
         "text": "Old versions of web pages and files"
+      },
+      "code": {
+        "title": "Code",
+        "text": "Repos, folders, files, releases, gists"
+      },
+      "images": {
+        "title": "Image galleries",
+        "text": "Flickr, Imgur, DeviantArt and more"
       }
     }
   },
   "Preview": {
     "handlers": {
       "http": "Direct file",
-      "media": "Video"
+      "media": "Video",
+      "webpage": "Web page",
+      "git_code": "Code",
+      "cloud_share": "Cloud file",
+      "gallery": "Gallery",
+      "ai_resources": "AI model or dataset",
+      "archive_org": "archive.org",
+      "wayback": "Wayback Machine"
     },
     "size": "Size",
     "unknown": "Unknown",
@@ -119,7 +134,7 @@
   },
   "Errors": {
     "blocked_url": "This link points to a private or local network address, or isn't http(s), so it can't be downloaded.",
-    "unsupported": "This link isn't supported yet. Web pages and video sites come in later versions.",
+    "unsupported": "This link isn't supported.",
     "not_found": "The server says this file doesn't exist.",
     "upstream": "The other server returned an error. Try again later.",
     "network": "Couldn't reach the server. Check your connection and try again.",
@@ -133,14 +148,15 @@
     "paid": "This video must be bought or rented first. AnyGet does not get around that.",
     "private": "This video is private.",
     "age_restricted": "This video needs an age check. If you are signed in on your own account, add your cookies.txt in Settings.",
-    "login_required": "The site wants you to sign in. You can add a cookies.txt from your own account in Settings.",
+    "login_required": "The site wants you to sign in. Add a cookies.txt from your own account in Settings, or your own API token for this site.",
     "bot_check": "The site asked to confirm you're not a bot. Try again later, or add a cookies.txt from your own account in Settings.",
     "geo_blocked": "Not available in your region. AnyGet does not get around region blocks.",
     "live_not_finished": "This is a live or upcoming stream. Try again after it ends.",
     "unavailable": "This video is unavailable or was removed.",
     "invalid_cookies": "That isn't a cookies.txt file (Netscape format).",
     "restricted": "archive.org restricts access to this item, so it can't be downloaded.",
-    "borrow_only": "This item can only be borrowed from archive.org's lending library. AnyGet does not get around that."
+    "borrow_only": "This item can only be borrowed from archive.org's lending library. AnyGet does not get around that.",
+    "rate_limited": "The site's limit for anonymous requests was reached. Try again later, or add your own API token."
   },
   "Downloads": {
     "title": "Downloads",
@@ -178,7 +194,9 @@
     "goYoutube": "YouTube and video sites",
     "goSettings": "Settings",
     "goArchive": "archive.org",
-    "goWayback": "Wayback Machine"
+    "goWayback": "Wayback Machine",
+    "goCode": "Code repositories",
+    "goImages": "Image galleries"
   },
   "Status": {
     "checking": "Checking the server…",
@@ -307,5 +325,40 @@
     "count": "{count, plural, one {# distinct snapshot} other {# distinct snapshots}}",
     "view": "View",
     "downloadRaw": "Download original"
+  },
+  "Files": {
+    "legend": "Files to download",
+    "selected": "{count} of {total} selected",
+    "all": "Select all",
+    "none": "Select none",
+    "download": "{count, plural, =0 {Download} one {Download # file} other {Download # files}}",
+    "webpageNote": "This link is a web page. Save the page itself, or pick files it links to.",
+    "kinds": {
+      "page": "Page",
+      "document": "Document",
+      "image": "Image",
+      "video": "Video",
+      "audio": "Audio",
+      "archive": "Archive",
+      "file": "File"
+    }
+  },
+  "Code": {
+    "title": "Code",
+    "subtitle": "Download a whole repository as a zip, one folder, a single file, release files or a gist.",
+    "urlLabel": "Repository, folder or file link",
+    "placeholder": "https://github.com/owner/repo",
+    "find": "Find files",
+    "needUrl": "Enter a link first.",
+    "hosts": "Works with GitHub, GitLab, Codeberg, Bitbucket and gists. Add ANYGET_GITHUB_TOKEN for higher GitHub limits."
+  },
+  "Images": {
+    "title": "Image galleries",
+    "subtitle": "Save every image from a public album or gallery, with the original file names.",
+    "urlLabel": "Album or gallery link",
+    "placeholder": "https://www.flickr.com/photos/…/albums/…",
+    "find": "Find images",
+    "needUrl": "Enter a link first.",
+    "hosts": "Works with the sites gallery-dl supports, such as Flickr, Imgur, DeviantArt and Wikimedia Commons. Only save images you are allowed to."
   }
 }

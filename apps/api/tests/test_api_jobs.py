@@ -31,6 +31,13 @@ def client(settings: Settings) -> Iterator[TestClient]:
         mock.head("https://files.test/page").mock(
             return_value=httpx.Response(200, headers={"Content-Type": "text/html"})
         )
+        mock.get("https://files.test/page").mock(
+            return_value=httpx.Response(
+                200,
+                headers={"Content-Type": "text/html; charset=utf-8"},
+                text='<title>Reports</title><a href="/docs/annual.pdf">PDF</a>',
+            )
+        )
         with TestClient(create_app(settings)) as test_client:
             yield test_client
 
@@ -64,10 +71,12 @@ def test_probe_blocked(client: TestClient, url: str) -> None:
     assert response.json()["code"] == "blocked_url"
 
 
-def test_probe_web_page_is_unsupported(client: TestClient) -> None:
+def test_probe_web_page_lists_links(client: TestClient) -> None:
     response = client.post("/api/probe", json={"url": "https://files.test/page"})
-    assert response.status_code == 422
-    assert response.json()["code"] == "unsupported"
+    assert response.status_code == 200
+    body = response.json()
+    assert body["extra"]["kind"] == "webpage" and body["title"] == "Reports"
+    assert [c["id"] for c in body["choices"]] == ["page", "https://files.test/docs/annual.pdf"]
 
 
 def test_create_download_and_fetch_file(client: TestClient) -> None:

@@ -304,3 +304,42 @@ def test_snapshots_blocks_private_targets(client: TestClient) -> None:
 def test_md5_fixture_is_consistent() -> None:
     files = {f["name"]: f for f in load("metadata_alice.json")["files"]}
     assert files["alice.pdf"]["md5"] == hashlib.md5(CONTENT["pdf"]).hexdigest()
+
+
+@respx.mock
+async def test_unreachable_server_falls_back_to_a_mirror(
+    handler: ArchiveOrgHandler, settings: Settings
+) -> None:
+    mock_archive(respx.mock)
+    item = await handler.item(ID)
+    assert item.servers == ["ia800300.us.archive.org"] and item.dir
+    primary = f"https://archive.org/download/{ID}/alice.pdf"
+    respx.head(primary).mock(side_effect=httpx.ConnectTimeout("TLS handshake stalled"))
+    mirror = f"https://ia800300.us.archive.org{item.dir}/alice.pdf"
+    data = FILES["alice.pdf"]
+    respx.head(mirror).mock(
+        return_value=httpx.Response(200, headers={"Content-Length": str(len(data))})
+    )
+    respx.get(mirror).mock(return_value=httpx.Response(200, content=data))
+    job = JobContext(
+        id="a9", url=f"https://archive.org/details/{ID}", output_dir=settings.downloads_dir
+    )
+    result = await handler.download(job, {"files": ["alice.pdf"]}, lambda _p: None)
+    assert result.paths[0].read_bytes() == data and result.checksum_ok is True
+
+
+async def test_download_many_raises_when_every_server_fails(
+    settings: Settings, tmp_path: Path
+) -> None:
+    from anyget.handlers.http_generic import HttpGenericHandler
+    from anyget.handlers.multi import RemoteFile, download_many
+
+    net = Net(settings)
+    with respx.mock:
+        respx.head("https://a.test/f").mock(side_effect=httpx.ConnectError("down"))
+        respx.head("https://b.test/f").mock(side_effect=httpx.ConnectTimeout("down"))
+        files = [RemoteFile(url="https://a.test/f", name="f", mirrors=("https://b.test/f",))]
+        job = JobContext(id="m1", url="https://a.test/f", output_dir=tmp_path)
+        with pytest.raises(httpx.ConnectTimeout):
+            await download_many(HttpGenericHandler(net), job, files, tmp_path, lambda _p: None)
+    await net.aclose()

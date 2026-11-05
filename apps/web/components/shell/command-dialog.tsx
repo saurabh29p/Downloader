@@ -4,9 +4,11 @@ import { Command } from "cmdk";
 import {
   ArchiveIcon,
   ClapperboardIcon,
+  CodeIcon,
   DownloadIcon,
   HistoryIcon,
   HomeIcon,
+  ImagesIcon,
   MonitorIcon,
   MoonIcon,
   SettingsIcon,
@@ -68,6 +70,14 @@ export default function CommandDialog({
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/wayback"))}>
             <HistoryIcon aria-hidden="true" />
             {t("goWayback")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/code"))}>
+            <CodeIcon aria-hidden="true" />
+            {t("goCode")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/images"))}>
+            <ImagesIcon aria-hidden="true" />
+            {t("goImages")}
           </Command.Item>
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/downloads"))}>
             <DownloadIcon aria-hidden="true" />

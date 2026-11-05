@@ -35,6 +35,13 @@ class Settings(BaseSettings):
 
     api_token: str = Field(default="", repr=False)
 
+    # Optional keys for sources that need them. Never logged or returned by the API.
+    github_token: str = Field(default="", repr=False)
+    hf_token: str = Field(default="", repr=False)
+    civitai_token: str = Field(default="", repr=False)
+    kaggle_username: str = Field(default="", repr=False)
+    kaggle_key: str = Field(default="", repr=False)
+
     @field_validator("net_allowlist", mode="before")
     @classmethod
     def _split_csv(cls, value: Any) -> Any:

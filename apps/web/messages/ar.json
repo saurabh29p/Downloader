@@ -55,13 +55,28 @@
       "wayback": {
         "title": "آلة Wayback",
         "text": "نسخ قديمة من صفحات الويب والملفات"
+      },
+      "code": {
+        "title": "الشيفرة",
+        "text": "مستودعات ومجلدات وملفات وإصدارات وGist"
+      },
+      "images": {
+        "title": "معارض الصور",
+        "text": "Flickr وImgur وDeviantArt وغيرها"
       }
     }
   },
   "Preview": {
     "handlers": {
       "http": "ملف مباشر",
-      "media": "فيديو"
+      "media": "فيديو",
+      "webpage": "صفحة ويب",
+      "git_code": "شيفرة",
+      "cloud_share": "ملف سحابي",
+      "gallery": "معرض",
+      "ai_resources": "نموذج أو مجموعة بيانات ذكاء اصطناعي",
+      "archive_org": "archive.org",
+      "wayback": "Wayback Machine"
     },
     "size": "الحجم",
     "unknown": "غير معروف",
@@ -119,7 +134,7 @@
   },
   "Errors": {
     "blocked_url": "يشير هذا الرابط إلى عنوان شبكة خاصة أو محلية، أو ليس http(s)، لذا لا يمكن تنزيله.",
-    "unsupported": "هذا الرابط غير مدعوم بعد. صفحات الويب ومواقع الفيديو تأتي في إصدارات لاحقة.",
+    "unsupported": "هذا الرابط غير مدعوم.",
     "not_found": "يقول الخادم إن هذا الملف غير موجود.",
     "upstream": "أعاد الخادم الآخر خطأً. حاول لاحقًا.",
     "network": "تعذّر الوصول إلى الخادم. تحقق من اتصالك وحاول مرة أخرى.",
@@ -133,14 +148,15 @@
     "paid": "يجب شراء هذا الفيديو أو استئجاره أولًا. لا يتجاوز AnyGet هذا القيد.",
     "private": "هذا الفيديو خاص.",
     "age_restricted": "يحتاج هذا الفيديو إلى التحقق من العمر. إذا كنت مسجّل الدخول بحسابك، فأضف ملف cookies.txt في الإعدادات.",
-    "login_required": "يطلب الموقع تسجيل الدخول. يمكنك إضافة ملف cookies.txt من حسابك في الإعدادات.",
+    "login_required": "يطلب الموقع تسجيل الدخول. أضف ملف cookies.txt من حسابك في الإعدادات، أو رمز API الخاص بك لهذا الموقع.",
     "bot_check": "طلب الموقع التأكد من أنك لست روبوتًا. حاول لاحقًا، أو أضف ملف cookies.txt من حسابك في الإعدادات.",
     "geo_blocked": "غير متاح في منطقتك. لا يتجاوز AnyGet القيود الجغرافية.",
     "live_not_finished": "هذا بث مباشر أو قادم. حاول مرة أخرى بعد انتهائه.",
     "unavailable": "هذا الفيديو غير متاح أو أُزيل.",
     "invalid_cookies": "هذا ليس ملف cookies.txt (بتنسيق Netscape).",
     "restricted": "يقيّد archive.org الوصول إلى هذا العنصر، لذا لا يمكن تنزيله.",
-    "borrow_only": "لا يمكن إلا استعارة هذا العنصر من مكتبة الإعارة في archive.org. لا يتجاوز AnyGet هذا القيد."
+    "borrow_only": "لا يمكن إلا استعارة هذا العنصر من مكتبة الإعارة في archive.org. لا يتجاوز AnyGet هذا القيد.",
+    "rate_limited": "تم بلوغ حد الموقع للطلبات المجهولة. حاول لاحقًا، أو أضف رمز API الخاص بك."
   },
   "Downloads": {
     "title": "التنزيلات",
@@ -178,7 +194,9 @@
     "goYoutube": "يوتيوب ومواقع الفيديو",
     "goSettings": "الإعدادات",
     "goArchive": "archive.org",
-    "goWayback": "آلة Wayback"
+    "goWayback": "آلة Wayback",
+    "goCode": "مستودعات الشيفرة",
+    "goImages": "معارض الصور"
   },
   "Status": {
     "checking": "جارٍ فحص الخادم…",
@@ -307,5 +325,40 @@
     "count": "{count, plural, zero {لا لقطات} one {لقطة مميزة واحدة} two {لقطتان مميزتان} few {# لقطات مميزة} many {# لقطة مميزة} other {# لقطة مميزة}}",
     "view": "اعرض",
     "downloadRaw": "نزّل الأصل"
+  },
+  "Files": {
+    "legend": "الملفات المراد تنزيلها",
+    "selected": "تم اختيار {count} من {total}",
+    "all": "اختيار الكل",
+    "none": "إلغاء الكل",
+    "download": "{count, plural, zero {تنزيل} one {تنزيل ملف واحد} two {تنزيل ملفين} few {تنزيل # ملفات} many {تنزيل # ملفًا} other {تنزيل # ملف}}",
+    "webpageNote": "هذا الرابط صفحة ويب. احفظ الصفحة نفسها، أو اختر ملفات ترتبط بها.",
+    "kinds": {
+      "page": "صفحة",
+      "document": "مستند",
+      "image": "صورة",
+      "video": "فيديو",
+      "audio": "صوت",
+      "archive": "أرشيف",
+      "file": "ملف"
+    }
+  },
+  "Code": {
+    "title": "الشيفرة",
+    "subtitle": "نزّل مستودعًا كاملًا بصيغة zip، أو مجلدًا، أو ملفًا واحدًا، أو ملفات إصدار، أو Gist.",
+    "urlLabel": "رابط المستودع أو المجلد أو الملف",
+    "placeholder": "https://github.com/owner/repo",
+    "find": "ابحث عن الملفات",
+    "needUrl": "أدخل رابطًا أولًا.",
+    "hosts": "يعمل مع GitHub وGitLab وCodeberg وBitbucket وGist. أضف ANYGET_GITHUB_TOKEN لحدود أعلى في GitHub."
+  },
+  "Images": {
+    "title": "معارض الصور",
+    "subtitle": "احفظ كل صورة من ألبوم أو معرض عام، بأسماء الملفات الأصلية.",
+    "urlLabel": "رابط الألبوم أو المعرض",
+    "placeholder": "https://www.flickr.com/photos/…/albums/…",
+    "find": "ابحث عن الصور",
+    "needUrl": "أدخل رابطًا أولًا.",
+    "hosts": "يعمل مع المواقع التي يدعمها gallery-dl، مثل Flickr وImgur وDeviantArt وWikimedia Commons. احفظ فقط الصور المسموح لك بها."
   }
 }
