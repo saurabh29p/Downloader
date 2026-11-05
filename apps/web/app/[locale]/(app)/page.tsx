@@ -5,7 +5,14 @@ import { use } from "react";
 import { ApiStatus } from "@/components/api-status";
 import { RecentJobs } from "@/components/jobs/recent-jobs";
 import { PasteBox } from "@/components/paste/paste-box";
+import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
+
+const SOURCES = [
+  { href: "/youtube", key: "youtube" },
+  { href: "/archive", key: "archive" },
+  { href: "/wayback", key: "wayback" },
+] as const;
 
 export default function HomePage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params);
@@ -24,6 +31,25 @@ export default function HomePage({ params }: { params: Promise<{ locale: Locale 
         </div>
         <PasteBox />
       </div>
+
+      <nav aria-labelledby="sources-heading" className="flex flex-col gap-3">
+        <h2 id="sources-heading" className="text-lg font-semibold">
+          {t("sources")}
+        </h2>
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {SOURCES.map(({ href, key }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                className="flex min-h-11 flex-col gap-1 rounded-lg border bg-card p-3 shadow-card hover:bg-accent"
+              >
+                <span className="font-medium">{t(`source.${key}.title`)}</span>
+                <span className="text-sm text-muted-foreground">{t(`source.${key}.text`)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       <RecentJobs />
 

@@ -4,6 +4,43 @@
  */
 
 export interface paths {
+    "/api/archive/items/{identifier}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Archive Item */
+        get: operations["archiveItem"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Archive Search
+         * @description First pages use advancedsearch; `deep=true` or a `cursor` walks with the scrape API.
+         */
+        get: operations["archiveSearch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -229,6 +266,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/wayback/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Wayback Snapshots */
+        get: operations["waybackSnapshots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -239,6 +293,57 @@ export interface components {
             code: string;
             /** Message */
             message: string;
+        };
+        /** ArchiveFile */
+        ArchiveFile: {
+            /** Format */
+            format: string;
+            /** Md5 */
+            md5?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Private
+             * @default false
+             */
+            private: boolean;
+            /** Size */
+            size?: number | null;
+            /** Source */
+            source?: string | null;
+        };
+        /** ArchiveItemOut */
+        ArchiveItemOut: {
+            /** Collections */
+            collections?: string[];
+            /** Creator */
+            creator?: string | null;
+            /** Date */
+            date?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Details Url */
+            details_url: string;
+            /** Files */
+            files?: components["schemas"]["ArchiveFile"][];
+            /** Formats */
+            formats: {
+                [key: string]: unknown;
+            }[];
+            /** Identifier */
+            identifier: string;
+            /** Item Size */
+            item_size?: number | null;
+            /** Language */
+            language?: string | null;
+            /** Mediatype */
+            mediatype?: string | null;
+            /** Restricted */
+            restricted?: string | null;
+            /** Thumbnail Url */
+            thumbnail_url: string;
+            /** Title */
+            title: string;
         };
         /**
          * Choice
@@ -422,6 +527,64 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** SearchHit */
+        SearchHit: {
+            /** Creator */
+            creator?: string | null;
+            /** Downloads */
+            downloads?: number | null;
+            /** Identifier */
+            identifier: string;
+            /** Mediatype */
+            mediatype?: string | null;
+            /** Thumbnail */
+            thumbnail: string;
+            /** Title */
+            title: string;
+            /** Year */
+            year?: string | null;
+        };
+        /** SearchPage */
+        SearchPage: {
+            /** Cursor */
+            cursor?: string | null;
+            /** Items */
+            items: components["schemas"]["SearchHit"][];
+            /** Page */
+            page?: number | null;
+            /** Total */
+            total: number;
+        };
+        /** Snapshot */
+        Snapshot: {
+            /** Length */
+            length?: number | null;
+            /** Mimetype */
+            mimetype?: string | null;
+            /** Original */
+            original: string;
+            /** Raw Url */
+            raw_url: string;
+            /** Status */
+            status?: string | null;
+            /** Timestamp */
+            timestamp: string;
+            /** View Url */
+            view_url: string;
+        };
+        /** SnapshotList */
+        SnapshotList: {
+            /** Snapshots */
+            snapshots: components["schemas"]["Snapshot"][];
+            /** Total */
+            total: number;
+            /** Url */
+            url: string;
+            /** Years */
+            years: {
+                [key: string]: number;
+            };
+        };
         /** ToolVersions */
         ToolVersions: {
             /** Deno */
@@ -464,6 +627,150 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    archiveItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArchiveItemOut"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    archiveSearch: {
+        parameters: {
+            query?: {
+                q?: string;
+                mediatype?: string | null;
+                collection?: string | null;
+                year_from?: number | null;
+                year_to?: number | null;
+                language?: string | null;
+                creator?: string | null;
+                page?: number;
+                rows?: number;
+                cursor?: string | null;
+                deep?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchPage"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     allEvents: {
         parameters: {
             query?: never;
@@ -1295,6 +1602,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VersionInfo"];
+                };
+            };
+        };
+    };
+    waybackSnapshots: {
+        parameters: {
+            query: {
+                url: string;
+                year_from?: number | null;
+                year_to?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnapshotList"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

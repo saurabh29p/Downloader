@@ -1,0 +1,19 @@
+{
+ "metadata": {
+  "identifier": "lentbook00",
+  "title": "A Lent Book",
+  "mediatype": "texts",
+  "collection": [
+   "inlibrary",
+   "printdisabled"
+  ],
+  "access-restricted-item": "true"
+ },
+ "files": [
+  {
+   "name": "lentbook00.pdf",
+   "format": "PDF",
+   "size": "10"
+  }
+ ]
+}

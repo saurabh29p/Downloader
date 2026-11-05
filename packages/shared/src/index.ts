@@ -24,3 +24,9 @@ export function createApiClient(baseUrl = "", init?: { fetch?: typeof fetch }) {
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>;
+export type ArchiveItem = components["schemas"]["ArchiveItemOut"];
+export type ArchiveFile = components["schemas"]["ArchiveFile"];
+export type ArchiveSearchPage = components["schemas"]["SearchPage"];
+export type ArchiveHit = components["schemas"]["SearchHit"];
+export type SnapshotList = components["schemas"]["SnapshotList"];
+export type Snapshot = components["schemas"]["Snapshot"];

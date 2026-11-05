@@ -1,0 +1,16 @@
+{
+  "identifier": "lentbook00",
+  "title": "A Lent Book",
+  "mediatype": "texts",
+  "creator": "Carroll, Lewis",
+  "date": "1865",
+  "language": "eng",
+  "collections": ["gutenberg", "opensource"],
+  "description": "Project Gutenberg edition.",
+  "restricted": "borrow_only",
+  "item_size": 4891,
+  "files": [],
+  "thumbnail_url": "",
+  "details_url": "https://archive.org/details/lentbook00",
+  "formats": []
+}

@@ -1,0 +1,62 @@
+{
+ "created": 1700000000,
+ "d1": "ia800300.us.archive.org",
+ "dir": "/1/items/alicesadventures00gut",
+ "server": "ia800300.us.archive.org",
+ "item_size": 4891,
+ "metadata": {
+  "identifier": "alicesadventures00gut",
+  "title": "Alice's Adventures in Wonderland",
+  "mediatype": "texts",
+  "creator": "Carroll, Lewis",
+  "date": "1865",
+  "language": "eng",
+  "collection": [
+   "gutenberg",
+   "opensource"
+  ],
+  "description": "Project Gutenberg edition."
+ },
+ "files": [
+  {
+   "name": "alice.pdf",
+   "source": "original",
+   "format": "Text PDF",
+   "size": "2044",
+   "md5": "83a6ac1a09d66254624ca91af55f09d3"
+  },
+  {
+   "name": "alice.epub",
+   "source": "derivative",
+   "format": "EPUB",
+   "size": "1514",
+   "md5": "40965aa51ad16a4ac22b53eac64df966"
+  },
+  {
+   "name": "alice_djvu.txt",
+   "source": "derivative",
+   "format": "DjVuTXT",
+   "size": "833",
+   "md5": "30d11d91c220e4ee5eb5fabf55f0dc46"
+  },
+  {
+   "name": "alicesadventures00gut_meta.xml",
+   "source": "original",
+   "format": "Metadata",
+   "size": "500"
+  },
+  {
+   "name": "__ia_thumb.jpg",
+   "source": "original",
+   "format": "Item Tile",
+   "size": "900"
+  },
+  {
+   "name": "secret_scan.pdf",
+   "source": "original",
+   "format": "PDF",
+   "size": "999",
+   "private": "true"
+  }
+ ]
+}

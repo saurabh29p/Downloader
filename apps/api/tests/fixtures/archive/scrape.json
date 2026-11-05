@@ -1,0 +1,16 @@
+{
+ "items": [
+  {
+   "identifier": "g1",
+   "title": "G1",
+   "mediatype": "texts"
+  },
+  {
+   "identifier": "g2",
+   "title": "G2"
+  }
+ ],
+ "count": 2,
+ "cursor": "W3siaWRlbnRpZmllciI6ImcyIn1d",
+ "total": 5000
+}

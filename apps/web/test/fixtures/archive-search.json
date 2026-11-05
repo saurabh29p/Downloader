@@ -1,0 +1,25 @@
+{
+  "total": 2,
+  "page": 1,
+  "cursor": null,
+  "items": [
+    {
+      "identifier": "alicesadventures00gut",
+      "title": "Alice's Adventures in Wonderland",
+      "mediatype": "texts",
+      "creator": "Carroll, Lewis",
+      "year": "1865",
+      "downloads": 12345,
+      "thumbnail": ""
+    },
+    {
+      "identifier": "lentbook00",
+      "title": "A Lent Book",
+      "mediatype": "texts",
+      "creator": null,
+      "year": "1990",
+      "downloads": 1,
+      "thumbnail": ""
+    }
+  ]
+}

@@ -41,7 +41,22 @@
     "recent": "Recent downloads",
     "viewAll": "View all",
     "noRecent": "Nothing downloaded yet. Paste a link above to start.",
-    "statusHeading": "Server status"
+    "statusHeading": "Server status",
+    "sources": "More sources",
+    "source": {
+      "youtube": {
+        "title": "YouTube and video",
+        "text": "Videos, Shorts, playlists, audio"
+      },
+      "archive": {
+        "title": "archive.org",
+        "text": "Books, audio, film and software"
+      },
+      "wayback": {
+        "title": "Wayback Machine",
+        "text": "Old versions of web pages and files"
+      }
+    }
   },
   "Preview": {
     "handlers": {
@@ -123,7 +138,9 @@
     "geo_blocked": "Not available in your region. AnyGet does not get around region blocks.",
     "live_not_finished": "This is a live or upcoming stream. Try again after it ends.",
     "unavailable": "This video is unavailable or was removed.",
-    "invalid_cookies": "That isn't a cookies.txt file (Netscape format)."
+    "invalid_cookies": "That isn't a cookies.txt file (Netscape format).",
+    "restricted": "archive.org restricts access to this item, so it can't be downloaded.",
+    "borrow_only": "This item can only be borrowed from archive.org's lending library. AnyGet does not get around that."
   },
   "Downloads": {
     "title": "Downloads",
@@ -159,7 +176,9 @@
     "themeDark": "Dark theme",
     "themeSystem": "System theme",
     "goYoutube": "YouTube and video sites",
-    "goSettings": "Settings"
+    "goSettings": "Settings",
+    "goArchive": "archive.org",
+    "goWayback": "Wayback Machine"
   },
   "Status": {
     "checking": "Checking the server…",
@@ -235,5 +254,58 @@
     "cookiesSaved": "Cookies saved",
     "cookiesRemoved": "Cookies removed",
     "cookiesTooBig": "That file is too big (max 1 MB)."
+  },
+  "Archive": {
+    "title": "archive.org",
+    "subtitle": "Search the Internet Archive and download whole items or just the files you want. Restricted and lending-library items are shown but never downloaded.",
+    "searchLabel": "Search archive.org",
+    "searchPlaceholder": "Title, author or subject",
+    "search": "Search",
+    "filters": "Filters",
+    "mediatype": "Type",
+    "anyType": "Any type",
+    "types": {
+      "texts": "Books and texts",
+      "audio": "Audio",
+      "movies": "Video",
+      "image": "Images",
+      "software": "Software",
+      "etree": "Live music"
+    },
+    "collection": "Collection",
+    "creator": "Creator",
+    "yearFrom": "From year",
+    "yearTo": "To year",
+    "retry": "Try again",
+    "resultCount": "{count, plural, =0 {No results} one {# result} other {{shown} results}}",
+    "noResults": "Nothing found. Try fewer words or remove a filter.",
+    "loadMore": "Load more",
+    "etiquette": "AnyGet downloads at most 2 files from archive.org at a time and slows down when asked, to be a polite guest.",
+    "backToResults": "Back to results",
+    "viewOnArchive": "View on archive.org",
+    "openOnArchive": "Open on archive.org",
+    "borrowOnly": "This item is in the lending library: it can only be borrowed and read on archive.org, not downloaded.",
+    "restrictedNote": "Access to this item is restricted by archive.org, so it can't be downloaded.",
+    "allOfFormat": "Select all files of a format",
+    "filesCaption": "Files in this item",
+    "select": "Select",
+    "fileName": "File",
+    "format": "Format",
+    "size": "Size",
+    "selected": "{count, plural, =0 {Nothing selected} one {# file selected ({size})} other {# files selected ({size})}}",
+    "downloadSelected": "{count, plural, =0 {Choose files} one {Download # file} other {Download # files}}"
+  },
+  "Wayback": {
+    "title": "Wayback Machine",
+    "subtitle": "See every saved version of a web page or file and download the original, exactly as it was captured.",
+    "urlLabel": "Page or file address",
+    "find": "Find snapshots",
+    "needUrl": "Enter an address first.",
+    "none": "The Wayback Machine has no snapshots of this address.",
+    "timeline": "Snapshots",
+    "years": "Year",
+    "count": "{count, plural, one {# distinct snapshot} other {# distinct snapshots}}",
+    "view": "View",
+    "downloadRaw": "Download original"
   }
 }
