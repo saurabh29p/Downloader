@@ -1530,6 +1530,77 @@
         "title": "LinkOut",
         "type": "object"
       },
+      "LlmStatus": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "daily_limit": {
+            "title": "Daily Limit",
+            "type": "integer"
+          },
+          "free_mode": {
+            "title": "Free Mode",
+            "type": "boolean"
+          },
+          "router_models": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Router Models",
+            "type": "array"
+          },
+          "summary_models": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Summary Models",
+            "type": "array"
+          },
+          "today": {
+            "$ref": "#/components/schemas/LlmToday"
+          }
+        },
+        "required": [
+          "available",
+          "free_mode",
+          "daily_limit",
+          "today",
+          "router_models",
+          "summary_models"
+        ],
+        "title": "LlmStatus",
+        "type": "object"
+      },
+      "LlmToday": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "completion_tokens": {
+            "title": "Completion Tokens",
+            "type": "integer"
+          },
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "prompt_tokens": {
+            "title": "Prompt Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "calls",
+          "prompt_tokens",
+          "completion_tokens",
+          "cost_usd"
+        ],
+        "title": "LlmToday",
+        "type": "object"
+      },
       "LoginBody": {
         "properties": {
           "email": {
@@ -2059,6 +2130,17 @@
             ],
             "title": "Host Limits"
           },
+          "llm_free_mode": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Free Mode"
+          },
           "max_concurrent_downloads": {
             "anyOf": [
               {
@@ -2168,6 +2250,14 @@
             "title": "Host Limits",
             "type": "object"
           },
+          "llm_available": {
+            "title": "Llm Available",
+            "type": "boolean"
+          },
+          "llm_free_mode": {
+            "title": "Llm Free Mode",
+            "type": "boolean"
+          },
           "max_concurrent_downloads": {
             "title": "Max Concurrent Downloads",
             "type": "integer"
@@ -2220,6 +2310,8 @@
           "watch_enabled",
           "torrent_enabled",
           "torrent_seed",
+          "llm_free_mode",
+          "llm_available",
           "torrent_available"
         ],
         "title": "SettingsView",
@@ -2381,6 +2473,27 @@
           "status"
         ],
         "title": "SourceStatus",
+        "type": "object"
+      },
+      "SuggestionsOut": {
+        "properties": {
+          "queries": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Queries",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "queries",
+          "source"
+        ],
+        "title": "SuggestionsOut",
         "type": "object"
       },
       "TestResult": {
@@ -5651,6 +5764,27 @@
         ]
       }
     },
+    "/api/llm": {
+      "get": {
+        "operationId": "llmStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LlmStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Llm Status",
+        "tags": [
+          "llm"
+        ]
+      }
+    },
     "/api/probe": {
       "post": {
         "operationId": "probeUrl",
@@ -5974,6 +6108,89 @@
           }
         },
         "summary": "Get Section",
+        "tags": [
+          "sections"
+        ]
+      }
+    },
+    "/api/sections/{section_id}/suggestions": {
+      "get": {
+        "operationId": "sectionSuggestions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "section_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z]{2,20}$",
+              "title": "Section Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Suggestions",
         "tags": [
           "sections"
         ]

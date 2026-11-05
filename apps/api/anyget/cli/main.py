@@ -39,6 +39,23 @@ def version() -> None:
     console.print(f"anyget {__version__}")
 
 
+@app.command("llm-models")
+def llm_models() -> None:
+    """Check AnyGet's OpenRouter model IDs against https://openrouter.ai/api/v1/models."""
+    import httpx
+
+    from anyget.llm.models import all_models
+
+    response = httpx.get("https://openrouter.ai/api/v1/models", timeout=30)
+    response.raise_for_status()
+    known = {m["id"] for m in response.json().get("data", [])}
+    missing = [m for m in all_models() if m not in known]
+    for model in all_models():
+        console.print(f"{'ok     ' if model in known else 'MISSING'} {model}")
+    if missing:
+        raise typer.Exit(1)
+
+
 @app.command("gen-key")
 def gen_key() -> None:
     """Print a new key for ANYGET_SECRETS_KEY (encrypts saved Connections)."""

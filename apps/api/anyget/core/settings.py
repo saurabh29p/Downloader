@@ -54,6 +54,14 @@ class Settings(BaseSettings):
     # by default: peers are arbitrary addresses outside the SSRF guard.
     torrent_enabled: bool = False
     torrent_seed: bool = False
+    # Optional AI helper (OpenRouter, v2 Phase 5). Free mode uses only ":free" models.
+    llm_free_mode: bool = False
+    llm_daily_limit: int = Field(default=500, ge=0, le=100_000)
+    # Model lists override llm/models.py, comma separated (most preferred first).
+    llm_router_models: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    llm_summary_models: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    # Sent to OpenRouter as HTTP-Referer (it identifies the app, not the user).
+    app_url: str = "https://github.com/saurabh29p/Downloader"
 
     # Outgoing HTTP
     contact_email: str = ""

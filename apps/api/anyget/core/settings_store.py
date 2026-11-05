@@ -42,6 +42,7 @@ PLAIN = (
     "watch_enabled",
     "torrent_enabled",
     "torrent_seed",
+    "llm_free_mode",
 )
 EDITABLE = PLAIN
 # Read when the HTTP client is built: changing them needs a restart.
@@ -68,6 +69,7 @@ class SettingsUpdate(BaseModel):
     watch_enabled: bool | None = None
     torrent_enabled: bool | None = None
     torrent_seed: bool | None = None
+    llm_free_mode: bool | None = None
 
     @field_validator("folder_template")
     @classmethod
@@ -112,6 +114,8 @@ class SettingsView(BaseModel):
     watch_enabled: bool
     torrent_enabled: bool
     torrent_seed: bool
+    llm_free_mode: bool
+    llm_available: bool  # an OpenRouter key is set (env or Connections)
     torrent_available: bool
     restart_needed: list[str] = Field(default_factory=list)
 
@@ -167,6 +171,8 @@ class SettingsStore:
             watch_enabled=s.watch_enabled,
             torrent_enabled=s.torrent_enabled,
             torrent_seed=s.torrent_seed,
+            llm_free_mode=s.llm_free_mode,
+            llm_available=bool(s.openrouter_key),
             torrent_available=load_libtorrent() is not None,
             restart_needed=sorted(self.pending_restart),
         )

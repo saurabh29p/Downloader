@@ -44,6 +44,9 @@ from anyget.handlers.wayback import WaybackHandler
 from anyget.handlers.wikimedia import WikimediaHandler
 from anyget.handlers.ytdlp import YtDlpHandler
 from anyget.library.index import LibraryIndex
+from anyget.llm.brain import Brain
+from anyget.llm.client import OpenRouter
+from anyget.llm.store import LlmStore
 from anyget.plugins import PluginInfo, load_plugins
 from anyget.watch.runner import WatchScheduler, WatchService
 
@@ -92,6 +95,7 @@ class Services:
     sessions: Sessions
     login_limiter: RateLimiter
     connections: ConnectionStore
+    brain: Brain
 
     @classmethod
     def build(cls, settings: Settings, net: Net | None = None) -> "Services":
@@ -132,6 +136,7 @@ class Services:
             Sessions(settings),
             RateLimiter(),
             connections,
+            Brain(OpenRouter(net, settings, LlmStore(db)), settings),
         )
 
     async def start(self, recover: bool = True, watch: bool | None = None) -> None:

@@ -540,6 +540,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/llm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Llm Status */
+        get: operations["llmStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/probe": {
         parameters: {
             query?: never;
@@ -603,6 +620,23 @@ export interface paths {
          * @description One section; with `q`, its "Search on …" links carry that query.
          */
         get: operations["getSection"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sections/{section_id}/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Suggestions */
+        get: operations["sectionSuggestions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1254,6 +1288,31 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** LlmStatus */
+        LlmStatus: {
+            /** Available */
+            available: boolean;
+            /** Daily Limit */
+            daily_limit: number;
+            /** Free Mode */
+            free_mode: boolean;
+            /** Router Models */
+            router_models: string[];
+            /** Summary Models */
+            summary_models: string[];
+            today: components["schemas"]["LlmToday"];
+        };
+        /** LlmToday */
+        LlmToday: {
+            /** Calls */
+            calls: number;
+            /** Completion Tokens */
+            completion_tokens: number;
+            /** Cost Usd */
+            cost_usd: number;
+            /** Prompt Tokens */
+            prompt_tokens: number;
+        };
         /** LoginBody */
         LoginBody: {
             /** Email */
@@ -1410,6 +1469,8 @@ export interface components {
             host_limits?: {
                 [key: string]: number;
             } | null;
+            /** Llm Free Mode */
+            llm_free_mode?: boolean | null;
             /** Max Concurrent Downloads */
             max_concurrent_downloads?: number | null;
             /** Max Per Host */
@@ -1437,6 +1498,10 @@ export interface components {
             host_limits: {
                 [key: string]: number;
             };
+            /** Llm Available */
+            llm_available: boolean;
+            /** Llm Free Mode */
+            llm_free_mode: boolean;
             /** Max Concurrent Downloads */
             max_concurrent_downloads: number;
             /** Max Per Host */
@@ -1508,6 +1573,13 @@ export interface components {
              * @enum {string}
              */
             status: "ok" | "needs_key" | "timeout" | "error" | "link_only" | "skipped";
+        };
+        /** SuggestionsOut */
+        SuggestionsOut: {
+            /** Queries */
+            queries: string[];
+            /** Source */
+            source: string;
         };
         /** TestResult */
         TestResult: {
@@ -3602,6 +3674,26 @@ export interface operations {
             };
         };
     };
+    llmStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LlmStatus"];
+                };
+            };
+        };
+    };
     probeUrl: {
         parameters: {
             query?: never;
@@ -3780,6 +3872,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SectionOut"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    sectionSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionsOut"];
                 };
             };
             /** @description Blocked or invalid link */

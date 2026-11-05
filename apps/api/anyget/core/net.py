@@ -255,13 +255,14 @@ class Net:
         headers: dict[str, str] | None,
         stream: bool,
         retries: int = 3,
+        content: bytes | None = None,
     ) -> httpx.Response:
         current = url
         hops = 0
         attempt = 0
         while True:
             await self.check(current)
-            request = self.client.build_request(method, current, headers=headers)
+            request = self.client.build_request(method, current, headers=headers, content=content)
             response = await self.client.send(request, stream=stream)
             if response.is_redirect and "location" in response.headers:
                 await response.aclose()
@@ -269,8 +270,10 @@ class Net:
                 if hops > MAX_REDIRECTS:
                     raise httpx.TooManyRedirects("too many redirects", request=request)
                 current = str(response.url.join(response.headers["location"]))
-                if response.status_code == 303 and method != "HEAD":
-                    method = "GET"
+                if response.status_code not in (307, 308):
+                    content = None  # only 307/308 resend the body
+                    if method not in ("GET", "HEAD"):
+                        method = "GET"
                 continue
             if response.status_code in RETRY_STATUSES and attempt < retries:
                 attempt += 1
@@ -281,10 +284,14 @@ class Net:
             return response
 
     async def request(
-        self, method: str, url: str, headers: dict[str, str] | None = None
+        self,
+        method: str,
+        url: str,
+        headers: dict[str, str] | None = None,
+        content: bytes | None = None,
     ) -> httpx.Response:
         """Send a request (following redirects safely) and read the whole body."""
-        response = await self._send(method, url, headers, stream=False)
+        response = await self._send(method, url, headers, stream=False, content=content)
         return response
 
     @asynccontextmanager
