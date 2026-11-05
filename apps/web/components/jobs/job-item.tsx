@@ -7,7 +7,8 @@ import type { ReactNode } from "react";
 
 import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { connectFor, errorMessage, isKnownError } from "@/lib/errors";
+import { connectFor } from "@/lib/connect";
+import { errorMessage } from "@/lib/errors";
 import { formatBytes, formatDuration, isolate } from "@/lib/format";
 import { etaSeconds, isActive, jobName, progressPercent } from "@/lib/jobs";
 import { hostOf } from "@/lib/links";
@@ -131,7 +132,9 @@ function FailedNote({ job }: { job: Job }) {
   const tErrors = useTranslations("Errors");
   const locale = useLocale();
   const connect = connectFor(job.error_code, job.url);
-  const known = isKnownError(job.error_code);
+  // Codes with their own message hide the raw server text under "Details".
+  const code = (job.error_code ?? "") as "network";
+  const known = !!code && code !== ("upstream" as string) && tErrors.has(code);
   return (
     <div className="flex flex-col gap-1 text-sm" data-testid="job-error">
       <p className="text-destructive">

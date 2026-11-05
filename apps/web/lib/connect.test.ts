@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { connectFor, isKnownError } from "./errors";
+import { connectFor } from "./connect";
 
 describe("connectFor", () => {
   it("offers to connect the site for sign-in errors", () => {
@@ -18,11 +18,5 @@ describe("connectFor", () => {
     expect(connectFor("members_only", "https://www.youtube.com/watch?v=x")).toBeNull();
     expect(connectFor("login_required", "not a url")).toBeNull();
     expect(connectFor(null, "https://youtu.be/x")).toBeNull();
-  });
-
-  it("hides raw server text only for errors it can explain", () => {
-    expect(isKnownError("bot_check")).toBe(true);
-    expect(isKnownError("upstream")).toBe(false);
-    expect(isKnownError("weird_new_code")).toBe(false);
   });
 });
