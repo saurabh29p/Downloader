@@ -64,7 +64,9 @@ async def _two_pages(settings: Settings, hit: BookHit, job_id: str) -> list[Path
 )
 async def test_library_pages_by_region(settings: Settings, source: str, query: str) -> None:
     net = Net(settings)
-    result = await search_books(net, settings, query, kind="libraries", sources=[source], limit=10)
+    result = await search_books(
+        net, settings, query, kind="libraries", sources=[source], limit=10, time_limit=45
+    )
     await net.aclose()
     status = result.sources[0]
     assert status.status == "ok", status

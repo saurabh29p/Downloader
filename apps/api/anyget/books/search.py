@@ -16,6 +16,9 @@ from anyget.handlers.base import HandlerError
 
 log = logging.getLogger("anyget.books")
 
+BOOK_TIME_LIMIT = 8.0
+LIBRARY_TIME_LIMIT = 20.0
+
 SourceState = Literal["ok", "needs_key", "timeout", "error", "link_only", "skipped"]
 
 
@@ -82,12 +85,14 @@ async def search_books(
     lang: str | None = None,
     limit: int = 10,
     sources: list[str] | None = None,
-    time_limit: float = 8.0,
+    time_limit: float | None = None,
 ) -> BookSearch:
     query = query.strip()
     if not query:
         return BookSearch(query=query)
     ctx = SearchContext(net=net, settings=settings, lang=lang or None)
+    if time_limit is None:  # national library APIs are often slow from far away
+        time_limit = LIBRARY_TIME_LIMIT if kind == "libraries" else BOOK_TIME_LIMIT
     adapters = pick_adapters(settings, kind, sources)
     outcomes = await asyncio.gather(*(_run(a, ctx, query, limit, time_limit) for a in adapters))
     labels = {a.name: a.label for a in adapters}
