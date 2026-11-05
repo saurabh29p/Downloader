@@ -6,13 +6,16 @@ Requests reach the API in two ways:
 - Through Cloudflare Tunnel: cloudflared adds Cf-Connecting-Ip / Cf-Ray, and Cloudflare
   Access adds a signed Cf-Access-Jwt-Assertion for signed-in users.
 
-Rules ("auto" mode, the default):
-1. A valid bearer token (ANYGET_API_TOKEN) is always accepted.
-2. A request that came through Cloudflare needs a valid Access JWT: RS256, signed by a
-   key from https://<team>/cdn-cgi/access/certs, with our AUD and issuer, not expired.
-   If Access is not configured, such requests are refused (fail closed).
-3. Requests that did not come through Cloudflare are local and allowed.
-"always" mode drops rule 3. Remote clients are rate limited per IP.
+Who is asking, checked in this order:
+1. A valid bearer token (ANYGET_API_TOKEN) is the owner; a wrong one is refused.
+2. A valid owner session cookie (POST /api/auth/login, core/session.py). Writes made
+   with the cookie must send `X-Requested-With: anyget` (CSRF).
+3. A valid Cloudflare Access JWT: RS256, signed by a key from
+   https://<team>/cdn-cgi/access/certs, with our AUD and issuer, not expired.
+4. Otherwise the request is local and allowed only when no sign-in is required: no
+   owner configured, auth_mode "auto", not hosted (ANYGET_PUBLIC / Railway…), and no
+   Cloudflare headers. A hosted AnyGet without an owner refuses everything (fail closed).
+/api/health and /api/auth/* answer anyone. Remote and hosted clients are rate limited.
 """
 
 import hmac
@@ -21,6 +24,7 @@ import logging
 import time
 from collections import defaultdict, deque
 from collections.abc import Awaitable, Callable, MutableMapping
+from http.cookies import CookieError, SimpleCookie
 from typing import Any
 
 import httpx
@@ -28,7 +32,9 @@ import jwt
 from jwt import PyJWK
 
 from anyget.core.net import BlockedURLError, Net
+from anyget.core.session import COOKIE, CSRF_HEADER, CSRF_VALUE
 from anyget.core.settings import Settings
+from anyget.core.users import OWNER_ID
 
 log = logging.getLogger("anyget.auth")
 
@@ -42,6 +48,8 @@ CLOUDFLARE_HEADERS = (b"cf-connecting-ip", b"cf-ray", b"cf-access-jwt-assertion"
 JWKS_TTL = 3600.0
 JWKS_RETRY = 60.0
 WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+# Answered without a signed-in user (the auth endpoints report who is signed in).
+PUBLIC_PATHS = {"/api/health", "/api/auth/login", "/api/auth/logout", "/api/auth/me"}
 
 SECURITY_HEADERS = {
     b"x-content-type-options": b"nosniff",
@@ -151,13 +159,31 @@ class RateLimiter:
         return None
 
 
+def session_cookie(headers: dict[bytes, bytes]) -> str:
+    raw = headers.get(b"cookie", b"").decode(errors="replace")
+    if not raw:
+        return ""
+    jar = SimpleCookie()
+    try:
+        jar.load(raw)
+    except CookieError:
+        return ""
+    morsel = jar.get(COOKIE)
+    return morsel.value if morsel else ""
+
+
 def _headers(scope: Scope) -> dict[bytes, bytes]:
     return {k.lower(): v for k, v in scope.get("headers") or []}
 
 
-def client_ip(headers: dict[bytes, bytes], scope: Scope) -> str:
+def client_ip(headers: dict[bytes, bytes], scope: Scope, settings: Settings | None = None) -> str:
     if b"cf-connecting-ip" in headers:
         return headers[b"cf-connecting-ip"].decode(errors="replace").strip()
+    if settings is not None and settings.hosted and b"x-forwarded-for" in headers:
+        # Behind the platform's proxy (and Vercel's rewrite) the first hop is the browser.
+        first = headers[b"x-forwarded-for"].decode(errors="replace").split(",")[0].strip()
+        if first:
+            return first
     client = scope.get("client")
     return str(client[0]) if client else "unknown"
 
@@ -174,29 +200,52 @@ class SecurityMiddleware:
         app = scope.get("app")
         return getattr(getattr(app, "state", None), "services", None)
 
-    async def _check(
-        self, settings: Settings, verifier: AccessVerifier, headers: dict[bytes, bytes]
-    ) -> None:
+    async def _identify(
+        self, scope: Scope, services: Any, headers: dict[bytes, bytes]
+    ) -> tuple[str | None, str]:
+        """Who is asking: (user id or None, how). Raises AuthError for bad credentials."""
+        settings: Settings = services.settings
         token = settings.api_token
         auth = headers.get(b"authorization", b"").decode(errors="replace")
         if auth.lower().startswith("bearer "):
             if token and hmac.compare_digest(auth[7:].strip().encode(), token.encode()):
-                return
+                return OWNER_ID, "token"
             raise AuthError("auth_invalid", "the access token is wrong")
-        remote = any(h in headers for h in CLOUDFLARE_HEADERS)
-        if not remote and settings.auth_mode == "auto":
-            return
+        cookie = session_cookie(headers)
+        if cookie:
+            user = services.sessions.verify(cookie)
+            if user is not None:
+                return user, "session"
         assertion = headers.get(b"cf-access-jwt-assertion", b"").decode(errors="replace")
+        verifier: AccessVerifier = services.access
         if assertion and verifier.configured:
             await verifier.verify(assertion)
-            return
-        if not verifier.configured:
-            raise AuthError(
-                "auth_required",
-                "set up Cloudflare Access (ANYGET_ACCESS_TEAM_DOMAIN, ANYGET_ACCESS_AUD) "
-                "or use an access token",
+            return OWNER_ID, "access"
+        remote = any(h in headers for h in CLOUDFLARE_HEADERS)
+        if not remote and not settings.login_required:
+            return OWNER_ID, "local"
+        return None, ""
+
+    @staticmethod
+    def _refusal(
+        settings: Settings, verifier: AccessVerifier, headers: dict[bytes, bytes]
+    ) -> AuthError:
+        if settings.hosted and not settings.owner_configured and not settings.api_token:
+            return AuthError(
+                "owner_required",
+                "AnyGet is on the internet without an owner: set ANYGET_OWNER_EMAIL and "
+                "ANYGET_OWNER_PASSWORD_HASH (anyget hash-password), then restart",
             )
-        raise AuthError("auth_required", "sign in through Cloudflare Access first")
+        remote = any(h in headers for h in CLOUDFLARE_HEADERS)
+        if remote and not settings.owner_configured and not verifier.configured:
+            return AuthError(
+                "auth_required",
+                "set up Cloudflare Access (ANYGET_ACCESS_TEAM_DOMAIN, ANYGET_ACCESS_AUD), "
+                "an owner sign-in or an access token",
+            )
+        if settings.owner_configured:
+            return AuthError("auth_required", "sign in first")
+        return AuthError("auth_required", "sign in through Cloudflare Access first")
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -210,14 +259,29 @@ class SecurityMiddleware:
             if services is None:  # not started yet: never answer unchecked
                 raise AuthError("starting", "AnyGet is starting", 503)
             settings: Settings = services.settings
-            if remote or settings.auth_mode == "always":
-                client = client_ip(headers, scope)
+            if remote or settings.login_required:
+                client = client_ip(headers, scope, settings)
                 wait = self.limiter.hit(client, "all", settings.rate_limit_per_minute)
                 if wait is None and scope.get("method") in WRITE_METHODS:
                     wait = self.limiter.hit(client, "write", settings.rate_limit_writes_per_minute)
                 if wait is not None:
                     raise AuthError("rate_limited", "too many requests; slow down", 429)
-            await self._check(settings, services.access, headers)
+            public = path in PUBLIC_PATHS
+            try:
+                user, how = await self._identify(scope, services, headers)
+            except AuthError:
+                if not public:
+                    raise
+                user, how = None, ""
+            if user is None and not public:
+                raise self._refusal(settings, services.access, headers)
+            if how == "session" and scope.get("method") in WRITE_METHODS:
+                sent = headers.get(CSRF_HEADER.encode(), b"").decode(errors="replace")
+                if sent.lower() != CSRF_VALUE:
+                    raise AuthError("csrf", "this request must come from the AnyGet website", 403)
+            state = scope.setdefault("state", {})
+            state["user"] = user
+            state["auth"] = how
         except AuthError as exc:
             extra = []
             if exc.status == 429:

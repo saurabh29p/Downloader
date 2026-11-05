@@ -30,8 +30,11 @@ _RULES: tuple[tuple[str, str], ...] = (
     ),
     (
         "login_required",
-        r"sign in|log in|login required|registered users|requires authentication|use --cookies",
+        r"sign in|log in|logged in|login required|registered users|requires authentication"
+        r"|authentication is required|use --cookies|cookies are needed",
     ),
+    # Often YouTube refusing anonymous downloads: the user's own cookies usually fix it.
+    ("forbidden", r"http error 403|403: forbidden|\bforbidden\b"),
     ("unsupported", r"unsupported url"),
     (
         "unavailable",

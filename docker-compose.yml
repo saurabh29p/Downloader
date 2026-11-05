@@ -8,7 +8,7 @@ services:
       context: ./apps/api
       target: runtime
       args:
-        # Set ANYGET_WITH_OCR=1 in your shell (or .env) to include OCRmyPDF + Tesseract.
+        # OCR (English, Hindi, Arabic) is always included; ANYGET_WITH_OCR=1 adds more languages.
         WITH_OCR: ${ANYGET_WITH_OCR:-0}
     restart: unless-stopped
     env_file:

@@ -57,7 +57,9 @@ export function JobEventsBridge({ children }: { children: ReactNode }) {
     const connect = () => {
       source = new EventSource("/api/events");
       source.onopen = () => {
-        if (attempts > 0) void queryClient.invalidateQueries({ queryKey: JOBS_KEY });
+        // Refetch on every (re)connect: a job that changed between the list request
+        // and this connection would otherwise stay stale (e.g. "downloading" forever).
+        void queryClient.invalidateQueries({ queryKey: JOBS_KEY });
         attempts = 0;
         setConnection("live");
       };

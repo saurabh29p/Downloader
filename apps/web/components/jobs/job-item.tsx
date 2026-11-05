@@ -53,7 +53,6 @@ type Note =
 /** One job as a list item: name, state, details, progress and errors. `actions` sit at the end. */
 export function JobItem({ job, actions }: { job: Job; actions?: ReactNode }) {
   const t = useTranslations("Jobs");
-  const tErrors = useTranslations("Errors");
   const locale = useLocale();
   const name = jobName(job);
   const percent = progressPercent(job);
@@ -122,17 +121,44 @@ export function JobItem({ job, actions }: { job: Job; actions?: ReactNode }) {
           aria-label={t("progressLabel", { name })}
         />
       )}
-      {job.state === "failed" && (
-        <p className="text-sm text-destructive">
-          {errorMessage(tErrors, job.error_code ?? "")}
-          {job.error && (
-            <span className="text-muted-foreground">
-              {" ("}
-              <bdi>{job.error}</bdi>)
-            </span>
-          )}
-        </p>
-      )}
+      {job.state === "failed" && <FailedNote job={job} />}
     </li>
+  );
+}
+
+function FailedNote({ job }: { job: Job }) {
+  const t = useTranslations("Jobs");
+  const tErrors = useTranslations("Errors");
+  const locale = useLocale();
+  // Codes with their own message hide the raw server text under "Details".
+  const code = (job.error_code ?? "") as "network";
+  const known = !!code && code !== ("upstream" as string) && tErrors.has(code);
+  return (
+    <div className="flex flex-col gap-1 text-sm" data-testid="job-error">
+      <p className="text-destructive">
+        {errorMessage(tErrors, job.error_code ?? "")}
+        {job.error && !known && (
+          <span className="text-muted-foreground">
+            {" ("}
+            <bdi>{job.error}</bdi>)
+          </span>
+        )}
+      </p>
+      {job.connect && (
+        <a
+          href={`/${locale}/settings#cookies`}
+          className="self-start font-medium text-primary underline underline-offset-4"
+          data-testid="connect-site"
+        >
+          {t("connect", { site: job.connect })}
+        </a>
+      )}
+      {job.error && known && (
+        <details className="text-muted-foreground">
+          <summary className="cursor-pointer select-none">{t("details")}</summary>
+          <bdi className="break-words">{job.error}</bdi>
+        </details>
+      )}
+    </div>
   );
 }

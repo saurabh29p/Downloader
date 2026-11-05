@@ -45,7 +45,9 @@ export function PreviewSheet({ probe, open, onOpenChange, onDownload, pending }:
     resumable?: boolean;
     checksums?: Record<string, string>;
     kind?: string;
+    license?: string | null;
   };
+  const isImage = extra.kind === "image";
   const checksums = Object.keys(extra.checksums ?? {});
   const isMedia = probe.handler === "ytdlp";
   const isFiles = !isMedia && (probe.choices.length > 1 || extra.kind === "webpage");
@@ -75,6 +77,18 @@ export function PreviewSheet({ probe, open, onOpenChange, onDownload, pending }:
           <FilesPreview probe={probe} onDownload={onDownload} pending={pending} />
         ) : (
           <>
+            {isImage && probe.thumbnail ? (
+              <div className="flex h-56 items-center justify-center overflow-hidden rounded-md border bg-muted">
+                {/* eslint-disable-next-line @next/next/no-img-element -- remote preview, any host */}
+                <img
+                  src={probe.thumbnail}
+                  alt={t("imagePreview")}
+                  referrerPolicy="no-referrer"
+                  className="max-h-full max-w-full object-contain"
+                  data-testid="image-preview"
+                />
+              </div>
+            ) : null}
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 text-sm">
               <dt className="text-muted-foreground">{t("size")}</dt>
               <dd className="tabular-nums">
@@ -92,6 +106,14 @@ export function PreviewSheet({ probe, open, onOpenChange, onDownload, pending }:
                   <dd>{t("checksumWillVerify", { algos: checksums.join(", ").toUpperCase() })}</dd>
                 </>
               )}
+              {extra.license ? (
+                <>
+                  <dt className="text-muted-foreground">{t("license")}</dt>
+                  <dd dir="ltr" className="text-start">
+                    {extra.license}
+                  </dd>
+                </>
+              ) : null}
               <dt className="text-muted-foreground">{t("source")}</dt>
               <dd dir="ltr" className="text-start break-all">
                 {probe.normalized_url}
@@ -108,7 +130,7 @@ export function PreviewSheet({ probe, open, onOpenChange, onDownload, pending }:
                 ) : (
                   <DownloadIcon aria-hidden="true" />
                 )}
-                {t("download")}
+                {isImage ? t("downloadImage") : t("download")}
               </Button>
             </SheetFooter>
           </>

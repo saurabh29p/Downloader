@@ -19,6 +19,7 @@ from anyget.core.jobs import ACTIVE_STATES, Job, JobOut, JobState, JobStore
 from anyget.core.net import BlockedURLError, HostLimiter
 from anyget.core.router import Router
 from anyget.core.settings import Settings
+from anyget.core.users import OWNER_ID
 from anyget.handlers.base import (
     HandlerError,
     JobContext,
@@ -101,8 +102,10 @@ class DownloadQueue:
 
     # ----- actions ---------------------------------------------------------
 
-    def submit(self, url: str, options: dict[str, Any] | None = None) -> Job:
-        job = self.store.create(url, options)
+    def submit(
+        self, url: str, options: dict[str, Any] | None = None, user_id: str = OWNER_ID
+    ) -> Job:
+        job = self.store.create(url, options, user_id)
         self._publish("job.created", job)
         self.schedule(job.id)
         return job
@@ -159,7 +162,11 @@ class DownloadQueue:
 
     def _publish(self, event_type: str, job: Job) -> None:
         self.bus.publish(
-            {"type": event_type, "job": JobOut.model_validate(job).model_dump(mode="json")}
+            {
+                "type": event_type,
+                "job": JobOut.model_validate(job).model_dump(mode="json"),
+                "user": job.user_id,
+            }
         )
 
     def _update(self, job_id: str, **changes: Any) -> Job:

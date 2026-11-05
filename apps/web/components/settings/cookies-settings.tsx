@@ -49,6 +49,7 @@ export function CookiesSettings() {
 
   return (
     <section
+      id="cookies"
       aria-labelledby="cookies-heading"
       className="flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-card sm:p-5"
     >

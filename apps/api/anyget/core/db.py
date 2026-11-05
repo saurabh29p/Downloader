@@ -50,6 +50,11 @@ class Database:
                     conn.exec_driver_sql(
                         f'ALTER TABLE "{table.name}" ADD COLUMN "{column.name}" {col_type}'
                     )
+                    if column.index:
+                        conn.exec_driver_sql(
+                            f'CREATE INDEX IF NOT EXISTS "ix_{table.name}_{column.name}" '
+                            f'ON "{table.name}" ("{column.name}")'
+                        )
 
     @contextmanager
     def session(self) -> Iterator[Session]:

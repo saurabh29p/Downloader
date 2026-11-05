@@ -5,6 +5,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Security (v2 Phase 1 — lock it down)
+- **Owner sign-in.** Set `ANYGET_OWNER_EMAIL` and `ANYGET_OWNER_PASSWORD_HASH` (from `anyget hash-password`, argon2id). `POST /api/auth/login` sets a signed, HTTP-only session cookie (30 days; `ANYGET_SESSION_SECRET`, or a random key kept in `data/session.key`). Changing the password signs every session out.
+- **Every `/api/*` route needs a sign-in** (the session cookie, `Authorization: Bearer ANYGET_API_TOKEN`, or Cloudflare Access) except `/api/health` and `/api/auth/*`. Before this, a hosted AnyGet (Vercel → Railway) treated every request as local, so its API was open.
+- **Fails closed when hosted.** On Railway and similar platforms (detected from their env vars, or `ANYGET_PUBLIC=1`), an AnyGet without an owner refuses every request with a message saying what to set.
+- **CSRF:** cookie-signed writes must send `X-Requested-With: anyget` (the website always does). Sign-in attempts are limited to 5 a minute per client and 30 a minute in total.
+- **Private by user.** Jobs, library items and watches carry a `user_id`; lists, files, live events and actions only show the signed-in user's own. On a hosted or owner-protected AnyGet, the old shared job list is cleared once; files stay on disk and in the Library.
+- **Website:** a sign-in page (`/<locale>/login`), visitors without a session are sent there, any 401 returns there, and Settings has Sign out.
+
+### Fixed
+- **Images keep their format.** Wikimedia Commons/Wikipedia `File:` pages download the original file (new `wikimedia` handler, SHA-1 checked, licence shown) instead of being taken by yt-dlp and saved as `.mp4`. Direct image links never go to yt-dlp or gallery-dl. The preview shows the picture and a "Download image" button.
+- **No web pages saved as books.** Standard Ebooks links use `?source=download` (the old link opened a "Your Download Has Started" page). A link to a book or file that answers with HTML fails with `not_a_file`, and nothing is saved.
+- **Plain error messages with a fix.** 403s, bot checks and sign-in walls (YouTube, X, Reddit, Vimeo, Instagram, Facebook) show a short message and a "Connect your <site> account" link; the raw yt-dlp text is under "Details".
+- **Library thumbnails** for videos (a frame), PDFs (first page), audio (cover art) and images (resized), made on first view and cached in `data/thumbs/`.
+- **OCR works on Railway:** the API image always has OCRmyPDF, Tesseract (English, Hindi, Arabic) and poppler. `WITH_OCR=1` adds more languages.
+- **Book search streams** each source's results as they arrive (`GET /api/books/search/stream`, SSE) with a "Retry" for sources that timed out or failed (`sources=` parameter).
+- **Search relevance:** archive.org results are ranked by title and subject match and by the media the words ask for, so "Taj Mahal" finds the monument before the musician's concerts. Hindi and Arabic words are no longer split into single letters when matching titles.
+
 ## [1.0.0] - 2026-11-05
 
 First release: everything below, plus worldwide access.

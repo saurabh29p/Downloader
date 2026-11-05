@@ -30,6 +30,7 @@ class LibraryItem(SQLModel, table=True):
     tags: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
     duplicate_of: str | None = None
     added_at: datetime = Field(default_factory=_now)
+    user_id: str | None = Field(default=None, index=True)
 
 
 class LibraryItemOut(BaseModel):
@@ -46,6 +47,8 @@ class LibraryItemOut(BaseModel):
     duplicate_of: str | None
     added_at: datetime
     missing: bool = False
+    # A small picture for the Library grid (made on first request), or None.
+    thumbnail: str | None = None
 
 
 class LibraryPage(BaseModel):

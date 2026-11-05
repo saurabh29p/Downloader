@@ -2,39 +2,14 @@ import type { useTranslations } from "next-intl";
 
 import { ApiError } from "@/lib/api";
 
-const KNOWN = new Set([
-  "blocked_url",
-  "unsupported",
-  "not_found",
-  "upstream",
-  "network",
-  "invalid_state",
-  "checksum",
-  "incomplete",
-  "unsafe_path",
-  "drm",
-  "members_only",
-  "paid",
-  "private",
-  "age_restricted",
-  "login_required",
-  "bot_check",
-  "geo_blocked",
-  "live_not_finished",
-  "unavailable",
-  "invalid_cookies",
-  "restricted",
-  "borrow_only",
-  "rate_limited",
-  "in_copyright",
-  "needs_key",
-  "tool_missing",
-]);
-
 type ErrorsT = ReturnType<typeof useTranslations<"Errors">>;
 
-/** A friendly, translated message for an API error code. */
+export function errorCode(error: unknown): string {
+  return error instanceof ApiError ? error.code : typeof error === "string" ? error : "";
+}
+
+/** A friendly, translated message for an API error code (every code has an Errors entry). */
 export function errorMessage(t: ErrorsT, error: unknown): string {
-  const code = error instanceof ApiError ? error.code : typeof error === "string" ? error : "";
-  return KNOWN.has(code) ? t(code as "network") : t("generic");
+  const code = errorCode(error) as "network";
+  return code && t.has(code) ? t(code) : t("generic");
 }

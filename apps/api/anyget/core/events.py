@@ -7,6 +7,8 @@ from collections.abc import AsyncGenerator
 from typing import Any
 
 HEARTBEAT_SECONDS = 15.0
+# No caching, and no buffering in proxies (nginx), so events arrive at once.
+SSE_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
 
 
 class EventBus:
@@ -39,9 +41,12 @@ def format_sse(event: str, data: Any) -> str:
 
 
 async def sse_stream(
-    bus: EventBus, job_id: str | None = None, heartbeat: float = HEARTBEAT_SECONDS
+    bus: EventBus,
+    job_id: str | None = None,
+    heartbeat: float = HEARTBEAT_SECONDS,
+    user_id: str | None = None,
 ) -> AsyncGenerator[str]:
-    """Yield SSE text for every job event (optionally one job), with heartbeats."""
+    """Yield SSE text for every job event (optionally one job / one user), with heartbeats."""
     yield ": connected\n\n"
     events = bus.subscribe()
     pending: asyncio.Task[dict[str, Any]] | None = None
@@ -55,6 +60,8 @@ async def sse_stream(
                 continue
             event = pending.result()
             pending = None
+            if user_id is not None and event.get("user", user_id) != user_id:
+                continue
             if job_id is None or event.get("job", {}).get("id") == job_id:
                 yield format_sse(event["type"], event["job"])
     finally:

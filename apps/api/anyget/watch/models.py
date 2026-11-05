@@ -36,6 +36,7 @@ class Watch(SQLModel, table=True):
     last_new: int | None = None
     last_error: str | None = None
     created_at: datetime = SQLField(default_factory=_now)
+    user_id: str | None = SQLField(default=None, index=True)
 
 
 class WatchIn(BaseModel):

@@ -103,6 +103,55 @@ def _hash_file(path: Path, algo: str) -> str:
         return hashlib.file_digest(fh, algo).hexdigest()
 
 
+IMAGE_EXTENSIONS = frozenset(
+    {"jpg", "jpeg", "png", "webp", "gif", "svg", "avif", "tif", "tiff", "bmp", "heic"}
+)
+# Extensions for files served without one (mimetypes' guesses are odd for some).
+MIME_EXTENSIONS = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "image/svg+xml": "svg",
+    "image/avif": "avif",
+    "image/tiff": "tif",
+    "application/pdf": "pdf",
+    "application/epub+zip": "epub",
+}
+
+
+# Links whose path names a document file: an HTML answer is never the file.
+FILE_SUFFIXES = (
+    ".epub",
+    ".pdf",
+    ".mobi",
+    ".azw",
+    ".azw3",
+    ".djvu",
+    ".fb2",
+    ".cbz",
+    ".cbr",
+    ".zip",
+    ".mp3",
+    ".mp4",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+)
+
+
+def is_file_link(url: str) -> bool:
+    return urlsplit(url).path.lower().endswith(FILE_SUFFIXES)
+
+
+def with_extension(filename: str, content_type: str) -> str:
+    """Add the type's extension when the name has none ("photo" + image/png → photo.png)."""
+    if "." in filename.strip(".") or content_type not in MIME_EXTENSIONS:
+        return filename
+    return sanitize_filename(f"{filename}.{MIME_EXTENSIONS[content_type]}")
+
+
 class HttpGenericHandler:
     """Fallback for any http(s) link that serves a file."""
 
@@ -129,6 +178,11 @@ class HttpGenericHandler:
 
         content_type = response.headers.get("content-type", "").split(";")[0].strip().lower()
         is_html = content_type in HTML_TYPES
+        if is_html and not (options or {}).get("allow_html") and is_file_link(url):
+            raise HandlerError(
+                "not_a_file",
+                "this link opened a web page instead of the file; nothing was saved",
+            )
         if is_html and not (options or {}).get("allow_html"):
             # A web page: save it, or pick documents/media linked from it.
             from anyget.handlers.webpage import probe_page
@@ -149,7 +203,9 @@ class HttpGenericHandler:
             response.headers.get("accept-ranges", "").lower() == "bytes"
             or response.status_code == 206
         )
+        filename = with_extension(filename, content_type)
         ext = filename.rpartition(".")[2].lower() if "." in filename else None
+        image = content_type.startswith("image/") or (ext or "") in IMAGE_EXTENSIONS
         extra: dict[str, Any] = {
             "filename": filename,
             "content_type": content_type or None,
@@ -157,11 +213,14 @@ class HttpGenericHandler:
             "final_url": final_url,
             "checksums": checksums_from_headers(response.headers),
         }
+        if image:
+            extra["kind"] = "image"  # the web shows "Download image" and a preview
         return Probe(
             url=url,
             handler=self.name,
             title=filename,
             size=size,
+            thumbnail=final_url if image else None,
             choices=[
                 Choice(id="file", label=filename, kind="file", size=size, ext=ext, default=True)
             ],
@@ -197,9 +256,16 @@ class HttpGenericHandler:
             part.unlink()
             existing = 0
 
+        refuse_html = (probe.extra.get("content_type") or "") not in HTML_TYPES
         if total is None or existing < total:
             existing, total = await self._fetch(
-                job.url, part, existing, total, progress_cb, _private_headers(options)
+                job.url,
+                part,
+                existing,
+                total,
+                progress_cb,
+                _private_headers(options),
+                refuse_html=refuse_html,
             )
 
         size = part.stat().st_size
@@ -227,6 +293,8 @@ class HttpGenericHandler:
         total: int | None,
         progress_cb: ProgressCallback,
         extra_headers: dict[str, str] | None = None,
+        *,
+        refuse_html: bool = False,
     ) -> tuple[int, int | None]:
         headers = {
             **IDENTITY,
@@ -238,6 +306,14 @@ class HttpGenericHandler:
                 return existing, existing  # already complete
             if response.status_code >= 400:
                 raise HandlerError("upstream", f"the server answered {response.status_code}")
+            served = response.headers.get("content-type", "").split(";")[0].strip().lower()
+            if refuse_html and served in HTML_TYPES:
+                # A file was expected (a book, a PDF…) but the server sent a web page,
+                # e.g. a "your download has started" or sign-in page. Never save it.
+                raise HandlerError(
+                    "not_a_file",
+                    "the server sent a web page instead of the file; nothing was saved",
+                )
             if response.status_code == 206 and existing:
                 match = _CONTENT_RANGE.match(response.headers.get("content-range", ""))
                 if not match or int(match.group(1)) != existing:

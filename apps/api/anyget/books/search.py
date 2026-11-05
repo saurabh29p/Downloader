@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from collections.abc import AsyncIterator
 from typing import Literal
 
 import httpx
@@ -76,6 +77,36 @@ async def _run(
     return status("ok", len(hits)), hits
 
 
+def _setup(
+    settings: Settings,
+    kind: Literal["books", "libraries"],
+    sources: list[str] | None,
+    time_limit: float | None,
+) -> tuple[list[Adapter], float]:
+    if time_limit is None:  # national library APIs are often slow from far away
+        time_limit = LIBRARY_TIME_LIMIT if kind == "libraries" else BOOK_TIME_LIMIT
+    return pick_adapters(settings, kind, sources), time_limit
+
+
+def _enrich(hits: list[BookHit], labels: dict[str, str]) -> list[BookHit]:
+    return [
+        sort_formats(find_links(hit)).model_copy(update={"source_label": labels.get(hit.source)})
+        for hit in hits
+    ]
+
+
+def _finish(
+    query: str, adapters: list[Adapter], outcomes: list[tuple[SourceStatus, list[BookHit]]]
+) -> BookSearch:
+    labels = {a.name: a.label for a in adapters}
+    hits = _enrich([hit for _, found in outcomes for hit in found], labels)
+    ranked = rank(hits, query, {a.name: a.trust for a in adapters})
+    best = ranked[0] if ranked and ranked[0].downloadable else None
+    order = {a.name: i for i, a in enumerate(adapters)}
+    statuses = sorted((status for status, _ in outcomes), key=lambda st: order.get(st.name, 0))
+    return BookSearch(query=query, best=best, results=ranked, sources=statuses)
+
+
 async def search_books(
     net: Net,
     settings: Settings,
@@ -91,18 +122,45 @@ async def search_books(
     if not query:
         return BookSearch(query=query)
     ctx = SearchContext(net=net, settings=settings, lang=lang or None)
-    if time_limit is None:  # national library APIs are often slow from far away
-        time_limit = LIBRARY_TIME_LIMIT if kind == "libraries" else BOOK_TIME_LIMIT
-    adapters = pick_adapters(settings, kind, sources)
-    outcomes = await asyncio.gather(*(_run(a, ctx, query, limit, time_limit) for a in adapters))
+    adapters, seconds = _setup(settings, kind, sources, time_limit)
+    outcomes = await asyncio.gather(*(_run(a, ctx, query, limit, seconds) for a in adapters))
+    return _finish(query, adapters, list(outcomes))
+
+
+class SourceResult(BaseModel):
+    """One source's answer while a search streams (hits are not ranked yet)."""
+
+    source: SourceStatus
+    results: list[BookHit] = Field(default_factory=list)
+
+
+async def stream_books(
+    net: Net,
+    settings: Settings,
+    query: str,
+    *,
+    kind: Literal["books", "libraries"] = "books",
+    lang: str | None = None,
+    limit: int = 10,
+    sources: list[str] | None = None,
+    time_limit: float | None = None,
+) -> AsyncIterator[SourceResult | BookSearch]:
+    """Each source's answer as soon as it arrives, then the ranked search."""
+    query = query.strip()
+    if not query:
+        yield BookSearch(query=query)
+        return
+    ctx = SearchContext(net=net, settings=settings, lang=lang or None)
+    adapters, seconds = _setup(settings, kind, sources, time_limit)
     labels = {a.name: a.label for a in adapters}
-    hits = [
-        sort_formats(find_links(hit)).model_copy(update={"source_label": labels.get(hit.source)})
-        for _, found in outcomes
-        for hit in found
-    ]
-    ranked = rank(hits, query, {a.name: a.trust for a in adapters})
-    best = ranked[0] if ranked and ranked[0].downloadable else None
-    return BookSearch(
-        query=query, best=best, results=ranked, sources=[status for status, _ in outcomes]
-    )
+    outcomes: list[tuple[SourceStatus, list[BookHit]]] = []
+    tasks = [asyncio.ensure_future(_run(a, ctx, query, limit, seconds)) for a in adapters]
+    try:
+        for next_done in asyncio.as_completed(tasks):
+            status, hits = await next_done
+            outcomes.append((status, hits))
+            yield SourceResult(source=status, results=_enrich(hits, labels))
+    finally:
+        for task in tasks:
+            task.cancel()
+    yield _finish(query, adapters, outcomes)

@@ -41,6 +41,27 @@ SHORTENERS = {
 }
 
 
+# Handlers that would turn a direct image link into a video or gallery job.
+MEDIA_HANDLERS = frozenset({"ytdlp", "gallery"})
+IMAGE_SUFFIXES = (
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".gif",
+    ".svg",
+    ".avif",
+    ".tif",
+    ".tiff",
+    ".bmp",
+    ".heic",
+)
+
+
+def is_image_link(url: str) -> bool:
+    return urlsplit(url).path.lower().endswith(IMAGE_SUFFIXES)
+
+
 def _host_matches(host: str, domains: tuple[str, ...] | set[str]) -> bool:
     return any(host == d or host.endswith("." + d) for d in domains)
 
@@ -113,4 +134,9 @@ class Router:
         handler = self.registry.find(normalized)
         if handler is None:
             raise HandlerError("unsupported", "no handler can download this link")
+        if handler.name in MEDIA_HANDLERS and is_image_link(normalized):
+            # A direct image link is the file itself: keep its format (never a video).
+            direct = self.registry.get("http")
+            if direct is not None:
+                return normalized, direct
         return normalized, handler

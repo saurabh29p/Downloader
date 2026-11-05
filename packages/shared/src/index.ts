@@ -19,8 +19,11 @@ export type JobItem = components["schemas"]["JobItem"];
 export type CookiesStatus = components["schemas"]["CookiesStatus"];
 export type ToolVersions = components["schemas"]["ToolVersions"];
 
+/** Sent with every call: the API refuses cookie-signed writes without it (CSRF). */
+export const CSRF_HEADERS = { "X-Requested-With": "anyget" } as const;
+
 export function createApiClient(baseUrl = "", init?: { fetch?: typeof fetch }) {
-  return createClient<paths>({ baseUrl, ...init });
+  return createClient<paths>({ baseUrl, headers: CSRF_HEADERS, ...init });
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>;
@@ -47,3 +50,4 @@ export type WatchRunResult = components["schemas"]["WatchRunResult"];
 export type SettingsView = components["schemas"]["SettingsView"];
 export type SettingsUpdate = components["schemas"]["SettingsUpdate"];
 export type YtDlpVersion = components["schemas"]["YtDlpVersion"];
+export type Me = components["schemas"]["Me"];

@@ -2,13 +2,15 @@
 
 from dataclasses import dataclass
 
-from anyget.core.auth import AccessVerifier
+from anyget.core.auth import AccessVerifier, RateLimiter
 from anyget.core.db import Database
 from anyget.core.events import EventBus
 from anyget.core.jobs import JobStore
 from anyget.core.net import Net
+from anyget.core.ownership import adopt_rows
 from anyget.core.queue import DownloadQueue
 from anyget.core.router import Router
+from anyget.core.session import Sessions
 from anyget.core.settings import Settings
 from anyget.core.settings_store import SettingsStore
 from anyget.handlers.ai_resources import AiResourcesHandler
@@ -31,11 +33,13 @@ from anyget.handlers.registry import (
     PRIORITY_GIT,
     PRIORITY_IIIF,
     PRIORITY_TORRENT,
+    PRIORITY_WIKIMEDIA,
     PRIORITY_YTDLP,
     Registry,
 )
 from anyget.handlers.torrent import TorrentHandler
 from anyget.handlers.wayback import WaybackHandler
+from anyget.handlers.wikimedia import WikimediaHandler
 from anyget.handlers.ytdlp import YtDlpHandler
 from anyget.library.index import LibraryIndex
 from anyget.plugins import PluginInfo, load_plugins
@@ -55,6 +59,7 @@ def build_registry(net: Net, settings: Settings, store: JobStore | None = None) 
     registry.register(IiifLibraryHandler(net, settings), PRIORITY_IIIF)
     registry.register(BooksHandler(net, settings, archive), PRIORITY_BOOKS)
     registry.register(AiResourcesHandler(net, settings), PRIORITY_AI)
+    registry.register(WikimediaHandler(net), PRIORITY_WIKIMEDIA)
     registry.register(YtDlpHandler(settings), PRIORITY_YTDLP)
     registry.register(GalleryHandler(net), PRIORITY_GALLERY)
     registry.register(HttpGenericHandler(net), PRIORITY_FALLBACK)
@@ -77,6 +82,8 @@ class Services:
     scheduler: WatchScheduler
     plugins: list[PluginInfo]
     access: AccessVerifier
+    sessions: Sessions
+    login_limiter: RateLimiter
 
     @classmethod
     def build(cls, settings: Settings, net: Net | None = None) -> "Services":
@@ -85,6 +92,7 @@ class Services:
         db.create_all()
         settings_store = SettingsStore(db, settings)
         settings_store.load()  # saved settings override .env
+        adopt_rows(db, settings)  # v2: rows from before sign-in get an owner
         store = JobStore(db)
         bus = EventBus()
         net = net or Net(settings)
@@ -110,6 +118,8 @@ class Services:
             WatchScheduler(watches),
             plugins,
             AccessVerifier(net, settings),
+            Sessions(settings),
+            RateLimiter(),
         )
 
     async def start(self, recover: bool = True, watch: bool | None = None) -> None:

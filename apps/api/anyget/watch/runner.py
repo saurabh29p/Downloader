@@ -21,6 +21,7 @@ from anyget.core.db import Database
 from anyget.core.net import Net
 from anyget.core.queue import DownloadQueue
 from anyget.core.router import Router
+from anyget.core.users import OWNER_ID
 from anyget.handlers.archive_org import ArchiveOrgHandler, parse_item_url, scrape
 from anyget.handlers.base import HandlerError
 from anyget.watch.models import Watch, WatchIn, WatchOut, WatchRunResult
@@ -73,9 +74,12 @@ class WatchService:
 
     # ----- storage ---------------------------------------------------------
 
-    def all(self) -> list[Watch]:
+    def all(self, user_id: str | None = None) -> list[Watch]:
         with self.db.session() as session:
-            return list(session.exec(select(Watch).order_by(col(Watch.created_at))).all())
+            query = select(Watch).order_by(col(Watch.created_at))
+            if user_id is not None:
+                query = query.where(Watch.user_id == user_id)
+            return list(session.exec(query).all())
 
     def get(self, watch_id: str) -> Watch | None:
         with self.db.session() as session:
@@ -108,7 +112,7 @@ class WatchService:
 
     # ----- sources ---------------------------------------------------------
 
-    async def create(self, body: WatchIn) -> Watch:
+    async def create(self, body: WatchIn, user_id: str = OWNER_ID) -> Watch:
         url, handler = await self.router.resolve(body.url)
         if handler.name == "archive_org" and isinstance(handler, ArchiveOrgHandler):
             identifier, _ = parse_item_url(url)
@@ -132,6 +136,7 @@ class WatchService:
             interval_minutes=body.interval_minutes,
             initial=body.initial,
             options={k: v for k, v in body.options.items() if not str(k).startswith("_")},
+            user_id=user_id,
         )
         return self._save(watch)
 
@@ -197,7 +202,9 @@ class WatchService:
             seen.update(e.id for e in entries if e.saved)
             to_queue = new[: watch.initial] if first_run else new[:MAX_QUEUE]
             for entry in to_queue:
-                job = self.queue.submit(entry.url, {**watch.options, **entry.options})
+                job = self.queue.submit(
+                    entry.url, {**watch.options, **entry.options}, watch.user_id or OWNER_ID
+                )
                 job_ids.append(job.id)
                 seen.add(entry.id)
             if first_run:

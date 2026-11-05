@@ -33,7 +33,10 @@ export async function call<T>(
     throw new ApiError("network", "the server could not be reached");
   }
   if (result.error !== undefined || !result.response.ok) {
-    throw toApiError(result.error, result.response);
+    const error = toApiError(result.error, result.response);
+    // The session ended: sign in again (loaded only when it happens).
+    if (error.status === 401) void import("@/lib/sign-in").then((m) => m.toSignIn());
+    throw error;
   }
   return result.data as T;
 }

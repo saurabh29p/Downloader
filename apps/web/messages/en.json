@@ -98,7 +98,8 @@
       "gallery": "Gallery",
       "ai_resources": "AI model or dataset",
       "archive_org": "archive.org",
-      "wayback": "Wayback Machine"
+      "wayback": "Wayback Machine",
+      "wikimedia": "Wikimedia"
     },
     "size": "Size",
     "unknown": "Unknown",
@@ -111,7 +112,10 @@
     "source": "Link",
     "cancel": "Cancel",
     "download": "Download",
-    "close": "Close"
+    "close": "Close",
+    "downloadImage": "Download image",
+    "imagePreview": "Preview of the image",
+    "license": "Licence"
   },
   "Jobs": {
     "added": "{count, plural, one {Added # download} other {Added # downloads}}",
@@ -152,7 +156,9 @@
       "already_downloaded": "Already downloaded before",
       "outside_date_range": "Skipped: outside the chosen dates"
     },
-    "finishedMany": "{count, plural, one {Downloaded # file} other {Downloaded # files}}"
+    "finishedMany": "{count, plural, one {Downloaded # file} other {Downloaded # files}}",
+    "connect": "Connect your {site} account",
+    "details": "Details"
   },
   "Errors": {
     "blocked_url": "This link points to a private or local network address, or isn't http(s), so it can't be downloaded.",
@@ -169,9 +175,9 @@
     "members_only": "Only channel members can watch this. AnyGet does not get around that.",
     "paid": "This video must be bought or rented first. AnyGet does not get around that.",
     "private": "This video is private.",
-    "age_restricted": "This video needs an age check. If you are signed in on your own account, add your cookies.txt in Settings.",
-    "login_required": "The site wants you to sign in. Add a cookies.txt from your own account in Settings, or your own API token for this site.",
-    "bot_check": "The site asked to confirm you're not a bot. Try again later, or add a cookies.txt from your own account in Settings.",
+    "age_restricted": "This video needs an age check. Connect your own signed-in account (cookies.txt) and retry.",
+    "login_required": "The site wants you to sign in. Connect your own account (cookies.txt) and retry.",
+    "bot_check": "The site asked to confirm you're not a bot. Connect your own account (cookies.txt) and retry, or try again later.",
     "geo_blocked": "Not available in your region. AnyGet does not get around region blocks.",
     "live_not_finished": "This is a live or upcoming stream. Try again after it ends.",
     "unavailable": "This video is unavailable or was removed.",
@@ -181,7 +187,13 @@
     "rate_limited": "The site's limit for anonymous requests was reached. Try again later, or add your own API token.",
     "in_copyright": "This is in copyright, so it is not legally downloadable. Borrow or buy it instead.",
     "needs_key": "This source needs a free API key. Add it to your .env file.",
-    "tool_missing": "The tool for this conversion is not installed on this computer."
+    "tool_missing": "The tool for this conversion is not installed on this computer.",
+    "forbidden": "The site refused the download (403). Signing in with your own account usually fixes this; updating yt-dlp can help too.",
+    "not_a_file": "The link opened a web page instead of the file, so nothing was saved.",
+    "auth_required": "Sign in to use AnyGet.",
+    "auth_invalid": "Wrong email, password or token.",
+    "owner_required": "No sign-in is set up on this AnyGet yet.",
+    "csrf": "That request was refused. Reload the page and try again."
   },
   "Downloads": {
     "title": "Downloads",
@@ -506,7 +518,10 @@
       "ok": "answered"
     },
     "searchThere": "Search there",
-    "retry": "Try again"
+    "retry": "Try again",
+    "streaming": "{count, plural, =0 {Asking every source…} one {# source answered so far…} other {# sources answered so far…}}",
+    "retrySource": "Retry",
+    "retrying": "Retrying…"
   },
   "Libraries": {
     "title": "Libraries worldwide",
@@ -741,5 +756,20 @@
     "title": "Nothing to download",
     "noLink": "The shared text has no link in it. Share a web page or a link to a file.",
     "home": "Go to Home"
+  },
+  "Login": {
+    "title": "Sign in",
+    "subtitle": "AnyGet is private. Only its owner can sign in.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "signingIn": "Signing in…",
+    "wrong": "Wrong email or password.",
+    "limited": "Too many attempts. Wait a minute, then try again.",
+    "noOwner": "No sign-in is set up yet. Set ANYGET_OWNER_EMAIL and ANYGET_OWNER_PASSWORD_HASH on the server.",
+    "network": "AnyGet could not be reached. Try again.",
+    "account": "Account",
+    "signedInAs": "Signed in as",
+    "signOut": "Sign out"
   }
 }

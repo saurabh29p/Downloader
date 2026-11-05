@@ -1,6 +1,6 @@
 # AnyGet — project memory for Claude Code
 
-One tool: paste any public link, get the file. A FastAPI core (URL router → handlers → SQLite job queue with SSE progress), a Next.js website and a Typer CLI. Runs on the user's own computer with Docker Compose (`make up`); reachable worldwide only through Cloudflare Tunnel + Access (Tailscale as fallback). Free tools only. **No LLM at runtime** — Claude Code only writes the code.
+One tool: paste any public link, get the file. A FastAPI core (URL router → handlers → SQLite job queue with SSE progress), a Next.js website and a Typer CLI. Runs on the user's own computer with Docker Compose (`make up`), or hosted (web on Vercel `downloader-web`, API on Railway `anyget-api` with a `/data` volume) behind the owner sign-in; Cloudflare Tunnel + Access and Tailscale remain options. Free tools only, personal use, no billing or ads. **LLM is optional** (v2: OpenRouter, Phase 5): every feature must work without a key, and no cookies, secrets or file contents are ever sent to it.
 
 Read this file at the start of every session. The full research doc lives in `docs/plan.md`; phase prompts live in `prompts/`.
 
@@ -17,6 +17,15 @@ Read this file at the start of every session. The full research doc lives in `do
 - [x] Phase 8 — library, watch, settings
 - [x] Phase 9 — PWA, extension, plugins
 - [x] Phase 10 — deploy and release (v1.0.0)
+
+v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-universal-search`):
+- [x] v2 Phase 1 — owner sign-in, per-user rows, bug fixes
+- [ ] v2 Phase 2 — Connections (encrypted cookies/keys per site)
+- [ ] v2 Phase 3 — universal search engine
+- [ ] v2 Phase 4 — Sections (Movies, Books, Music, Video, Declassified, More)
+- [ ] v2 Phase 5 — OpenRouter brain (optional)
+- [ ] v2 Phase 6 — "The Reading Room" UI
+- [ ] v2 Phase 7 — polish and ship
 
 Update this checklist at the end of every phase.
 
@@ -228,6 +237,8 @@ Personal use only. Download only what the user owns, what is public domain or op
 - APIs: `GET /api/archive/search` (`deep=true`/`cursor` → scrape API), `GET /api/archive/items/{id}`, `GET /api/wayback/snapshots?url=`. Web calls live in `lib/api-archive.ts` so Home never loads them.
 
 ### Code / cloud / gallery / AI gotchas
+- `JobOut.connect` (computed, `core/sites.connect_site`) names the site whose account would fix a failed job (`login_required`, `bot_check`, `age_restricted`, `forbidden`); the web shows "Connect your <site> account" from it. Phase 2 grows `core/sites.py` into the Connections registry.
+- `handlers/wikimedia.py` (priority 75, before yt-dlp whose "Wikimedia" extractor saves File: pages as video): MediaWiki `imageinfo` → original file through `HttpGenericHandler` with its sha1. The router also sends any image-suffix link that would go to `ytdlp`/`gallery` to `http` (`router.is_image_link`). Image probes have `extra.kind == "image"` and `thumbnail`.
 - Multi-file handlers (archive.org, git_code, gallery, ai_resources, web pages) build `RemoteFile`s and call `handlers/multi.download_many`; the user's pick arrives as `options["files"]` (choice ids).
 - Handler-only request headers (tokens, Referer) go in `options["_headers"]` / `RemoteFile.headers`. The API drops every option key that starts with `_`, so users can't set them.
 - `HttpGenericHandler.probe` returns a `kind: "webpage"` probe for HTML (unless `allow_html`); `download` then runs `webpage.download_page`. A cloud link that lands on an HTML page (sign-in, quota) fails with `login_required`; it is never saved as the file.
@@ -236,6 +247,9 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Live tests: GitHub works from the sandbox; Flickr and Hugging Face need CI. `ANYGET_LIVE_DRIVE_URL` / `ANYGET_LIVE_FLICKR_ALBUM` are optional repo variables for the Live tests workflow.
 
 ### Books / libraries / convert gotchas
+- Standard Ebooks download links need `?source=download` (without it: an HTML "Your Download Has Started" page). `HttpGenericHandler` refuses HTML for links ending in a file suffix (`is_file_link`) and whenever the probe expected a non-HTML file but the GET answers HTML (`not_a_file`).
+- `GET /api/books/search/stream` (SSE): `source` events (`{source, results}`, unranked) as each adapter answers, then `done` (ranked `BookSearch`). The web falls back to `/api/books/search` if the stream fails. `sources=` limits a search to some adapters (per-source retry).
+- Word matching for titles uses `core/text.words` (keeps Devanagari/Arabic marks inside words; strips only Latin accents). archive.org hits in `/api/search` are re-ranked by `universal/relevance.rank_hits` (title/subject match, media intent words in en/hi/hinglish/ar, artist-name-only music matches pushed down).
 - `anyget/books/<source>.py` each export `ADAPTER` (name, label, region, `search(ctx, query, limit)`, optional `key_setting`, `search_url` for link-only sources); `books/sources.py` lists them; `books/search.search_books` fans out with a per-source time limit and returns a status per source (`ok`, `needs_key`, `timeout`, `error`, `link_only`). Keyless adapters are skipped, never failed.
 - Ranking is `books/ranker.rank` (pure). Access states: `full_view` (downloadable), `view_online`, `borrow_only`, `in_copyright`; anything but a full-view hit with formats gets library/buy links (`find_links`). Never add shadow libraries (`test_no_shadow_libraries_are_sources`).
 - Standard Ebooks' OPDS feeds need a Patrons login, so the adapter reads the public search page and builds `/downloads/<author>_<title>.epub`. HathiTrust is lookup-by-ISBN/OCLC only and full view is "read online" (whole-book PDFs need a member login). NDLI is a search link only.
@@ -246,6 +260,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Live tests for these hosts can't run in the sandbox (DNS); they run in the Live tests workflow. Status on GitHub runners (Nov 2026): book search, Gutenberg EPUB and OCR pass; Gallica answers 403, loc.gov answers 429 (search works, item JSON/manifests throttled), NDL search works (`dpid=ndl-dl-online`) but `www.dl.ndl.go.jp/api/iiif/<pid>/manifest.json` answered 404 for the hits found — verify the NDL manifest URL from a home connection before changing it again.
 
 ### Library / watch / settings gotchas
+- Thumbnails (`library/thumbs.py`): made on the first `GET /api/library/{id}/thumb`, cached as `data/thumbs/<id>.webp` (a `.none` marker means "no picture", not retried). ffmpeg (`-protocol_whitelist file`) for video frames and audio covers, `pdftoppm` (poppler) for PDFs, Pillow for raster images; SVGs use the file itself. CI's API job installs ffmpeg + poppler for these tests.
 - Tables: `library_item`, `watch`, `setting` live in the same SQLite file; `Database.create_all` imports their models. New nullable columns are still added by `_add_missing_columns`.
 - `DownloadQueue.on_done` hooks (the library indexer) run as separate tasks after a job is `done`; `queue.stop()` waits for them (`wait_hooks`, 60 s). Never await slow work inside the job task: cancelling it resets the job to `queued`.
 - Folder templates (`core/templates.py`) are rendered once per job after the probe and stored in `job.options["_folder"]`; `queue.job_dir(job)` is where its files and partials live. Conversions (`anyget:` links) don't use templates.
@@ -264,6 +279,10 @@ Personal use only. Download only what the user owns, what is public domain or op
 - The Libraries page reserves the list height in its skeleton (`h-[77rem] sm:h-[39rem]`) and Settings reserves `h-[178rem] sm:h-[124rem]` (CLS). When measuring Lighthouse locally, build the web with the same `API_URL` the API listens on, or pages show their error state and CLS numbers are wrong.
 
 ### Deploy / auth gotchas
+- **v2 owner sign-in** (`core/session.py`, `api/auth.py`, `docs/hosted.md`): `ANYGET_OWNER_EMAIL` + `ANYGET_OWNER_PASSWORD_HASH` (argon2id, `anyget hash-password`). The cookie `anyget_session` is HMAC-signed with a key mixed from the session secret and the password hash. `Settings.login_required` is true when an owner is set, `auth_mode=always`, or hosted (`Settings.hosted`: `ANYGET_PUBLIC` or a platform env var such as `RAILWAY_ENVIRONMENT`). Hosted without an owner or token → every request 401 `owner_required` (fail closed). Public paths: `/api/health`, `/api/auth/login|logout|me`.
+- Cookie-signed writes need `X-Requested-With: anyget` (`CSRF_HEADERS` in `@anyget/shared`'s `createApiClient`); raw `fetch` writes in the web must add it too. Bearer-token clients (CLI, extension) don't need it.
+- The middleware puts the user in `scope["state"]["user"]`; routes read it with `UserDep` (`api/deps.py`). Jobs, library items and watches have `user_id` (`core/users.OWNER_ID` = "owner" today); single-row routes answer 404 for another user's row. `core/ownership.adopt_rows` runs at every start: library/watch rows without a user go to the owner; jobs without a user are deleted when hosted or owner-protected (old public list), kept otherwise.
+- Web: `proxy.ts` redirects to `/<locale>/login?next=` when there is no session cookie and `GET /api/auth/me` says `login_required` (cached 60 s, `lib/auth-gate.ts`; `API_URL` is read at run time there). `lib/api.call()` sends any 401 to the sign-in page. Tests that need a signed-in client use `tests/test_owner_auth.py`'s pattern.
 - `core/auth.SecurityMiddleware` (pure ASGI, outermost) does access control, rate limits and security headers. It reads `app.state.services`, so it answers 503 until the lifespan has started; tests must use `with TestClient(...)`.
 - "Through Cloudflare" means the request has `Cf-Connecting-Ip`, `Cf-Ray` or `Cf-Access-Jwt-Assertion`. Those requests need a valid Access JWT or the bearer token; everything else is local (ports are bound to 127.0.0.1) and allowed in `auth_mode=auto`. Next.js rewrites forward these headers to the API (`e2e/pwa.spec.ts` checks this). Don't add a proxy that strips them.
 - JWKS: `https://<team>/cdn-cgi/access/certs` through `Net`, cached 1 h, re-read once (at most every 60 s) for an unknown `kid`.
@@ -273,14 +292,14 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Backups (`anyget/backup.py`) use SQLite's online backup API; restore uses `tarfile` `filter="data"` plus its own path checks, and removes stale `-wal`/`-shm` files.
 
 ### Frontend gotchas
-- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Settings ≈169.3, Downloads ≈168.6, others ≈162–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
+- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Settings ≈169.3, Downloads ≈168.6, others ≈162–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Downloads was already ≈169.9 KB with real jobs before v2 (the convert menu's lazy chunk counts); keep `lib/api-convert.ts` separate from `lib/api-books.ts` and the 401 redirect lazily imported (`lib/sign-in.ts`). Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
 - `Button` has no `asChild` (Radix Slot was dropped to save bytes): style links with `buttonVariants()`.
 - Media pills (`components/media/choice.tsx`) are native radios/checkboxes hidden inside labels; in Playwright click the label (`pick()` in `e2e/youtube.spec.ts`), not the input.
 - No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).
 - Toasts are our own (`lib/toast.ts` + `components/ui/toaster.tsx`), not sonner. Language and theme use styled native `<select>` (`components/ui/native-select.tsx`), not Radix menus.
 - next-intl messages are precompiled at build time (`next.config.ts`); ICU plurals need all Arabic forms (zero, one, two, few, many, other).
 - RTL: wrap LTR values (sizes, speeds, hosts) with `isolate()` from `lib/format.ts`; don't rely on `<bdi>` auto-direction for strings that mix Arabic with numbers (Chrome resolves them as LTR).
-- Live updates: one EventSource in `JobEventsBridge` writes into the TanStack Query `["jobs"]` cache; refetches are merged by `updated_at` (`mergeJobs`) so they never undo a newer live event.
+- Live updates: one EventSource in `JobEventsBridge` writes into the TanStack Query `["jobs"]` cache; refetches are merged by `updated_at` (`mergeJobs`) so they never undo a newer live event. It refetches the list on every (re)connect, so a job that changed between the list request and the connection is not left stale.
 - The shadcn registry may be unreachable from sandboxes; components in `components/ui` are written by hand in shadcn style.
 - E2E downloads come from `e2e/fixture-server.mjs` (Range, Content-MD5, `?slow=1`), reachable because Playwright starts the API with `ANYGET_NET_ALLOWLIST=127.0.0.1:8200`.
 
