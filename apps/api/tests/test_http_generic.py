@@ -96,11 +96,17 @@ async def test_probe_falls_back_to_range_get(handler: HttpGenericHandler) -> Non
 
 
 @respx.mock
-async def test_probe_rejects_html(handler: HttpGenericHandler) -> None:
+async def test_html_becomes_a_web_page_probe(handler: HttpGenericHandler) -> None:
     respx.head(URL).mock(return_value=httpx.Response(200, headers={"Content-Type": "text/html"}))
-    with pytest.raises(HandlerError) as info:
-        await handler.probe(URL)
-    assert info.value.code == "unsupported"
+    respx.get(URL).mock(
+        return_value=httpx.Response(
+            200, headers={"Content-Type": "text/html"}, text="<title>T</title>"
+        )
+    )
+    probe = await handler.probe(URL)
+    assert probe.extra["kind"] == "webpage"
+    allowed = await handler.probe(URL, {"allow_html": True})  # Wayback keeps raw HTML
+    assert allowed.extra.get("kind") is None and allowed.extra["filename"].endswith(".html")
 
 
 @respx.mock

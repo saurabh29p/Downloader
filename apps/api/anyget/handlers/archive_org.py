@@ -8,7 +8,6 @@ Access-restricted, lending (borrow-only) and dark items are reported, never bypa
 
 import re
 import time
-from pathlib import Path
 from typing import Any
 from urllib.parse import quote, unquote, urlsplit
 
@@ -20,13 +19,12 @@ from anyget.handlers.base import (
     Choice,
     DownloadResult,
     HandlerError,
-    JobContext,
     JobRef,
     Probe,
-    Progress,
     ProgressCallback,
 )
 from anyget.handlers.http_generic import HttpGenericHandler
+from anyget.handlers.multi import RemoteFile, download_many
 
 ARCHIVE_HOSTS = {"archive.org", "www.archive.org"}
 METADATA_TTL = 600.0
@@ -395,25 +393,13 @@ class ArchiveOrgHandler:
         folder = safe_join(job.output_dir, sanitize_filename(item.identifier))
         folder.mkdir(parents=True, exist_ok=True)
 
-        total = sum(f.size or 0 for f in files) or None
-        done_before = 0
-        paths: list[Path] = []
-        checksums_ok = True
-        for index, archive_file in enumerate(files):
-            base = done_before
-
-            def report(progress: Progress, base: int = base) -> None:
-                progress_cb(Progress(downloaded=base + progress.downloaded, total=total))
-
-            file_url = (
-                f"https://archive.org/download/{quote(item.identifier)}/{quote(archive_file.name)}"
+        remote = [
+            RemoteFile(
+                url=f"https://archive.org/download/{quote(item.identifier)}/{quote(f.name)}",
+                name=f.name.replace("/", " - "),
+                size=f.size,
+                md5=f.md5,
             )
-            sub = JobContext(id=f"{job.id}-{index}", url=file_url, output_dir=folder)
-            name = archive_file.name.replace("/", " - ")
-            result = await self.http.download(
-                sub, {"filename": name, "md5": archive_file.md5}, report
-            )
-            paths.extend(result.paths)
-            checksums_ok = checksums_ok and bool(result.checksum_ok or not archive_file.md5)
-            done_before += archive_file.size or result.paths[0].stat().st_size
-        return DownloadResult(paths=paths, checksum_ok=checksums_ok if paths else None)
+            for f in files
+        ]
+        return await download_many(self.http, job, remote, folder, progress_cb)

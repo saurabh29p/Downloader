@@ -15,6 +15,8 @@ dependencies = [
     # Video/audio sites. The [default] extra pulls yt-dlp-ejs (YouTube challenge
     # solver run by Deno). Update with: uv lock --upgrade-package yt-dlp
     "yt-dlp[default]==2026.10.26",
+    # Image galleries. GPL: only ever run as a separate process (python -m gallery_dl).
+    "gallery-dl==1.32.19",
 ]
 
 [project.scripts]

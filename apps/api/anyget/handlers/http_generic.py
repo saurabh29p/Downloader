@@ -78,6 +78,13 @@ def _total_from(response: httpx.Response) -> int | None:
     return None
 
 
+def _private_headers(options: dict[str, Any] | None) -> dict[str, str]:
+    """Request headers a handler adds (auth tokens). Users cannot set these: the API
+    drops option keys starting with "_"."""
+    raw = (options or {}).get("_headers") or {}
+    return {str(k): str(v) for k, v in raw.items()} if isinstance(raw, dict) else {}
+
+
 def _hash_file(path: Path, algo: str) -> str:
     with path.open("rb") as fh:
         return hashlib.file_digest(fh, algo).hexdigest()
@@ -95,10 +102,12 @@ class HttpGenericHandler:
         return urlsplit(url).scheme in ("http", "https")
 
     async def probe(self, url: str, options: dict[str, Any] | None = None) -> Probe:
-        response = await self.net.request("HEAD", url)
+        headers = _private_headers(options)
+        response = await self.net.request("HEAD", url, headers=headers or None)
         if response.status_code in (403, 405, 501) or response.status_code >= 500:
             # Some servers refuse HEAD; ask for the first byte instead.
-            async with self.net.stream("GET", url, headers={"Range": "bytes=0-0"}) as streamed:
+            range_headers = {**headers, "Range": "bytes=0-0"}
+            async with self.net.stream("GET", url, headers=range_headers) as streamed:
                 response = streamed
         if response.status_code == 404:
             raise HandlerError("not_found", "the server says this file does not exist (404)")
@@ -108,11 +117,10 @@ class HttpGenericHandler:
         content_type = response.headers.get("content-type", "").split(";")[0].strip().lower()
         is_html = content_type in HTML_TYPES
         if is_html and not (options or {}).get("allow_html"):
-            raise HandlerError(
-                "unsupported",
-                "this is a web page, not a direct file link. "
-                "Video sites and page saving arrive in later versions.",
-            )
+            # A web page: save it, or pick documents/media linked from it.
+            from anyget.handlers.webpage import probe_page
+
+            return await probe_page(self.net, url)
         final_url = str(response.url)
         host = urlsplit(final_url).hostname or "download"
         raw_name = (
@@ -154,10 +162,18 @@ class HttpGenericHandler:
         probe = (
             Probe.model_validate(probe_data) if probe_data else await self.probe(job.url, options)
         )
+        if probe.extra.get("kind") == "webpage":
+            from anyget.handlers.webpage import download_page
+
+            return await download_page(self, job, options, probe, progress_cb)
         filename = sanitize_filename(str(options.get("filename") or probe.extra["filename"]))
         expected: dict[str, str] = {
             **probe.extra.get("checksums", {}),
-            **{k: str(v).lower() for k, v in options.items() if k in ("md5", "sha1") and v},
+            **{
+                k: str(v).lower()
+                for k, v in options.items()
+                if k in ("md5", "sha1", "sha256") and v
+            },
         }
 
         job.output_dir.mkdir(parents=True, exist_ok=True)
@@ -169,7 +185,9 @@ class HttpGenericHandler:
             existing = 0
 
         if total is None or existing < total:
-            existing, total = await self._fetch(job.url, part, existing, total, progress_cb)
+            existing, total = await self._fetch(
+                job.url, part, existing, total, progress_cb, _private_headers(options)
+            )
 
         size = part.stat().st_size
         if total is not None and size != total:
@@ -195,9 +213,10 @@ class HttpGenericHandler:
         existing: int,
         total: int | None,
         progress_cb: ProgressCallback,
+        extra_headers: dict[str, str] | None = None,
     ) -> tuple[int, int | None]:
-        headers = {"Range": f"bytes={existing}-"} if existing else None
-        async with self.net.stream("GET", url, headers=headers) as response:
+        headers = {**(extra_headers or {}), **({"Range": f"bytes={existing}-"} if existing else {})}
+        async with self.net.stream("GET", url, headers=headers or None) as response:
             if response.status_code == 416 and existing and total in (None, existing):
                 return existing, existing  # already complete
             if response.status_code >= 400:
