@@ -9,6 +9,7 @@ from anyget.core.net import Net
 from anyget.core.queue import DownloadQueue
 from anyget.core.router import Router
 from anyget.core.settings import Settings
+from anyget.core.settings_store import SettingsStore
 from anyget.handlers.ai_resources import AiResourcesHandler
 from anyget.handlers.archive_org import ArchiveOrgHandler
 from anyget.handlers.books import BooksHandler
@@ -33,6 +34,8 @@ from anyget.handlers.registry import (
 )
 from anyget.handlers.wayback import WaybackHandler
 from anyget.handlers.ytdlp import YtDlpHandler
+from anyget.library.index import LibraryIndex
+from anyget.watch.runner import WatchScheduler, WatchService
 
 
 def build_registry(net: Net, settings: Settings, store: JobStore | None = None) -> Registry:
@@ -63,24 +66,50 @@ class Services:
     registry: Registry
     router: Router
     queue: DownloadQueue
+    settings_store: SettingsStore
+    library: LibraryIndex
+    watches: WatchService
+    scheduler: WatchScheduler
 
     @classmethod
     def build(cls, settings: Settings, net: Net | None = None) -> "Services":
         settings.downloads_dir.mkdir(parents=True, exist_ok=True)
         db = Database(settings)
         db.create_all()
+        settings_store = SettingsStore(db, settings)
+        settings_store.load()  # saved settings override .env
         store = JobStore(db)
         bus = EventBus()
         net = net or Net(settings)
         registry = build_registry(net, settings, store)
         router = Router(registry, net)
         queue = DownloadQueue(settings, store, bus, router)
-        return cls(settings, db, store, bus, net, registry, router, queue)
+        library = LibraryIndex(db, settings.downloads_dir)
+        queue.on_done.append(library.add_job)
+        watches = WatchService(db, net, router, queue)
+        return cls(
+            settings,
+            db,
+            store,
+            bus,
+            net,
+            registry,
+            router,
+            queue,
+            settings_store,
+            library,
+            watches,
+            WatchScheduler(watches),
+        )
 
-    async def start(self, recover: bool = True) -> None:
+    async def start(self, recover: bool = True, watch: bool | None = None) -> None:
         await self.queue.start(recover=recover)
+        # The API server runs watches; the CLI (recover=False) does not.
+        if (recover if watch is None else watch) and self.settings.watch_enabled:
+            self.scheduler.start()
 
     async def stop(self) -> None:
+        await self.scheduler.stop()
         await self.queue.stop()
         await self.net.aclose()
         self.db.dispose()

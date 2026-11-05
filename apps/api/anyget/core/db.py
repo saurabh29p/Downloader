@@ -27,7 +27,9 @@ class Database:
         event.listen(self.engine, "connect", _enable_wal)
 
     def create_all(self) -> None:
-        from anyget.core import jobs  # noqa: F401  (register tables)
+        from anyget.core import jobs, settings_store  # noqa: F401  (register tables)
+        from anyget.library import models  # noqa: F401
+        from anyget.watch import models as watch_models  # noqa: F401
 
         SQLModel.metadata.create_all(self.engine)
         self._add_missing_columns()

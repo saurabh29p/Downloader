@@ -19,7 +19,9 @@
       "dark": "Dark",
       "system": "System"
     },
-    "closeToast": "Dismiss"
+    "closeToast": "Dismiss",
+    "help": "Help",
+    "legalPage": "Legal and fair use"
   },
   "Nav": {
     "language": "Language"
@@ -75,6 +77,14 @@
       "libraries": {
         "title": "Libraries",
         "text": "National libraries worldwide, page by page"
+      },
+      "library": {
+        "title": "Library",
+        "text": "Everything you saved, with previews"
+      },
+      "watch": {
+        "title": "Watch",
+        "text": "New videos and items, fetched on a schedule"
       }
     }
   },
@@ -214,7 +224,10 @@
     "goImages": "Image galleries",
     "goSearch": "Search everything",
     "goBooks": "Books",
-    "goLibraries": "Libraries worldwide"
+    "goLibraries": "Libraries worldwide",
+    "goLibrary": "Library",
+    "goWatch": "Watches",
+    "goHelp": "Help"
   },
   "Status": {
     "checking": "Checking the server…",
@@ -278,7 +291,7 @@
   },
   "Settings": {
     "title": "Settings",
-    "subtitle": "More settings arrive in a later version.",
+    "subtitle": "Saved on this computer. Changes apply to new downloads.",
     "cookiesTitle": "Cookies for sites you are signed in to",
     "cookiesHelp": "Export cookies.txt (Netscape format) from your own browser with a cookies extension, then upload it here. yt-dlp then sees what your account can see, such as age-checked videos.",
     "cookiesLegal": "Use only your own account. The file stays on this computer, is readable only by AnyGet, and is never shown again.",
@@ -289,7 +302,54 @@
     "cookiesRemove": "Remove",
     "cookiesSaved": "Cookies saved",
     "cookiesRemoved": "Cookies removed",
-    "cookiesTooBig": "That file is too big (max 1 MB)."
+    "cookiesTooBig": "That file is too big (max 1 MB).",
+    "retry": "Try again",
+    "saved": "Settings saved",
+    "save": "Save settings",
+    "downloads": "Downloads",
+    "folder": "Download folder",
+    "folderHint": "Set by ANYGET_DOWNLOADS_DIR (or the Docker volume).",
+    "template": "Folder template",
+    "templateHint": "Placeholders: '{type}', '{source}', '{year}', '{month}', '{title}'. Example:",
+    "speed": "Speed and limits",
+    "concurrent": "Downloads at once",
+    "perHost": "At once per site",
+    "rateLimit": "Speed limit (KiB/s)",
+    "rateLimitHint": "0 means no limit.",
+    "hostLimits": "Per-site limits",
+    "hostLimitsHint": "host=number, separated by commas, e.g. archive.org=2",
+    "network": "Network",
+    "proxy": "Proxy",
+    "proxyHint": "http://, https:// or socks5://. Applies after a restart.",
+    "restartNeeded": "Restart AnyGet to use the new proxy.",
+    "contactEmail": "Contact email",
+    "contactEmailHint": "Sent to archive.org and other APIs so they can reach you if something goes wrong.",
+    "watchEnabled": "Run watches on schedule",
+    "keys": "API keys",
+    "keysHint": "Free keys from each site. They are stored on this computer and never shown again.",
+    "keyNames": {
+      "github_token": "GitHub token",
+      "hf_token": "Hugging Face token",
+      "civitai_token": "Civitai token",
+      "kaggle_username": "Kaggle user name",
+      "kaggle_key": "Kaggle key",
+      "europeana_key": "Europeana key",
+      "dpla_key": "DPLA key",
+      "trove_key": "Trove key",
+      "digitalnz_key": "DigitalNZ key",
+      "bhl_key": "BHL key",
+      "ddb_key": "DDB key"
+    },
+    "keySet": "Set",
+    "keyNotSet": "Not set",
+    "clearKey": "Clear",
+    "ytdlp": "yt-dlp",
+    "checkUpdates": "Check for updates",
+    "installed": "Installed: {version}.",
+    "updateAvailable": "{version} is available",
+    "upToDate": "Up to date.",
+    "couldNotCheck": "Could not check now.",
+    "updateHow": "To update, rebuild:"
   },
   "Archive": {
     "title": "archive.org",
@@ -503,5 +563,169 @@
       "mp3": "Audio as MP3",
       "m4a": "Audio as M4A"
     }
+  },
+  "Library": {
+    "title": "Library",
+    "subtitle": "Everything you have downloaded, on this computer. Search, filter, tag and preview files without going online.",
+    "scan": "Scan folder",
+    "scanned": "Scan done: {added} added, {removed} removed",
+    "searchLabel": "Search titles and file names",
+    "search": "Search",
+    "kind": "File type",
+    "kinds": {
+      "all": "All",
+      "video": "Video",
+      "audio": "Audio",
+      "image": "Images",
+      "pdf": "PDF",
+      "epub": "EPUB",
+      "text": "Text",
+      "archive": "Archives",
+      "other": "Other"
+    },
+    "tags": "Tags:",
+    "count": "{count, plural, =0 {No files} one {# file} other {# files}}",
+    "empty": "No files yet. Downloads appear here when they finish; files you copy into the folder appear after a scan.",
+    "noMatch": "No files match. Try another search or filter.",
+    "retry": "Try again",
+    "duplicate": "Copy",
+    "missing": "File missing",
+    "close": "Close",
+    "missingNote": "This file is no longer in the downloads folder. Scan the folder or remove it from the library.",
+    "tagsLabel": "Tags (comma separated)",
+    "tagsPlaceholder": "travel, family",
+    "save": "Save tags",
+    "saved": "Tags saved",
+    "saveFile": "Save file",
+    "openTab": "Open in new tab",
+    "redownload": "Download again",
+    "source": "From:",
+    "alsoDeleteFile": "Also delete the file from disk",
+    "remove": "Remove from library",
+    "removed": "Removed",
+    "noPreview": "No preview for this file type.",
+    "epubPreview": "Book preview",
+    "truncated": "Preview shortened."
+  },
+  "Watch": {
+    "title": "Watches",
+    "subtitle": "Watch a channel, playlist or archive.org collection. AnyGet checks it on a schedule and downloads only what is new.",
+    "urlLabel": "Channel, playlist or collection link",
+    "every": "Check",
+    "initial": "Items to fetch the first time",
+    "add": "Add watch",
+    "added": "Watch added",
+    "hint": "The first check fetches only the newest items; everything older is marked as seen.",
+    "needUrl": "Enter a link first.",
+    "retry": "Try again",
+    "empty": "No watches yet.",
+    "intervals": {
+      "m60": "Every hour",
+      "m180": "Every 3 hours",
+      "m360": "Every 6 hours",
+      "m720": "Every 12 hours",
+      "m1440": "Every day",
+      "m10080": "Every week"
+    },
+    "everyMinutes": "{count, plural, one {Every minute} other {Every # minutes}}",
+    "kinds": {
+      "media": "Channel or playlist",
+      "archive_collection": "archive.org collection"
+    },
+    "paused": "Paused",
+    "lastRun": "Last check {when}",
+    "neverRun": "Not checked yet",
+    "lastNew": "{count, plural, =0 {nothing new} one {# new} other {# new}}",
+    "seen": "{count, plural, one {# item seen} other {# items seen}}",
+    "ran": "{count, plural, =0 {Nothing new} one {Queued # new item} other {Queued # new items}}",
+    "runNow": "Check now",
+    "pause": "Pause",
+    "resume": "Resume",
+    "delete": "Delete"
+  },
+  "Help": {
+    "title": "Help",
+    "intro": "AnyGet saves public files from many sites to this computer. Here is how to use it.",
+    "sections": {
+      "paste": {
+        "title": "Paste a link",
+        "text": "Paste one or many links on Home and press Check link. The preview shows what is behind the link: formats for videos, files for repositories and web pages, pages for library items. Pick what you want and press Download."
+      },
+      "sources": {
+        "title": "Sources",
+        "text": "Pages for YouTube and video sites, archive.org, the Wayback Machine, code hosts, image galleries, books and libraries help you find things. Search everything searches books, libraries, archive.org and videos at once."
+      },
+      "library": {
+        "title": "Library",
+        "text": "Every finished download is listed in the Library with a preview. Tag files, find copies of the same file, and remove what you do not need."
+      },
+      "watch": {
+        "title": "Watches",
+        "text": "Add a channel, playlist or archive.org collection on the Watches page. AnyGet checks it on schedule and downloads only new items."
+      },
+      "convert": {
+        "title": "Convert",
+        "text": "Finished files can be converted from Downloads: make a scanned PDF searchable (OCR), merge page images into a PDF, or save audio as MP3."
+      },
+      "cli": {
+        "title": "Command line",
+        "text": "Run anyget get LINK in a terminal to download without the website, anyget search \"title\" to find books, and anyget watch-clipboard to offer every link you copy."
+      },
+      "remote": {
+        "title": "From your phone",
+        "text": "AnyGet runs on your computer. To use it from anywhere, put it behind Cloudflare Access or Tailscale (see the deploy guide)."
+      }
+    },
+    "keysTitle": "Keyboard",
+    "keys": {
+      "palette": {
+        "combo": "Ctrl + K",
+        "text": "Open the quick menu"
+      },
+      "submit": {
+        "combo": "Enter",
+        "text": "Check the links in the paste box"
+      },
+      "close": {
+        "combo": "Esc",
+        "text": "Close a preview or menu"
+      }
+    },
+    "legalLink": "Read the legal and fair use rules"
+  },
+  "Legal": {
+    "title": "Legal and fair use",
+    "intro": "AnyGet is a personal tool. These rules are built into it and cannot be turned off.",
+    "rules": {
+      "personal": {
+        "title": "Personal use",
+        "text": "Download only what you own, what is public domain or openly licensed, or what the site allows you to download."
+      },
+      "drm": {
+        "title": "No DRM",
+        "text": "DRM-protected content (paid streaming, music services, paid ebooks) is never downloaded."
+      },
+      "shadow": {
+        "title": "No shadow libraries",
+        "text": "Pirate book sites such as LibGen, Z-Library or Anna's Archive are never used as sources."
+      },
+      "bypass": {
+        "title": "No bypassing",
+        "text": "Region blocks, lending and borrow limits, paywalls and members-only content are respected. AnyGet shows a clear message instead."
+      },
+      "copyright": {
+        "title": "Books in copyright",
+        "text": "Books still in copyright are shown as not legally downloadable, with links to borrow or buy them."
+      },
+      "cookies": {
+        "title": "Your own accounts only",
+        "text": "A cookies.txt file may only come from accounts you are legally signed in to. It stays on this computer."
+      },
+      "etiquette": {
+        "title": "Be a good guest",
+        "text": "AnyGet limits parallel downloads per site, backs off when a site asks it to slow down, and identifies itself honestly."
+      }
+    },
+    "disclaimer": "You are responsible for what you download. When in doubt, check the site's terms and your local law."
   }
 }

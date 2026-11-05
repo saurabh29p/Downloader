@@ -156,7 +156,7 @@ async def universal_search(
 )
 async def convert(body: ConvertRequest, services: ServicesDep) -> JobOut:
     if body.to not in TARGETS:  # pragma: no cover - Literal already checks
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "unknown target")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown target")
     source = services.store.get(body.job_id)
     if source is None:
         raise HTTPException(

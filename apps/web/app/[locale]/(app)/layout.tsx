@@ -42,7 +42,15 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           {children}
         </main>
         <footer className="hidden border-t sm:block">
-          <p className="mx-auto max-w-5xl px-4 py-6 text-sm text-muted-foreground">{t("legal")}</p>
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-6 text-sm text-muted-foreground">
+            <p className="flex-1">{t("legal")}</p>
+            <Link href="/help" className="underline-offset-4 hover:underline">
+              {t("help")}
+            </Link>
+            <Link href="/legal" className="underline-offset-4 hover:underline">
+              {t("legalPage")}
+            </Link>
+          </div>
         </footer>
         <BottomNav />
       </div>

@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
+import { AppSettings } from "@/components/settings/app-settings";
 import { CookiesSettings } from "@/components/settings/cookies-settings";
 import type { Locale } from "@/i18n/routing";
 
@@ -27,6 +28,7 @@ export default function SettingsPage({ params }: { params: Promise<{ locale: Loc
         <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
       <CookiesSettings />
+      <AppSettings />
     </div>
   );
 }

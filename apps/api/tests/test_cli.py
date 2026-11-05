@@ -143,3 +143,36 @@ def test_convert_needs_a_matching_job(env_settings: Path) -> None:
     assert result.exit_code == 1 and "no job matches" in result.output
     bad = runner.invoke(app, ["convert", "nope", "--to", "exe"])
     assert bad.exit_code != 0
+
+
+def test_library_scan_and_list(env_settings: Path) -> None:
+    downloads = env_settings / "downloads"
+    downloads.mkdir(parents=True, exist_ok=True)
+    (downloads / "Talk.mp3").write_bytes(DATA)
+    result = runner.invoke(app, ["library", "--scan"])
+    assert result.exit_code == 0, result.output
+    assert "1 added" in result.output and "Talk" in result.output and "audio" in result.output
+
+
+def test_watch_list_empty_and_bad_run(env_settings: Path) -> None:
+    empty = runner.invoke(app, ["watch", "list"])
+    assert empty.exit_code == 0 and "No watches yet" in empty.output
+    missing = runner.invoke(app, ["watch", "run", "nope"])
+    assert missing.exit_code == 1 and "no watch matches" in missing.output
+
+
+def test_watch_clipboard_without_pyperclip(
+    env_settings: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import builtins
+
+    real_import = builtins.__import__
+
+    def no_pyperclip(name: str, *args: object, **kwargs: object) -> object:
+        if name == "pyperclip":
+            raise ImportError(name)
+        return real_import(name, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(builtins, "__import__", no_pyperclip)
+    result = runner.invoke(app, ["watch-clipboard"])
+    assert result.exit_code == 1 and "pyperclip" in result.output

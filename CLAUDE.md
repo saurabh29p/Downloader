@@ -14,8 +14,9 @@ Read this file at the start of every session. The full research doc lives in `do
 - [x] Phase 5 — archive.org and Wayback
 - [x] Phase 6 — code, cloud, images, AI
 - [x] Phase 7 — books, libraries, search
-- [ ] Phase 8 — library, watch, settings (next)
-- [ ] Phases 9–10 — see roadmap below
+- [x] Phase 8 — library, watch, settings
+- [ ] Phase 9 — PWA, extension, plugins (next)
+- [ ] Phase 10 — deploy and release
 
 Update this checklist at the end of every phase.
 
@@ -102,6 +103,8 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `make gen-api` | alias of `make gen` |
 | `uv run anyget search "title" [--type libraries]` | best legal copy across book sources / library search |
 | `uv run anyget convert JOB --to ocr\|pdf\|mp3…` | convert a finished download (OCR needs OCRmyPDF + Tesseract) |
+| `uv run anyget library [--scan]` / `anyget watch add\|list\|run` | the offline library / scheduled watches |
+| `uv run --extra desktop anyget watch-clipboard [--auto]` | offer copied links as downloads (desktop) |
 
 ## Architecture rules
 
@@ -238,8 +241,17 @@ Personal use only. Download only what the user owns, what is public domain or op
 - defusedxml parses every XML answer (Gallica SRU, NDL OpenSearch). img2pdf/pikepdf/Pillow are Python deps; OCRmyPDF/Tesseract/Calibre are optional system tools (Docker `WITH_OCR=1`).
 - Live tests for these hosts can't run in the sandbox (DNS); they run in the Live tests workflow. Status on GitHub runners (Nov 2026): book search, Gutenberg EPUB and OCR pass; Gallica answers 403, loc.gov answers 429 (search works, item JSON/manifests throttled), NDL search works (`dpid=ndl-dl-online`) but `www.dl.ndl.go.jp/api/iiif/<pid>/manifest.json` answered 404 for the hits found — verify the NDL manifest URL from a home connection before changing it again.
 
+### Library / watch / settings gotchas
+- Tables: `library_item`, `watch`, `setting` live in the same SQLite file; `Database.create_all` imports their models. New nullable columns are still added by `_add_missing_columns`.
+- `DownloadQueue.on_done` hooks (the library indexer) run as separate tasks after a job is `done`; `queue.stop()` waits for them (`wait_hooks`, 60 s). Never await slow work inside the job task: cancelling it resets the job to `queued`.
+- Folder templates (`core/templates.py`) are rendered once per job after the probe and stored in `job.options["_folder"]`; `queue.job_dir(job)` is where its files and partials live. Conversions (`anyget:` links) don't use templates.
+- `SettingsStore.load()` runs in `Services.build` and overrides env with saved values; only `settings_store.EDITABLE` fields can be saved. Secrets are write-only (`SettingsView.secrets` is a set/unset map). Concurrency changes call `queue.reconfigure()` (new jobs only); proxy changes need a restart (`restart_needed`).
+- Watches: `watch/runner.WatchService.run` holds a lock, queues `initial` items on the first run (the rest become `seen_ids`), later at most 50 per run. Media watches also treat `entry.saved` (download archive) as seen. The scheduler (`WatchScheduler`) starts only in the API (`Services.start(recover=True)`) and when `watch_enabled`.
+- Library files are served with `content_disposition_type="inline"` and `Content-Security-Policy: sandbox`; keep that header if you change the endpoint.
+- The Settings page reserves the form's height in its skeleton (CLS); update `h-[166rem] sm:h-[115rem]` if the form grows a lot.
+
 ### Frontend gotchas
-- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Downloads ≈168.6, others ≈166–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
+- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Downloads ≈168.6, others ≈162–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
 - `Button` has no `asChild` (Radix Slot was dropped to save bytes): style links with `buttonVariants()`.
 - Media pills (`components/media/choice.tsx`) are native radios/checkboxes hidden inside labels; in Playwright click the label (`pick()` in `e2e/youtube.spec.ts`), not the input.
 - No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).

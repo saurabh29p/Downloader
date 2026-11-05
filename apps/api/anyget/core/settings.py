@@ -31,6 +31,13 @@ class Settings(BaseSettings):
         }
     )
 
+    # Download speed limit in KiB/s for each download (0 = no limit).
+    rate_limit_kbps: int = Field(default=0, ge=0, le=10_000_000)
+    # Where new downloads go inside the downloads folder, e.g. "{type}/{source}".
+    folder_template: str = ""
+    # Watches (scheduled checks for new items) run only in the API server.
+    watch_enabled: bool = True
+
     # Outgoing HTTP
     contact_email: str = ""
     request_timeout: float = 30.0

@@ -424,6 +424,8 @@ class YtDlpHandler:
                 deno=deno_path(),
                 proxy=self.settings.proxy or None,
             )
+            if self.settings.rate_limit_kbps:
+                params["ratelimit"] = self.settings.rate_limit_kbps * 1024
             tracker = _StreamProgress(report, cancel, estimate)
             params["progress_hooks"] = [tracker.on_progress]
             params["postprocessor_hooks"] = [tracker.on_postprocess]
