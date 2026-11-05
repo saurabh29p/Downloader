@@ -40,7 +40,7 @@ export function BookCard({ hit, best = false }: { hit: BookHit; best?: boolean }
   return (
     <article
       className={cn(
-        "flex gap-4 rounded-lg border bg-card p-4 shadow-card",
+        "index-card flex-row gap-4 p-4 pb-7",
         best && "border-primary ring-1 ring-primary/40",
       )}
       data-testid={best ? "best-copy" : "book-hit"}

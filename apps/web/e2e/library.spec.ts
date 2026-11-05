@@ -5,7 +5,7 @@ import { fileLink, jobRow, uniqueName } from "./helpers";
 
 async function download(page: Page, name: string) {
   await page.goto("/en");
-  await page.getByLabel("Links to download").fill(fileLink(name, "size=4000"));
+  await page.getByLabel("Search or paste links").fill(fileLink(name, "size=4000"));
   await page.getByRole("button", { name: "Check link" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Download" }).click();
   await expect(jobRow(page, name)).toHaveAttribute("data-state", "done", { timeout: 15_000 });

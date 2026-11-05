@@ -5,6 +5,34 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (v2 Phase 6 — "The Reading Room" UI)
+- **New look:** Paper (light) and Ink (dark) themes with a saffron accent and indigo links, and a tint per section (stripes and line art only, never text colour). Every text colour pair meets WCAG AA.
+- **Type:** Fraunces for headings, Inter for the interface, JetBrains Mono for file facts, plus Noto Sans Devanagari and Noto Naskh Arabic. All fonts are self-hosted; the script fonts load only on pages that use them.
+- **Layout:**
+  - A left rail on desktop (Home, Sections, Downloads, Library, Watches, Connections, Settings, plus a "Jump to…" button for Ctrl+K).
+  - A five-item bottom bar on phones. The YouTube tab is gone (Video lives under Sections).
+  - Content is up to 1280 px wide.
+- **Home:**
+  - A large universal bar with rotating example searches (CSS only, still under reduced motion) and mode chips (All, Movies, Books, Music, Video, Declassified, More) that search inside a section.
+  - The sections drawn as card-catalogue drawers (Declassified gets a red stamp).
+  - "Continue" shows your latest downloads; "Try these" offers example searches.
+  - The "videos coming soon" copy is gone.
+- **Interactions:**
+  - A step indicator while a link is checked: Reading link → Finding formats → Ready.
+  - Drop a link or a `.txt` list anywhere in the app.
+  - Toasts can carry an Undo button: removing a download waits for the toast, so Undo brings it back.
+  - Downloads has a compact queue, ETA in mono, and "Retry all failed".
+- **Index cards** for search results and book results: a call number (kind · source · year), a serif title, and a red rule.
+- **Library:**
+  - Full-text search inside files: OCR text, PDF text layers (`pdftotext`), EPUBs, HTML and text files, through an SQLite FTS5 index, with snippets.
+  - Filters by section, source site and licence; tags are shown as "Collections".
+  - Downloads started from search remember their section and licence.
+- **Settings** are grouped General, Downloads, AI helper, Connections and Advanced. Server details (download folder, proxy, per-site limits, torrents, yt-dlp) and env variable names appear only under Advanced.
+- **Server status** moved from Home to Help.
+
+### Changed
+- `@anyget/shared`'s `createApiClient` is now a small fetch wrapper typed with openapi-fetch's types. The API is the same (`{ data } | { error }` plus `response`), and it saves ~2.5 KB on every page.
+
 ### Added (v2 Phase 5 — optional AI helper)
 - **OpenRouter brain** (`anyget/llm/`), used only when an OpenRouter key is set (Connections or `OPENROUTER_API_KEY`); everything works without it.
   - Calls go through the SSRF-guarded client.

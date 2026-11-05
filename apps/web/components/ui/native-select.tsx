@@ -1,6 +1,6 @@
-import { ChevronDownIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
+import { ChevronDown } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 /** A styled native <select>: accessible, tiny, and uses the phone's own picker. */
@@ -28,12 +28,11 @@ function NativeSelect({
         )}
         {...props}
       />
-      <ChevronDownIcon
+      <ChevronDown
         className={cn(
           "pointer-events-none absolute end-2.5 size-4 text-muted-foreground",
           iconOnlyOnPhone && "hidden sm:block",
         )}
-        aria-hidden="true"
       />
     </div>
   );

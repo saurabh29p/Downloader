@@ -1,10 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("root redirects to English and shows the API as online", async ({ page }) => {
+test("root redirects to English; Help shows the API as online", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/en$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Paste any link, get the file");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Find it, keep it — legally");
+  await page.goto("/en/help");
   await expect(page.getByTestId("api-status")).toHaveAttribute("data-state", "online");
 });
 
@@ -77,7 +78,7 @@ for (const locale of ["en", "hi", "ar"]) {
 test("axe: dark theme has no violations", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/en");
-  await expect(page.getByTestId("api-status")).toHaveAttribute("data-state", "online");
+  await page.waitForLoadState("networkidle");
   const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
   expect(results.violations).toEqual([]);
 });

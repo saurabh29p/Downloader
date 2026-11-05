@@ -2,6 +2,7 @@
 
 import { InboxIcon, RefreshCwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 import { JobRow } from "@/components/jobs/job-row";
@@ -9,8 +10,10 @@ import { useConnection } from "@/components/shell/job-events-bridge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
-import { matchesFilter, type JobFilter } from "@/lib/jobs";
-import { useJobs } from "@/lib/use-jobs";
+import { jobAction } from "@/lib/api";
+import { applyJobEvent, matchesFilter, type JobFilter } from "@/lib/jobs";
+import type { Job } from "@anyget/shared";
+import { JOBS_KEY, useJobs } from "@/lib/use-jobs";
 import { cn } from "@/lib/utils";
 
 const FILTERS: JobFilter[] = ["all", "active", "done", "failed"];
@@ -20,6 +23,23 @@ export function DownloadsView() {
   const connection = useConnection();
   const { data, isPending, isError, refetch, isRefetching } = useJobs();
   const [filter, setFilter] = useState<JobFilter>("all");
+  const queryClient = useQueryClient();
+  const [retrying, setRetrying] = useState(false);
+  const failed = data?.filter((job) => job.state === "failed") ?? [];
+  const retryAll = async () => {
+    setRetrying(true);
+    for (const job of failed) {
+      try {
+        const updated = await jobAction(job.id, "retry");
+        queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) =>
+          applyJobEvent(jobs, { type: "job.updated", job: updated }),
+        );
+      } catch {
+        // that one stays failed; its row keeps its own Retry button
+      }
+    }
+    setRetrying(false);
+  };
 
   const counts = useMemo(
     () =>
@@ -34,7 +54,7 @@ export function DownloadsView() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t("title")}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <p
@@ -65,6 +85,18 @@ export function DownloadsView() {
             <span className="tabular-nums opacity-80">{counts[f]}</span>
           </Button>
         ))}
+        {failed.length > 1 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="ms-auto"
+            onClick={() => void retryAll()}
+            disabled={retrying}
+          >
+            <RefreshCwIcon aria-hidden="true" />
+            {t("retryAll", { count: failed.length })}
+          </Button>
+        )}
       </div>
 
       {isPending ? (

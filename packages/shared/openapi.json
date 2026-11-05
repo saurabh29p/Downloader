@@ -1220,6 +1220,18 @@
             "title": "Kind",
             "type": "string"
           },
+          "licence": {
+            "default": "unknown",
+            "enum": [
+              "public_domain",
+              "cc",
+              "rights_reserved",
+              "streaming_only",
+              "unknown"
+            ],
+            "title": "Licence",
+            "type": "string"
+          },
           "missing": {
             "default": false,
             "title": "Missing",
@@ -1228,6 +1240,17 @@
           "rel_path": {
             "title": "Rel Path",
             "type": "string"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
           },
           "sha256": {
             "anyOf": [
@@ -1243,6 +1266,28 @@
           "size": {
             "title": "Size",
             "type": "integer"
+          },
+          "snippet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snippet"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
           },
           "source_id": {
             "anyOf": [
@@ -1439,6 +1484,37 @@
               "$ref": "#/components/schemas/LibraryItemOut"
             },
             "title": "Items",
+            "type": "array"
+          },
+          "licences": {
+            "default": [],
+            "items": {
+              "enum": [
+                "public_domain",
+                "cc",
+                "rights_reserved",
+                "streaming_only",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            "title": "Licences",
+            "type": "array"
+          },
+          "sections": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "sources": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
             "type": "array"
           },
           "tags": {
@@ -5031,6 +5107,7 @@
     },
     "/api/library": {
       "get": {
+        "description": "Search titles and file text (OCR, PDF, EPUB, text files); filter by kind,\ncollection (tag), section, source site and licence.",
         "operationId": "listLibrary",
         "parameters": [
           {
@@ -5130,6 +5207,63 @@
               "minimum": 1,
               "title": "Limit",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "section",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Section"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 253,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "in": "query",
+            "name": "licence",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "public_domain",
+                    "cc",
+                    "rights_reserved",
+                    "streaming_only",
+                    "unknown"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Licence"
             }
           }
         ],

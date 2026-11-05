@@ -328,6 +328,18 @@ export function SearchView({
   );
 }
 
+const SECTION_OF: Partial<Record<Media, string>> = {
+  movie: "movies",
+  book: "books",
+  music: "music",
+  video: "video",
+  declassified: "declassified",
+  map: "maps",
+  newspaper: "newspapers",
+  photo: "photos",
+  manuscript: "manuscripts",
+};
+
 function ResultItem({ card }: { card: Card }) {
   const t = useTranslations("Search");
   const tJobs = useTranslations("Jobs");
@@ -339,7 +351,12 @@ function ResultItem({ card }: { card: Card }) {
     if (!card.download) return;
     setBusy(kind);
     try {
-      const result = await createJobs([card.download], kind === "save" ? { tags: ["saved"] } : {});
+      // The section and licence go with the file into the Library (its filters).
+      const info = { section: SECTION_OF[card.media], licence: card.licence ?? "unknown" };
+      const result = await createJobs(
+        [card.download],
+        kind === "save" ? { ...info, tags: ["saved"] } : info,
+      );
       void queryClient.invalidateQueries({ queryKey: JOBS_KEY });
       if (result.jobs.length) toast.success(tJobs("added", { count: result.jobs.length }));
     } catch (err) {
@@ -350,77 +367,80 @@ function ResultItem({ card }: { card: Card }) {
   const meta = [card.source_label, card.year, card.creator].filter(Boolean).join(" · ");
 
   return (
-    <li
-      className="flex gap-4 rounded-lg border bg-card p-4 shadow-card"
-      data-testid="result-card"
-      data-media={card.media}
-    >
-      {card.thumbnail ? (
-        // eslint-disable-next-line @next/next/no-img-element -- remote thumbnails
-        <img
-          src={card.thumbnail}
-          alt=""
-          width={96}
-          height={72}
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          className="h-18 w-24 shrink-0 rounded bg-muted object-cover"
-        />
-      ) : null}
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="font-medium break-words" dir="auto">
-            {card.title}
-          </h3>
+    <li className="index-card gap-3 p-4 pb-7" data-testid="result-card" data-media={card.media}>
+      {/* The card's head: a call number (kind · source · year), then the title. */}
+      <div className="index-card-head flex flex-col gap-1 pb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="call-number" dir="auto">
+            {t(`media.${card.media}`)} · {meta}
+          </p>
           <Badge variant={LICENCE_VARIANT[card.licence ?? "unknown"]}>
             {t(`licence.${card.licence ?? "unknown"}`)}
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground" dir="auto">
-          {t(`media.${card.media}`)} · {meta}
-        </p>
-        {card.movie && <MovieDetails movie={card.movie} />}
-        {card.formats && card.formats.length > 0 && (
-          <p className="flex flex-wrap gap-1">
-            {card.formats.map((f) => (
-              <Badge key={f} variant="secondary">
-                {f.replace("_", " ").toUpperCase()}
-              </Badge>
-            ))}
-          </p>
-        )}
-        <div className="flex flex-wrap items-center gap-2">
-          {card.download && (
-            <>
-              <a
-                href={`/${locale}?url=${encodeURIComponent(card.download)}`}
-                className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-accent"
-              >
-                {t("preview")}
-              </a>
-              <Button size="sm" onClick={() => void queue("download")} disabled={busy !== null}>
-                {busy === "download" && <Loader2Icon className="animate-spin" aria-hidden="true" />}
-                {t("download")}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => void queue("save")}
-                disabled={busy !== null}
-              >
-                {t("save")}
-              </Button>
-            </>
+        <h3 className="font-serif text-lg leading-snug font-semibold break-words" dir="auto">
+          {card.title}
+        </h3>
+      </div>
+      <div className="flex gap-4">
+        {card.thumbnail ? (
+          // eslint-disable-next-line @next/next/no-img-element -- remote thumbnails
+          <img
+            src={card.thumbnail}
+            alt=""
+            width={96}
+            height={72}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            className="h-18 w-24 shrink-0 rounded-sm bg-muted object-cover"
+          />
+        ) : null}
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {card.movie && <MovieDetails movie={card.movie} />}
+          {card.formats && card.formats.length > 0 && (
+            <p className="flex flex-wrap gap-1">
+              {card.formats.map((f) => (
+                <Badge key={f} variant="secondary">
+                  {f.replace("_", " ").toUpperCase()}
+                </Badge>
+              ))}
+            </p>
           )}
-          <a
-            href={card.url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex min-h-9 items-center gap-1 text-sm font-medium text-primary"
-          >
-            {t("openSource")}
-            <ExternalLinkIcon className="size-4" aria-hidden="true" />
-          </a>
+          <div className="flex flex-wrap items-center gap-2">
+            {card.download && (
+              <>
+                <a
+                  href={`/${locale}?url=${encodeURIComponent(card.download)}`}
+                  className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-accent"
+                >
+                  {t("preview")}
+                </a>
+                <Button size="sm" onClick={() => void queue("download")} disabled={busy !== null}>
+                  {busy === "download" && (
+                    <Loader2Icon className="animate-spin" aria-hidden="true" />
+                  )}
+                  {t("download")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void queue("save")}
+                  disabled={busy !== null}
+                >
+                  {t("save")}
+                </Button>
+              </>
+            )}
+            <a
+              href={card.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-9 items-center gap-1 text-sm font-medium text-primary"
+            >
+              {t("openSource")}
+              <ExternalLinkIcon className="size-4" aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </div>
     </li>

@@ -25,7 +25,7 @@ export function AppSettings() {
   const tErrors = useTranslations("Errors");
   const settings = useQuery({ queryKey: KEY, queryFn: getSettings });
   // Same height as the form, so nothing jumps when it arrives.
-  if (settings.isPending) return <Skeleton className="h-[178rem] sm:h-[124rem]" aria-busy="true" />;
+  if (settings.isPending) return <Skeleton className="h-[126rem] sm:h-[101rem]" aria-busy="true" />;
   if (settings.isError)
     return (
       <div className="flex flex-col gap-2">
@@ -38,10 +38,10 @@ export function AppSettings() {
   return <SettingsForm initial={settings.data} />;
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, children, id }: { title: string; children: ReactNode; id?: string }) {
   return (
-    <fieldset className="flex flex-col gap-4 rounded-lg border p-4">
-      <legend className="px-1 text-lg font-semibold">{title}</legend>
+    <fieldset id={id} className="flex scroll-mt-20 flex-col gap-4 rounded-md border bg-card p-4">
+      <legend className="px-1 font-serif text-xl font-semibold">{title}</legend>
       {children}
     </fieldset>
   );
@@ -132,16 +132,7 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6" data-testid="app-settings">
-      <Section title={t("downloads")}>
-        <Field id={`${id}-dir`} label={t("folder")} hint={t("folderHint")}>
-          <input
-            id={`${id}-dir`}
-            value={initial.downloads_dir}
-            readOnly
-            dir="ltr"
-            className={`${input} bg-muted`}
-          />
-        </Field>
+      <Section title={t("downloads")} id="downloads">
         <Field
           id={`${id}-tpl`}
           label={t("template")}
@@ -162,9 +153,6 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
             data-testid="folder-template"
           />
         </Field>
-      </Section>
-
-      <Section title={t("speed")}>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field id={`${id}-conc`} label={t("concurrent")}>
             <input
@@ -200,6 +188,56 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
             />
           </Field>
         </div>
+        <label className="flex min-h-11 items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={form.watch_enabled}
+            onChange={(e) => set("watch_enabled", e.target.checked)}
+            className="size-5 accent-primary"
+          />
+          {t("watchEnabled")}
+        </label>
+      </Section>
+
+      <Section title={t("ai")} id="ai">
+        <p className="text-sm text-muted-foreground">
+          {initial.llm_available ? t("aiOn") : t("aiOff")}
+        </p>
+        <label className="flex min-h-11 items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={form.llm_free_mode}
+            onChange={(e) => set("llm_free_mode", e.target.checked)}
+            className="size-5 accent-primary"
+          />
+          {t("aiFreeMode")}
+        </label>
+        <AiUsage />
+      </Section>
+
+      <Section title={t("connectionsGroup")} id="connections">
+        <p className="text-sm text-muted-foreground">
+          {t("keysMoved")}{" "}
+          <a
+            href={`/${locale}/connections`}
+            className="font-medium text-primary underline underline-offset-4"
+          >
+            {t("openConnections")}
+          </a>
+        </p>
+      </Section>
+
+      <Section title={t("advanced")} id="advanced">
+        <p className="text-sm text-muted-foreground">{t("advancedHint")}</p>
+        <Field id={`${id}-dir`} label={t("folder")} hint={t("folderHint")}>
+          <input
+            id={`${id}-dir`}
+            value={initial.downloads_dir}
+            readOnly
+            dir="ltr"
+            className={`${input} bg-muted`}
+          />
+        </Field>
         <Field id={`${id}-limits`} label={t("hostLimits")} hint={t("hostLimitsHint")}>
           <input
             id={`${id}-limits`}
@@ -210,9 +248,6 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
             className={input}
           />
         </Field>
-      </Section>
-
-      <Section title={t("network")}>
         <Field id={`${id}-proxy`} label={t("proxy")} hint={t("proxyHint")}>
           <input
             id={`${id}-proxy`}
@@ -240,18 +275,7 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
             className={input}
           />
         </Field>
-        <label className="flex min-h-11 items-center gap-3 text-sm">
-          <input
-            type="checkbox"
-            checked={form.watch_enabled}
-            onChange={(e) => set("watch_enabled", e.target.checked)}
-            className="size-5 accent-primary"
-          />
-          {t("watchEnabled")}
-        </label>
-      </Section>
-
-      <Section title={t("torrents")}>
+        <h3 className="pt-2 font-medium">{t("torrents")}</h3>
         <p className="text-sm text-muted-foreground">{t("torrentsHint")}</p>
         {!initial.torrent_available && (
           <p className="text-sm" role="note">
@@ -277,34 +301,7 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
           />
           {t("torrentsSeed")}
         </label>
-      </Section>
-
-      <Section title={t("ai")}>
-        <p className="text-sm text-muted-foreground">
-          {initial.llm_available ? t("aiOn") : t("aiOff")}
-        </p>
-        <label className="flex min-h-11 items-center gap-3 text-sm">
-          <input
-            type="checkbox"
-            checked={form.llm_free_mode}
-            onChange={(e) => set("llm_free_mode", e.target.checked)}
-            className="size-5 accent-primary"
-          />
-          {t("aiFreeMode")}
-        </label>
-        <AiUsage />
-      </Section>
-
-      <Section title={t("keys")}>
-        <p className="text-sm text-muted-foreground">
-          {t("keysMoved")}{" "}
-          <a
-            href={`/${locale}/connections`}
-            className="font-medium text-primary underline underline-offset-4"
-          >
-            {t("openConnections")}
-          </a>
-        </p>
+        <YtDlpCheck />
       </Section>
 
       <div className="sticky bottom-20 flex justify-end sm:bottom-4">
@@ -317,7 +314,6 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
           {t("save")}
         </Button>
       </div>
-      <YtDlpCheck />
     </form>
   );
 }

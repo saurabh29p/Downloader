@@ -1,8 +1,8 @@
 "use client";
 
-import { LanguagesIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
+import { Globe } from "@/components/ui/icons";
 import { NativeSelect } from "@/components/ui/native-select";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
@@ -19,7 +19,7 @@ export function LanguageSwitcher() {
     <NativeSelect
       aria-label={t("language")}
       value={current}
-      icon={<LanguagesIcon aria-hidden="true" />}
+      icon={<Globe />}
       onChange={(event) => router.replace(pathname, { locale: event.target.value as Locale })}
     >
       {routing.locales.map((locale) => (

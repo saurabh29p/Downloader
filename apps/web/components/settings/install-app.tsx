@@ -37,10 +37,10 @@ export function InstallApp() {
     window.dispatchEvent(new Event("anyget:installable"));
   };
   return (
-    <section className="flex flex-col gap-2 rounded-lg border p-4" aria-labelledby="install-title">
-      <h2 id="install-title" className="text-lg font-semibold">
+    <section className="flex flex-col gap-2" aria-labelledby="install-title">
+      <h3 id="install-title" className="font-medium">
         {t("installTitle")}
-      </h2>
+      </h3>
       <p className="text-sm text-muted-foreground">{t("installHelp")}</p>
       {status === "installed" ? (
         <p role="status" className="text-sm font-medium">

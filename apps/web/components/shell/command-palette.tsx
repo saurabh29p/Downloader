@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
+import { PALETTE_EVENT } from "@/components/shell/nav-links";
+
 // The dialog code loads only the first time someone opens the palette.
 const CommandDialog = dynamic(() => import("./command-dialog"), { ssr: false });
 
@@ -19,8 +21,16 @@ export function CommandPalette() {
         setOpen((value) => !value);
       }
     };
+    const onOpen = () => {
+      setLoaded(true);
+      setOpen(true);
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener(PALETTE_EVENT, onOpen);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener(PALETTE_EVENT, onOpen);
+    };
   }, []);
 
   return loaded ? <CommandDialog open={open} onOpenChange={setOpen} /> : null;

@@ -8,7 +8,7 @@ import { fileLink, jobRow, uniqueName } from "./helpers";
 test("paste → preview → download → done → save file", async ({ page, request }, testInfo) => {
   const name = uniqueName(testInfo, "sample");
   await page.goto("/en");
-  await page.getByLabel("Links to download").fill(fileLink(name));
+  await page.getByLabel("Search or paste links").fill(fileLink(name));
   await expect(page.getByTestId("detect-chip")).toHaveText("127.0.0.1");
   await page.getByRole("button", { name: "Check link" }).click();
 
@@ -51,7 +51,7 @@ test("batch of three links", async ({ page }, testInfo) => {
   const names = ["a", "b", "c"].map((stem) => uniqueName(testInfo, `batch-${stem}`, "dat"));
   await page.goto("/en");
   await page
-    .getByLabel("Links to download")
+    .getByLabel("Search or paste links")
     .fill(names.map((n) => fileLink(n, "size=50000")).join("\n"));
   await page.getByRole("button", { name: "Queue 3 links" }).click();
   await expect(page.getByText("Added 3 downloads")).toBeVisible();
@@ -64,7 +64,7 @@ test("batch of three links", async ({ page }, testInfo) => {
 test("pause and resume a slow download", async ({ page }, testInfo) => {
   const name = uniqueName(testInfo, "slow");
   await page.goto("/en");
-  await page.getByLabel("Links to download").fill(fileLink(name, "size=4000000&slow=1"));
+  await page.getByLabel("Search or paste links").fill(fileLink(name, "size=4000000&slow=1"));
   await page.getByRole("button", { name: "Check link" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Download" }).click();
 
@@ -86,7 +86,7 @@ test("pause and resume a slow download", async ({ page }, testInfo) => {
 
 test("blocked links get clear messages", async ({ page }) => {
   await page.goto("/en");
-  const input = page.getByLabel("Links to download");
+  const input = page.getByLabel("Search or paste links");
   await input.fill("http://10.0.0.1/router.cfg");
   await page.getByRole("button", { name: "Check link" }).click();
   await expect(page.getByRole("main").getByRole("alert")).toContainText("private or local network");
@@ -96,7 +96,7 @@ test("keyboard only: paste, Enter, Enter", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "phone", "keyboard flow is for desktop");
   const name = uniqueName(testInfo, "keys");
   await page.goto("/en");
-  const input = page.getByLabel("Links to download");
+  const input = page.getByLabel("Search or paste links");
   for (let i = 0; i < 15 && !(await input.evaluate((el) => el === document.activeElement)); i++) {
     await page.keyboard.press("Tab");
   }
@@ -111,7 +111,7 @@ test("keyboard only: paste, Enter, Enter", async ({ page }, testInfo) => {
 
 test("command palette opens with Ctrl+K", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "phone", "keyboard shortcut is for desktop");
-  await page.goto("/en");
+  await page.goto("/en/help");
   await expect(page.getByTestId("api-status")).toHaveAttribute("data-state", "online");
   await page.keyboard.press("Control+k");
   await page.getByRole("combobox", { name: "Quick menu" }).fill("downl");

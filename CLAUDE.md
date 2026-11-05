@@ -24,7 +24,7 @@ v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-u
 - [x] v2 Phase 3 — universal search engine
 - [x] v2 Phase 4 — Sections (Movies, Books, Music, Video, Declassified, More)
 - [x] v2 Phase 5 — OpenRouter brain (optional)
-- [ ] v2 Phase 6 — "The Reading Room" UI
+- [x] v2 Phase 6 — "The Reading Room" UI
 - [ ] v2 Phase 7 — polish and ship
 
 Update this checklist at the end of every phase.
@@ -172,7 +172,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 
 ## Frontend rules
 - Next.js App Router, TypeScript strict, Tailwind 4 tokens in `styles/globals.css` (color, type scale, 4px grid, radius, shadow, motion; light + dark, system default).
-- Fonts: Inter plus Noto Sans fallbacks for CJK, Arabic, Devanagari.
+- Fonts (self-hosted via Fontsource): Fraunces headings, Inter UI, JetBrains Mono file facts, Noto Sans Devanagari / Noto Naskh Arabic (unicode-range, loaded only when used), Noto Sans fallbacks for CJK.
 - shadcn/ui parts (button, dialog, drawer, tabs, table, toast, command palette) plus custom paste box, format picker, job row, file picker, previewers.
 - Every screen has loading skeletons, helpful empty states, and error states with retry.
 - WCAG 2.2 AA: keyboard, focus rings, labels, `aria-live` progress, contrast, reduced motion. axe must be clean.
@@ -291,7 +291,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Extension: plain ES modules, no bundler. `src/lib.js` is pure and tested; `scripts/build.mjs` writes `dist/chrome` and `dist/firefox` (only the `background` key and Firefox's gecko id differ) and store-only zips. Host permissions are localhost only; other addresses are requested at runtime (`optional_host_permissions`). Headless smoke test: Playwright `launchPersistentContext` with `channel: "chromium"` (the headless shell can't load extensions).
 - Plugins (`anyget/plugins.py`): entry point group `anyget.handlers`, factory `make(net, settings)`, optional `priority` (default 85). Load only with `ANYGET_PLUGINS` (env only, not a UI setting: plugins are code). Results are in `Services.plugins` and `/api/health`.
 - Torrent (`handlers/torrent.py`): always registered so magnet links get a clear message; `probe`/`download` require `settings.torrent_enabled` (UI setting) and libtorrent (`--extra torrent`). Peer traffic is outside the SSRF guard by nature; LSD/UPnP/NAT-PMP are off. Paths from metadata go through `safe_parts` (no `..`, no absolute). Tests use a fake libtorrent module.
-- The Libraries page reserves the list height in its skeleton (`h-[77rem] sm:h-[39rem]`) and Settings reserves `h-[178rem] sm:h-[124rem]` (CLS). When measuring Lighthouse locally, build the web with the same `API_URL` the API listens on, or pages show their error state and CLS numbers are wrong.
+- The Libraries page reserves the list height in its skeleton (`h-[77rem] sm:h-[39rem]`) and Settings reserves `h-[126rem] sm:h-[101rem]` (CLS). When measuring Lighthouse locally, build the web with the same `API_URL` the API listens on, or pages show their error state and CLS numbers are wrong.
 
 ### Deploy / auth gotchas
 - **v2 owner sign-in** (`core/session.py`, `api/auth.py`, `docs/hosted.md`): `ANYGET_OWNER_EMAIL` + `ANYGET_OWNER_PASSWORD_HASH` (argon2id, `anyget hash-password`). The cookie `anyget_session` is HMAC-signed with a key mixed from the session secret and the password hash. `Settings.login_required` is true when an owner is set, `auth_mode=always`, or hosted (`Settings.hosted`: `ANYGET_PUBLIC` or a platform env var such as `RAILWAY_ENVIRONMENT`). Hosted without an owner or token → every request 401 `owner_required` (fail closed). Public paths: `/api/health`, `/api/auth/login|logout|me`.
@@ -306,8 +306,17 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Web CSP lives in `next.config.ts` (production only; dev needs eval) and covers pages, not `/api/*`. Images may come from any https host (thumbnails); scripts are same-origin plus `'unsafe-inline'` for the theme/PWA inline scripts and Next's bootstrap.
 - Backups (`anyget/backup.py`) use SQLite's online backup API; restore uses `tarfile` `filter="data"` plus its own path checks, and removes stale `-wal`/`-shm` files.
 
+### Reading Room UI gotchas
+- Tokens live in `styles/globals.css`. `--primary` is indigo (links, buttons, focus). `--saffron` is a fill with ink text (`Button variant="saffron"`, badges, the rail marker); saffron *text* uses `--saffron-ink`. Section tints (`--tint-<id>`) are decoration only. Use them through a `--tint` variable with type hints: `bg-(color:--tint)`, `text-(color:--tint)`, `border-(color:--tint)/40` (a bare `text-(--x)` means font size).
+- CSS-only pieces (no JS): `.index-card` / `.index-card-head` / `.call-number`, `.stamp`, and the rotating hints (`.hint-host` textarea + `.hint-rotator` spans, 5 items, 4 s each; first one shown under reduced motion).
+- Shell: `MainNav variant="rail" | "bar"` (`components/shell/nav-links.tsx`). The rail's "Jump to…" button dispatches `PALETTE_EVENT`. `DropAnywhere` hands drops to Home's paste box (`lib/drop.ts`: an event on Home, `sessionStorage` elsewhere). Shell icons that only the shell uses are inline SVGs (`components/ui/icons.tsx`).
+- Home's paste box: plain text → `/search?q=…&section=<mode>`; one link → step indicator (`data-testid="link-steps"`, `data-step`) → preview. "Continue" cards keep `data-testid="job-row"`. Server status is on Help (`api-status`); e2e waits for it there before pressing Ctrl+K.
+- `withUndo(message, undoLabel, commit, undo)` (`lib/toast.ts`): hide optimistically, commit when the toast ends.
+- Library full text: `library/fulltext.py` (`library_text` FTS5 table; an empty body means "checked"). Scans index older items. Search queries are quoted terms (`fts_query`), never raw FTS syntax. Section/licence come from job options `section` / `licence` (validated); otherwise the section is derived from the kind.
+- `createApiClient` (`packages/shared`) is our own fetch wrapper: JSON bodies only, array query values repeat the key. For FormData, use raw `fetch` with `CSRF_HEADERS`.
+
 ### Frontend gotchas
-- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Settings ≈169.3, Downloads ≈168.6, others ≈162–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Downloads was already ≈169.9 KB with real jobs before v2 (the convert menu's lazy chunk counts); keep `lib/api-convert.ts` separate from `lib/api-books.ts` and the 401 redirect lazily imported (`lib/sign-in.ts`). Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
+- First-load JS budget 170 KB (Phase 6: shell ≈162 KB, Home ≈167, Downloads ≈167, Settings/Library ≈167, others ≈163–167). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Downloads was already ≈169.9 KB with real jobs before v2 (the convert menu's lazy chunk counts); keep `lib/api-convert.ts` separate from `lib/api-books.ts` and the 401 redirect lazily imported (`lib/sign-in.ts`). Keep client JS out of the shell (nav, layout). The Phase 6 rail fit only because the small `createApiClient` freed ~2.5 KB. New sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
 - `Button` has no `asChild` (Radix Slot was dropped to save bytes): style links with `buttonVariants()`.
 - Media pills (`components/media/choice.tsx`) are native radios/checkboxes hidden inside labels; in Playwright click the label (`pick()` in `e2e/youtube.spec.ts`), not the input.
 - No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).

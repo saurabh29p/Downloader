@@ -1,4 +1,11 @@
 import "@fontsource-variable/inter";
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/jetbrains-mono";
+// Script fonts load only when a page shows those characters (unicode-range).
+import "@fontsource/noto-sans-devanagari/devanagari-400.css";
+import "@fontsource/noto-sans-devanagari/devanagari-600.css";
+import "@fontsource/noto-naskh-arabic/arabic-400.css";
+import "@fontsource/noto-naskh-arabic/arabic-600.css";
 import "@/styles/globals.css";
 
 import type { Metadata, Viewport } from "next";
@@ -36,8 +43,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fcfcfc" },
-    { media: "(prefers-color-scheme: dark)", color: "#1b1d22" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f1e7" },
+    { media: "(prefers-color-scheme: dark)", color: "#16140f" },
   ],
 };
 

@@ -18,6 +18,8 @@ export async function generateMetadata({
   return { title: `${t("title")} · AnyGet` };
 }
 
+const GROUPS = ["general", "downloads", "ai", "connections", "advanced"] as const;
+
 export default function SettingsPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params);
   setRequestLocale(locale);
@@ -28,8 +30,31 @@ export default function SettingsPage({ params }: { params: Promise<{ locale: Loc
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t("title")}</h1>
         <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
-      <SignOut />
-      <InstallApp />
+      <nav aria-label={t("groupsLabel")}>
+        <ul className="flex flex-wrap gap-2 text-sm">
+          {GROUPS.map((group) => (
+            <li key={group}>
+              <a
+                href={`#${group}`}
+                className="inline-flex min-h-11 items-center rounded-full border bg-card px-4 hover:bg-accent"
+              >
+                {t(group === "connections" ? "connectionsGroup" : group)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <section
+        id="general"
+        aria-labelledby="general-heading"
+        className="flex scroll-mt-20 flex-col gap-4 rounded-md border bg-card p-4"
+      >
+        <h2 id="general-heading" className="text-xl font-semibold">
+          {t("general")}
+        </h2>
+        <SignOut />
+        <InstallApp />
+      </section>
       <AppSettings />
     </div>
   );

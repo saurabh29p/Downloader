@@ -5,6 +5,7 @@ import { use } from "react";
 
 import { SearchView } from "@/components/search/search-view";
 import type { Locale } from "@/i18n/routing";
+import { isSection } from "@/lib/sections";
 
 export async function generateMetadata({
   params,
@@ -21,10 +22,10 @@ export default function Page({
   searchParams,
 }: {
   params: Promise<{ locale: Locale }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; section?: string }>;
 }) {
   const { locale } = use(params);
-  const { q } = use(searchParams);
+  const { q, section } = use(searchParams);
   setRequestLocale(locale);
   const t = useTranslations("Search");
   return (
@@ -33,7 +34,10 @@ export default function Page({
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t("title")}</h1>
         <p className="max-w-prose text-muted-foreground">{t("subtitle")}</p>
       </div>
-      <SearchView initialQuery={typeof q === "string" ? q.slice(0, 500) : ""} />
+      <SearchView
+        initialQuery={typeof q === "string" ? q.slice(0, 500) : ""}
+        section={typeof section === "string" && isSection(section) ? section : undefined}
+      />
     </div>
   );
 }

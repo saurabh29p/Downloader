@@ -1,9 +1,9 @@
 "use client";
 
-import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useSyncExternalStore } from "react";
 
+import { Contrast } from "@/components/ui/icons";
 import { NativeSelect } from "@/components/ui/native-select";
 import { applyTheme, readTheme, saveTheme, subscribeTheme, type ThemeChoice } from "@/lib/theme";
 
@@ -18,13 +18,11 @@ export function ThemeToggle() {
     return () => media.removeEventListener("change", onChange);
   }, []);
 
-  const Icon = choice === "dark" ? MoonIcon : choice === "light" ? SunIcon : MonitorIcon;
-
   return (
     <NativeSelect
       aria-label={t("label")}
       value={choice}
-      icon={<Icon aria-hidden="true" />}
+      icon={<Contrast />}
       onChange={(event) => saveTheme(event.target.value as ThemeChoice)}
       iconOnlyOnPhone
     >

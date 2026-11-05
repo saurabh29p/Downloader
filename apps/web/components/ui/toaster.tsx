@@ -1,39 +1,44 @@
 "use client";
 
-import { CircleAlertIcon, CircleCheckIcon, InfoIcon, XIcon } from "lucide-react";
-
+import { Close } from "@/components/ui/icons";
 import { dismissToast, useToasts, type Toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
-const ICONS = { success: CircleCheckIcon, error: CircleAlertIcon, info: InfoIcon };
-
 function Item({ item, closeLabel }: { item: Toast; closeLabel: string }) {
-  const Icon = ICONS[item.kind];
   return (
     <li
-      className="pointer-events-auto flex animate-in items-start gap-3 rounded-lg border bg-popover p-3 text-popover-foreground shadow-lg fade-in-0 slide-in-from-bottom-2"
+      className={cn(
+        "pointer-events-auto flex animate-in items-start gap-3 rounded-md border border-s-4 bg-popover p-3 text-popover-foreground shadow-lg fade-in-0 slide-in-from-bottom-2",
+        item.kind === "success" && "border-s-success",
+        item.kind === "error" && "border-s-destructive",
+        item.kind === "info" && "border-s-saffron",
+      )}
       data-testid="toast"
     >
-      <Icon
-        aria-hidden="true"
-        className={cn(
-          "mt-0.5 size-5 shrink-0",
-          item.kind === "success" && "text-success",
-          item.kind === "error" && "text-destructive",
-        )}
-      />
       <div className="min-w-0 flex-1 text-sm">
         <p className="font-medium break-words" dir="auto">
           {item.message}
         </p>
         {item.description && <p className="mt-0.5 text-muted-foreground">{item.description}</p>}
       </div>
+      {item.action && (
+        <button
+          type="button"
+          onClick={() => {
+            item.action!.run();
+            dismissToast(item.id);
+          }}
+          className="-my-1 h-8 shrink-0 rounded-md px-2 text-sm font-semibold text-primary hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+        >
+          {item.action.label}
+        </button>
+      )}
       <button
         type="button"
         onClick={() => dismissToast(item.id)}
         className="-m-1 inline-flex size-8 shrink-0 items-center justify-center rounded-md opacity-70 hover:bg-accent hover:opacity-100 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
       >
-        <XIcon className="size-4" aria-hidden="true" />
+        <Close className="size-4" />
         <span className="sr-only">{closeLabel}</span>
       </button>
     </li>

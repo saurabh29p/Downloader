@@ -3,7 +3,7 @@
 import type { ProbeResult } from "@anyget/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
-import { ClipboardPasteIcon, FileTextIcon, Loader2Icon, SearchIcon } from "lucide-react";
+import { ArrowRightIcon, ClipboardPasteIcon, FileTextIcon, Loader2Icon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   useEffect,
@@ -12,17 +12,16 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
-  type DragEvent,
   type FormEvent,
 } from "react";
-import { toast } from "@/lib/toast";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { createJobs, probeUrl } from "@/lib/api";
+import { DROP_EVENT, DROP_KEY } from "@/lib/drop";
 import { errorMessage } from "@/lib/errors";
 import { hostOf, parseLinks } from "@/lib/links";
+import { MAIN_SECTIONS } from "@/lib/sections";
+import { toast } from "@/lib/toast";
 import { JOBS_KEY } from "@/lib/use-jobs";
 import { cn } from "@/lib/utils";
 
@@ -32,9 +31,14 @@ const PreviewSheet = dynamic(() =>
 );
 
 const noopSubscribe = () => () => {};
+const HINTS = ["a", "b", "c", "d", "e"] as const;
+const STEPS = ["reading", "formats", "ready"] as const;
+type Step = (typeof STEPS)[number] | null;
 
+/** Home's universal bar: links are checked and downloaded, anything else is searched. */
 export function PasteBox() {
   const t = useTranslations("Home");
+  const tSections = useTranslations("Sections");
   const locale = useLocale();
   const tJobs = useTranslations("Jobs");
   const tErrors = useTranslations("Errors");
@@ -43,24 +47,34 @@ export function PasteBox() {
   const fileInput = useRef<HTMLInputElement>(null);
 
   const [text, setText] = useState("");
+  const [mode, setMode] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
   const [probe, setProbe] = useState<ProbeResult | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [step, setStep] = useState<Step>(null);
   const canPaste = useSyncExternalStore(
     noopSubscribe,
     () => typeof navigator.clipboard?.readText === "function",
     () => false,
   );
-  const [dragging, setDragging] = useState(false);
   const links = useMemo(() => parseLinks(text), [text]);
 
   const probeMutation = useMutation({
     mutationFn: probeUrl,
+    onMutate: () => {
+      setStep("reading");
+      // One request does both; the second step shows once the server is past the link.
+      setTimeout(() => setStep((s) => (s === "reading" ? "formats" : s)), 700);
+    },
     onSuccess: (result) => {
+      setStep("ready");
       setProbe(result);
       setSheetOpen(true);
     },
-    onError: (err) => setError(errorMessage(tErrors, err)),
+    onError: (err) => {
+      setStep(null);
+      setError(errorMessage(tErrors, err));
+    },
   });
 
   const queueMutation = useMutation({
@@ -75,6 +89,7 @@ export function PasteBox() {
         });
       }
       setSheetOpen(false);
+      setStep(null);
       setText("");
     },
     onError: (err) => toast.error(errorMessage(tErrors, err)),
@@ -82,15 +97,42 @@ export function PasteBox() {
 
   const busy = probeMutation.isPending || queueMutation.isPending;
 
-  // A link handed over by the share target (/share) or a bookmarklet: /?url=…
+  function addText(value: string) {
+    setText((current) => (current.trim() ? `${current.trimEnd()}\n${value}` : value));
+    setError(null);
+  }
+
+  // A link handed over by the share target (/share) or a bookmarklet (/?url=…),
+  // or text dropped on another page; text dropped on this page arrives as an event.
   const { mutate: probeShared } = probeMutation;
   useEffect(() => {
     const shared = new URLSearchParams(window.location.search).get("url");
-    if (!shared) return;
-    window.history.replaceState(null, "", window.location.pathname);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hand-over from the URL
-    setText(shared);
-    probeShared(shared);
+    let dropped: string | null = null;
+    try {
+      dropped = sessionStorage.getItem(DROP_KEY);
+      sessionStorage.removeItem(DROP_KEY);
+    } catch {
+      // storage blocked: nothing was handed over
+    }
+    if (shared) {
+      window.history.replaceState(null, "", window.location.pathname);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hand-over from the URL
+      setText(shared);
+      probeShared(shared);
+    } else if (dropped) {
+      setText(dropped);
+      const found = parseLinks(dropped);
+      if (found.length === 1) probeShared(found[0]!);
+    }
+    const onDrop = (event: Event) => {
+      const value = (event as CustomEvent<string>).detail;
+      setText((current) => (current.trim() ? `${current.trimEnd()}\n${value}` : value));
+      setError(null);
+      const found = parseLinks(value);
+      if (found.length === 1) probeShared(found[0]!);
+    };
+    window.addEventListener(DROP_EVENT, onDrop);
+    return () => window.removeEventListener(DROP_EVENT, onDrop);
   }, [probeShared]);
 
   function submit(event?: FormEvent) {
@@ -101,20 +143,16 @@ export function PasteBox() {
         setError(t("noLinks"));
         return;
       }
-      // Not a link: search everything for it (universal search).
-      const q = encodeURIComponent(text.trim().slice(0, 500));
+      // Not a link: search everything (or the chosen section) for it.
+      const params = new URLSearchParams({ q: text.trim().slice(0, 500) });
+      if (mode !== "all") params.set("section", mode);
       // A full load: the target page starts from its address.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.assign(`${window.location.origin}/${locale}/search?q=${q}`);
+      window.location.assign(`${window.location.origin}/${locale}/search?${params}`);
       return;
     }
     if (links.length === 1) probeMutation.mutate(links[0]!);
     else queueMutation.mutate({ urls: links });
-  }
-
-  function addText(value: string) {
-    setText((current) => (current.trim() ? `${current.trimEnd()}\n${value}` : value));
-    setError(null);
   }
 
   async function pasteFromClipboard() {
@@ -134,41 +172,23 @@ export function PasteBox() {
     addText(await file.text());
   }
 
-  function onDrop(event: DragEvent) {
-    event.preventDefault();
-    setDragging(false);
-    const file = event.dataTransfer.files[0];
-    if (file) void readFile(file);
-    else addText(event.dataTransfer.getData("text"));
-  }
-
   return (
     <>
       <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
-        <label htmlFor={ids.input} className="text-sm font-medium">
+        <label htmlFor={ids.input} className="sr-only">
           {t("pasteLabel")}
         </label>
-        <div
-          className={cn(
-            "rounded-lg transition-shadow",
-            dragging && "ring-2 ring-ring ring-offset-2 ring-offset-background",
-          )}
-          onDragOver={(event) => {
-            event.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={onDrop}
-        >
-          <Textarea
+        <div className="relative">
+          <textarea
             id={ids.input}
             name="links"
-            dir="ltr"
+            dir="auto"
             rows={2}
             value={text}
             onChange={(event) => {
               setText(event.target.value);
               setError(null);
+              setStep(null);
             }}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -176,49 +196,82 @@ export function PasteBox() {
                 submit();
               }
             }}
-            placeholder={t("searchHint")}
+            placeholder={t("hints.a")}
             autoComplete="off"
             spellCheck={false}
             aria-describedby={error ? `${ids.hint} ${ids.error}` : ids.hint}
             aria-invalid={error ? true : undefined}
-            className="max-h-60 min-h-24 text-start"
+            className="hint-host flex field-sizing-content max-h-60 min-h-28 w-full resize-none rounded-xl border border-input bg-card py-3.5 ps-4 pe-4 text-lg shadow-card outline-none placeholder:text-transparent focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40 aria-invalid:border-destructive sm:pe-40"
             data-testid="paste-input"
           />
+          <span className="hint-rotator text-lg sm:end-40" aria-hidden="true">
+            {HINTS.map((key) => (
+              <span key={key}>{t(`hints.${key}`)}</span>
+            ))}
+          </span>
+          <Button
+            type="submit"
+            variant="saffron"
+            disabled={busy}
+            className="mt-2 w-full sm:absolute sm:end-3 sm:bottom-3 sm:mt-0 sm:w-auto"
+          >
+            {busy ? (
+              <Loader2Icon className="animate-spin" aria-hidden="true" />
+            ) : (
+              <ArrowRightIcon aria-hidden="true" data-flip-rtl />
+            )}
+            {links.length > 1
+              ? t("queueMany", { count: links.length })
+              : links.length === 1
+                ? t("check")
+                : t("go")}
+          </Button>
         </div>
+
+        <fieldset className="flex flex-wrap gap-2">
+          <legend className="sr-only">{t("modeLabel")}</legend>
+          {(["all", ...MAIN_SECTIONS] as const).map((id) => (
+            <label
+              key={id}
+              className="inline-flex h-9 cursor-pointer items-center rounded-full border bg-card px-3.5 text-sm has-checked:border-primary has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:ring-[3px] has-focus-visible:ring-ring/40"
+            >
+              <input
+                type="radio"
+                name="mode"
+                value={id}
+                checked={mode === id}
+                onChange={() => setMode(id)}
+                className="sr-only"
+              />
+              {id === "all" ? t("modeAll") : tSections(`${id}.title`)}
+            </label>
+          ))}
+        </fieldset>
 
         <div className="flex flex-wrap items-center gap-2">
           <p id={ids.hint} className="me-auto text-sm text-muted-foreground">
             {t("pasteHint")}
           </p>
           {links.length > 0 && (
-            <Badge variant="outline" data-testid="detect-chip">
+            <span
+              className="rounded-md border px-2 py-0.5 font-mono text-xs"
+              data-testid="detect-chip"
+            >
               {links.length === 1 ? hostOf(links[0]!) : t("linkCount", { count: links.length })}
-            </Badge>
+            </span>
           )}
-        </div>
-
-        {error && (
-          <p id={ids.error} role="alert" className="text-sm font-medium text-destructive">
-            {error}
-          </p>
-        )}
-
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button type="submit" disabled={busy} className="sm:order-last sm:ms-auto">
-            {busy ? (
-              <Loader2Icon className="animate-spin" aria-hidden="true" />
-            ) : (
-              <SearchIcon aria-hidden="true" />
-            )}
-            {links.length > 1 ? t("queueMany", { count: links.length }) : t("check")}
-          </Button>
           {canPaste && (
-            <Button type="button" variant="outline" onClick={pasteFromClipboard}>
+            <Button type="button" variant="ghost" size="sm" onClick={pasteFromClipboard}>
               <ClipboardPasteIcon aria-hidden="true" />
               {t("pasteButton")}
             </Button>
           )}
-          <Button type="button" variant="outline" onClick={() => fileInput.current?.click()}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => fileInput.current?.click()}
+          >
             <FileTextIcon aria-hidden="true" />
             {t("openFile")}
           </Button>
@@ -235,6 +288,57 @@ export function PasteBox() {
             }}
           />
         </div>
+
+        {step && (
+          <ol
+            aria-label={t("steps.label")}
+            aria-live="polite"
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
+            data-testid="link-steps"
+            data-step={step}
+          >
+            {STEPS.map((name, i) => {
+              const at = STEPS.indexOf(step);
+              const state = i < at || step === "ready" ? "done" : i === at ? "now" : "next";
+              return (
+                <li
+                  key={name}
+                  aria-current={state === "now" ? "step" : undefined}
+                  className={cn(
+                    "flex items-center gap-1.5",
+                    state === "next" ? "text-muted-foreground" : "font-medium",
+                  )}
+                >
+                  {i > 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="inline-block text-muted-foreground"
+                      data-flip-rtl
+                    >
+                      →
+                    </span>
+                  )}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "size-2 rounded-full",
+                      state === "done" && "bg-success",
+                      state === "now" && "animate-pulse bg-saffron",
+                      state === "next" && "bg-border",
+                    )}
+                  />
+                  {t(`steps.${name}`)}
+                </li>
+              );
+            })}
+          </ol>
+        )}
+
+        {error && (
+          <p id={ids.error} role="alert" className="text-sm font-medium text-destructive">
+            {error}
+          </p>
+        )}
       </form>
 
       {probe && (
