@@ -5,6 +5,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (v2 Phase 4 — Sections)
+- **Sections:** Movies, Books, Music, Video, Declassified and More (Maps, Newspapers, Photos, Manuscripts, plus archive.org, Wayback, Code, Images and Libraries).
+  - They appear on Home, at `/sections` and in Ctrl+K.
+  - Each section has a hero, ready-made searches and a search scoped to the section.
+  - Each also has "Also search on" links to official sites that have no open API, with your query filled in.
+- **Ready-made searches** come from the v2 prompt (for example "Classic Hindi films (public domain)", "Premchand stories", "1940s Hindi film songs (78rpm)", "NASA mission footage", "JFK assassination files", "Delhi before 1900", "15 August 1947 front pages", "Sanskrit manuscripts"). Some are narrowed to archive.org collections such as Feature Films, Film Noir, Prelinger, the Great 78 Project and Old Time Radio.
+- **Movies, where to watch:** with a free TMDB key (Connections or `TMDB_API_KEY`), movie cards show the poster, year, rating, cast, trailer and where to watch in India (stream, free or with ads, rent, buy).
+  - Copyrighted films are never offered as downloads.
+  - Public-domain classics come from archive.org.
+  - There are no torrent, piracy or mirror sources, and a test checks this.
+- **Declassified** searches archive.org and links to the CIA Reading Room, FBI Vault, US and UK National Archives, MuckRock and The Black Vault (officially released records only).
+- **Photos** search Wikimedia Commons, with each file's licence; downloads keep the original file.
+- **API:** `GET /api/sections[/{id}]` (presets, links, `needs_key`). `/api/universal` takes `preset` with `section`.
+
 ### Added (v2 Phase 3 — universal search)
 - **One box for everything.** `GET/POST /api/universal` streams Server-Sent Events: `plan`, then one `source` event per source as it answers, then `done`.
   - The input is classified as links, a search or a question (English, Hindi, Hinglish, Arabic) and its language detected.

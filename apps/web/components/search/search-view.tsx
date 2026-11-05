@@ -14,6 +14,7 @@ import {
   type Media,
   type ResultCard,
   type RouterPlan,
+  type MovieInfo,
   type SourceDone,
 } from "@/lib/api-universal";
 import { errorMessage } from "@/lib/errors";
@@ -57,9 +58,18 @@ const EMPTY: State = { running: false, plan: null, sources: [], cards: [], faile
 export function SearchView({
   initialQuery = "",
   section,
+  preset,
+  presetQuery: givenPresetQuery = "",
+  links = [],
 }: {
   initialQuery?: string;
   section?: string;
+  /** A section's pre-built search to run at once (its query comes from the API). */
+  preset?: string;
+  /** That preset's query, for the "Search on …" links. */
+  presetQuery?: string;
+  /** Official sites without an open API: "Search on …" with the query filled in. */
+  links?: { label: string; url: string }[];
 }) {
   const t = useTranslations("Search");
   const locale = useLocale();
@@ -70,14 +80,19 @@ export function SearchView({
   const [tab, setTab] = useState<Media | "all">("all");
   const stream = useRef<EventSource | null>(null);
 
-  const start = (q: string) => {
+  const [asked, setAsked] = useState(initialQuery);
+  const start = (q: string, withPreset?: string) => {
+    setAsked(q);
     stream.current?.close();
     setTab("all");
     setState({ ...EMPTY, running: true });
     const url = new URL(window.location.href);
-    url.searchParams.set("q", q);
+    if (q) url.searchParams.set("q", q);
+    else url.searchParams.delete("q");
+    if (withPreset) url.searchParams.set("preset", withPreset);
+    else url.searchParams.delete("preset");
     window.history.replaceState(null, "", url);
-    const source = new EventSource(universalUrl(q, section));
+    const source = new EventSource(universalUrl(q, section, withPreset));
     stream.current = source;
     let finished = false;
     source.addEventListener("plan", (event) => {
@@ -119,7 +134,8 @@ export function SearchView({
   useEffect(() => {
     // A search handed over in the address (/search?q=…, from Home or Ctrl+K).
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time start from the URL
-    if (initialQuery.trim()) start(initialQuery.trim());
+    if (preset) start("", preset);
+    else if (initialQuery.trim()) start(initialQuery.trim());
     return () => stream.current?.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on first render
   }, []);
@@ -138,7 +154,10 @@ export function SearchView({
   for (const card of state.cards) counts.set(card.media, (counts.get(card.media) ?? 0) + 1);
   const tabs = MEDIA_ORDER.filter((m) => counts.has(m));
   const shown = tab === "all" ? state.cards : state.cards.filter((c) => c.media === tab);
-  const failedSources = state.sources.filter((s) => s.status !== "ok");
+  const failedSources = state.sources.filter((s) => s.status === "error" || s.status === "timeout");
+  const needsKey = state.sources.some((s) => s.status === "needs_key");
+  const presetQuery = givenPresetQuery || state.plan?.queries?.[0]?.q || "";
+  const linkQuery = asked || presetQuery;
 
   return (
     <div className="flex flex-col gap-6">
@@ -227,6 +246,17 @@ export function SearchView({
           ))}
         </ul>
         {state.running && <Skeleton className="h-28" aria-hidden="true" />}
+        {needsKey && (
+          <p className="text-sm" data-testid="needs-key">
+            {t("needsTmdb")}{" "}
+            <a
+              href={`/${locale}/connections#tmdb`}
+              className="font-medium text-primary underline underline-offset-4"
+            >
+              {t("connectTmdb")}
+            </a>
+          </p>
+        )}
         {(state.failed || failedSources.length > 0) && !state.running && (
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span role="status">
@@ -236,12 +266,37 @@ export function SearchView({
                   })
                 : t("streamFailed")}
             </span>
-            <Button variant="outline" size="sm" onClick={() => start(text.trim())}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => start(asked, asked ? undefined : preset)}
+            >
               {t("retry")}
             </Button>
           </div>
         )}
       </section>
+
+      {links.length > 0 && linkQuery && (
+        <nav aria-label={t("alsoOn")} className="flex flex-col gap-2" data-testid="site-links">
+          <h2 className="text-sm font-medium">{t("alsoOn")}</h2>
+          <ul className="flex flex-wrap gap-2">
+            {links.map((link) => (
+              <li key={link.label}>
+                <a
+                  href={link.url.replaceAll("{q}", encodeURIComponent(linkQuery))}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-11 items-center gap-1 rounded-full border px-4 text-sm hover:bg-accent"
+                >
+                  {link.label}
+                  <ExternalLinkIcon className="size-4" aria-hidden="true" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </div>
   );
 }
@@ -297,6 +352,7 @@ function ResultItem({ card }: { card: Card }) {
         <p className="text-sm text-muted-foreground" dir="auto">
           {t(`media.${card.media}`)} · {meta}
         </p>
+        {card.movie && <MovieDetails movie={card.movie} />}
         {card.formats && card.formats.length > 0 && (
           <p className="flex flex-wrap gap-1">
             {card.formats.map((f) => (
@@ -345,3 +401,68 @@ function ResultItem({ card }: { card: Card }) {
 }
 
 export default SearchView;
+
+function MovieDetails({ movie }: { movie: MovieInfo }) {
+  const t = useTranslations("Search");
+  const groups = [
+    ["stream", movie.stream],
+    ["free", movie.free],
+    ["rent", movie.rent],
+    ["buy", movie.buy],
+  ] as const;
+  const any = groups.some(([, list]) => list.length > 0);
+  return (
+    <div className="flex flex-col gap-2 text-sm" data-testid="movie-details">
+      {movie.overview && <p className="line-clamp-3 text-muted-foreground">{movie.overview}</p>}
+      <p className="text-muted-foreground">
+        {[
+          movie.rating ? t("rating", { rating: movie.rating }) : null,
+          movie.cast.length ? movie.cast.slice(0, 3).join(", ") : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </p>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium">{t("whereToWatch", { region: movie.region })}</span>
+        {any ? (
+          groups
+            .filter(([, list]) => list.length > 0)
+            .map(([kind, list]) => (
+              <p key={kind} className="flex flex-wrap items-center gap-1">
+                <span className="text-muted-foreground">{t(`watch.${kind}`)}:</span>
+                {list.map((p) => (
+                  <Badge key={p.name} variant={kind === "free" ? "success" : "secondary"}>
+                    {p.name}
+                  </Badge>
+                ))}
+              </p>
+            ))
+        ) : (
+          <span className="text-muted-foreground">{t("notStreaming")}</span>
+        )}
+      </div>
+      <p className="flex flex-wrap gap-3">
+        {movie.trailer && (
+          <a
+            href={movie.trailer}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-primary"
+          >
+            {t("trailer")}
+          </a>
+        )}
+        {movie.watch_link && (
+          <a
+            href={movie.watch_link}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-primary"
+          >
+            {t("watchOptions")}
+          </a>
+        )}
+      </p>
+    </div>
+  );
+}

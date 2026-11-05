@@ -88,7 +88,8 @@
         "text": "New videos and items, fetched on a schedule"
       }
     },
-    "searchHint": "Type a title, a question, or paste links (one per line)"
+    "searchHint": "Type a title, a question, or paste links (one per line)",
+    "sectionsHeading": "Sections"
   },
   "Preview": {
     "handlers": {
@@ -243,7 +244,8 @@
     "goWatch": "Watches",
     "goHelp": "Help",
     "goConnections": "Connections",
-    "searchFor": "Search for “{query}”"
+    "searchFor": "Search for “{query}”",
+    "goSections": "Sections"
   },
   "Status": {
     "checking": "Checking the server…",
@@ -556,7 +558,9 @@
       "archive": "Internet Archive",
       "books": "Books",
       "videos": "YouTube",
-      "libraries": "Libraries"
+      "libraries": "Libraries",
+      "tmdb": "TMDB",
+      "commons": "Wikimedia Commons"
     },
     "media": {
       "movie": "Movie",
@@ -576,7 +580,21 @@
       "rights_reserved": "Rights reserved",
       "streaming_only": "Streaming only",
       "unknown": "Check the licence"
-    }
+    },
+    "needsTmdb": "Where-to-watch results need a free TMDB key.",
+    "connectTmdb": "Add it in Connections",
+    "alsoOn": "Also search on",
+    "rating": "Rated {rating}/10",
+    "whereToWatch": "Where to watch ({region})",
+    "watch": {
+      "stream": "Stream",
+      "free": "Free",
+      "rent": "Rent",
+      "buy": "Buy"
+    },
+    "notStreaming": "Not on a streaming service in this region.",
+    "trailer": "Trailer",
+    "watchOptions": "All watch options"
   },
   "Convert": {
     "label": "Convert…",
@@ -822,6 +840,100 @@
       "unreachable": "{site} could not be reached. Try again later.",
       "expired": "These {site} cookies have expired. Export new ones.",
       "untested": "Saved. {site} can't be tested from here."
+    }
+  },
+  "Sections": {
+    "title": "Sections",
+    "subtitle": "Browse by kind of thing: films, books, music, video, declassified files, maps, newspapers, photos and manuscripts. Each has ready-made searches.",
+    "back": "All sections",
+    "presetsTitle": "Try these",
+    "tmdbHint": "Add a free TMDB key in Connections to see where films stream in India.",
+    "movies": {
+      "title": "Movies",
+      "text": "Where to watch legally, plus public-domain classics to download.",
+      "hero": "Find where a film streams in India (Netflix, Prime Video, JioHotstar, Zee5, SonyLIV…), rent or buy it, or download public-domain classics from archive.org. No piracy, ever."
+    },
+    "books": {
+      "title": "Books",
+      "text": "The best legal copy from Gutenberg, Standard Ebooks, Open Library and libraries.",
+      "hero": "Free books from Project Gutenberg, Standard Ebooks, Open Library, archive.org and national libraries, with the best legal copy on top."
+    },
+    "music": {
+      "title": "Music",
+      "text": "Public-domain recordings, 78rpm records and old radio.",
+      "hero": "Public-domain and openly licensed recordings: the Great 78 Project, archive.org audio, old radio shows and more."
+    },
+    "video": {
+      "title": "Video",
+      "text": "Documentaries, NASA footage, lectures and newsreels.",
+      "hero": "Documentaries, NASA footage, lectures, newsreels and Creative Commons video, plus any link yt-dlp supports."
+    },
+    "declassified": {
+      "title": "Declassified",
+      "text": "Officially released government records.",
+      "hero": "Officially released records from the CIA Reading Room, FBI Vault, US and UK National Archives, MuckRock and The Black Vault. Only documents that were made public."
+    },
+    "more": {
+      "title": "More",
+      "text": "Maps, newspapers, photos, manuscripts, code and web archives.",
+      "hero": "Maps, newspapers, photos and manuscripts, plus archive.org, the Wayback Machine, code and image galleries."
+    },
+    "maps": {
+      "title": "Maps",
+      "text": "Historic maps from libraries and archives.",
+      "hero": "Historic maps from the Library of Congress, David Rumsey, Old Maps Online and archives."
+    },
+    "newspapers": {
+      "title": "Newspapers",
+      "text": "Old newspapers and front pages.",
+      "hero": "Historic newspapers from Chronicling America, Trove and other archives."
+    },
+    "photos": {
+      "title": "Photos",
+      "text": "Free photos with clear licences.",
+      "hero": "Photographs from Wikimedia Commons, library collections and Flickr Commons, each with its licence."
+    },
+    "manuscripts": {
+      "title": "Manuscripts",
+      "text": "Old manuscripts, page by page.",
+      "hero": "Manuscripts from national libraries through IIIF, downloadable page by page or as a PDF."
+    },
+    "presets": {
+      "classic-hindi": "Classic Hindi films (public domain)",
+      "silent-era": "Silent era masterpieces",
+      "film-noir": "Film noir",
+      "fifties-scifi": "1950s sci-fi",
+      "oscar-winners": "Oscar winners — where to watch",
+      "youtube-free": "Free movies on YouTube (official)",
+      "prelinger": "Prelinger archives",
+      "premchand": "Premchand stories",
+      "classic-scifi": "Classic sci-fi",
+      "indian-history": "Indian history primary sources",
+      "textbooks": "Free textbooks",
+      "gita-upanishads": "Bhagavad Gita and Upanishads",
+      "hindi-sahitya": "Hindi sahitya",
+      "hindi-78rpm": "1940s Hindi film songs (78rpm)",
+      "ragas": "Classical ragas archive",
+      "old-radio": "Old radio dramas",
+      "great-78": "The Great 78 Project",
+      "nasa": "NASA mission footage",
+      "partition": "Partition documentaries",
+      "mit-lectures": "MIT lectures",
+      "newsreels": "Newsreels",
+      "jfk": "JFK assassination files",
+      "uap": "UFO / UAP files",
+      "cold-war": "Cold War operations",
+      "mkultra": "MKUltra",
+      "area51": "Area 51",
+      "delhi-1900": "Delhi before 1900",
+      "mughal": "Mughal-era maps",
+      "survey-of-india": "Survey of India sheets",
+      "aug-1947": "15 August 1947 front pages",
+      "chronicling-america": "Newspapers around 1900",
+      "india-1900s": "India 1900s street photography",
+      "old-bombay": "Old Bombay",
+      "sanskrit": "Sanskrit manuscripts",
+      "illuminated": "Illuminated manuscripts"
     }
   }
 }

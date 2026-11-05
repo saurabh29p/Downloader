@@ -19,7 +19,7 @@ Media = Literal[
     "other",
 ]
 Licence = Literal["public_domain", "cc", "rights_reserved", "streaming_only", "unknown"]
-SourceName = Literal["archive", "books", "videos", "libraries"]
+SourceName = Literal["archive", "books", "videos", "libraries", "tmdb", "commons"]
 
 
 class QuerySpec(BaseModel):
@@ -43,6 +43,28 @@ class RouterPlan(BaseModel):
     router: Literal["keyword", "llm"] = "keyword"
 
 
+class Provider(BaseModel):
+    name: str
+    logo: str | None = None
+
+
+class MovieInfo(BaseModel):
+    """TMDB details: what the film is and where to watch it legally (region IN)."""
+
+    tmdb_id: int
+    overview: str | None = None
+    rating: float | None = None
+    cast: list[str] = Field(default_factory=list)
+    trailer: str | None = None  # a YouTube link
+    region: str = "IN"
+    # Where to watch: subscription, free, with ads, rent and buy.
+    stream: list[Provider] = Field(default_factory=list)
+    free: list[Provider] = Field(default_factory=list)
+    rent: list[Provider] = Field(default_factory=list)
+    buy: list[Provider] = Field(default_factory=list)
+    watch_link: str | None = None  # TMDB's page listing the providers
+
+
 class ResultCard(BaseModel):
     id: str  # "<source>:<id>"
     source: SourceName
@@ -58,11 +80,12 @@ class ResultCard(BaseModel):
     thumbnail: str | None = None
     # Higher is more relevant to the query (comparable across sources).
     score: float = 0.0
+    movie: MovieInfo | None = None
 
 
 class SourceDone(BaseModel):
     source: SourceName
-    status: Literal["ok", "timeout", "error"]
+    status: Literal["ok", "timeout", "error", "needs_key"]
     message: str | None = None
     results: list[ResultCard] = Field(default_factory=list)
 

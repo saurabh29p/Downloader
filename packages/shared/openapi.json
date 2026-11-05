@@ -1512,6 +1512,24 @@
         "title": "Link",
         "type": "object"
       },
+      "LinkOut": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "url"
+        ],
+        "title": "LinkOut",
+        "type": "object"
+      },
       "LoginBody": {
         "properties": {
           "email": {
@@ -1627,6 +1645,24 @@
           "loaded"
         ],
         "title": "PluginInfo",
+        "type": "object"
+      },
+      "PresetOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "query"
+        ],
+        "title": "PresetOut",
         "type": "object"
       },
       "ProbeRequest": {
@@ -1908,6 +1944,78 @@
           "items"
         ],
         "title": "SearchPage",
+        "type": "object"
+      },
+      "SectionOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/LinkOut"
+            },
+            "title": "Links",
+            "type": "array"
+          },
+          "media": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Media",
+            "type": "array"
+          },
+          "needs_key": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Needs Key",
+            "type": "array"
+          },
+          "pages": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Pages",
+            "type": "array"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent"
+          },
+          "presets": {
+            "items": {
+              "$ref": "#/components/schemas/PresetOut"
+            },
+            "title": "Presets",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "media",
+          "sources",
+          "presets",
+          "links",
+          "pages",
+          "needs_key"
+        ],
+        "title": "SectionOut",
         "type": "object"
       },
       "SettingsUpdate": {
@@ -2403,6 +2511,18 @@
       },
       "UniversalIn": {
         "properties": {
+          "preset": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9-]{1,40}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preset"
+          },
           "section": {
             "anyOf": [
               {
@@ -2427,15 +2547,12 @@
             "title": "Section"
           },
           "text": {
+            "default": "",
             "maxLength": 2000,
-            "minLength": 1,
             "title": "Text",
             "type": "string"
           }
         },
-        "required": [
-          "text"
-        ],
         "title": "UniversalIn",
         "type": "object"
       },
@@ -5736,6 +5853,132 @@
         ]
       }
     },
+    "/api/sections": {
+      "get": {
+        "operationId": "listSections",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SectionOut"
+                  },
+                  "title": "Response Listsections",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Sections",
+        "tags": [
+          "sections"
+        ]
+      }
+    },
+    "/api/sections/{section_id}": {
+      "get": {
+        "description": "One section; with `q`, its \"Search on …\" links carry that query.",
+        "operationId": "getSection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "section_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z]{2,20}$",
+              "title": "Section Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Get Section",
+        "tags": [
+          "sections"
+        ]
+      }
+    },
     "/api/settings": {
       "get": {
         "description": "Current settings (API keys and cookies are in Connections).",
@@ -5861,16 +6104,16 @@
     },
     "/api/universal": {
       "get": {
-        "description": "The same stream as POST, for EventSource (which can only GET).",
+        "description": "The same stream as POST, for EventSource (which can only GET).\n\n`preset` runs one of the section's pre-built searches (GET /api/sections).",
         "operationId": "universalStream",
         "parameters": [
           {
             "in": "query",
             "name": "q",
-            "required": true,
+            "required": false,
             "schema": {
+              "default": "",
               "maxLength": 2000,
-              "minLength": 1,
               "title": "Q",
               "type": "string"
             }
@@ -5901,6 +6144,23 @@
                 }
               ],
               "title": "Section"
+            }
+          },
+          {
+            "in": "query",
+            "name": "preset",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z0-9-]{1,40}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Preset"
             }
           }
         ],

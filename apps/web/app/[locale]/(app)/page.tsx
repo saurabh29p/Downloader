@@ -5,8 +5,10 @@ import { use } from "react";
 import { ApiStatus } from "@/components/api-status";
 import { RecentJobs } from "@/components/jobs/recent-jobs";
 import { PasteBox } from "@/components/paste/paste-box";
+import { SectionsGrid } from "@/components/sections/sections-grid";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
+import { MAIN_SECTIONS } from "@/lib/sections";
 
 const SOURCES = [
   { href: "/search", key: "search" },
@@ -38,6 +40,13 @@ export default function HomePage({ params }: { params: Promise<{ locale: Locale 
         </div>
         <PasteBox />
       </div>
+
+      <section aria-labelledby="sections-heading" className="flex flex-col gap-3">
+        <h2 id="sections-heading" className="text-lg font-semibold">
+          {t("sectionsHeading")}
+        </h2>
+        <SectionsGrid ids={MAIN_SECTIONS} headingId="sections-heading" />
+      </section>
 
       <nav aria-labelledby="sources-heading" className="flex flex-col gap-3">
         <h2 id="sources-heading" className="text-lg font-semibold">

@@ -574,6 +574,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sections */
+        get: operations["listSections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sections/{section_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Section
+         * @description One section; with `q`, its "Search on …" links carry that query.
+         */
+        get: operations["getSection"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/settings": {
         parameters: {
             query?: never;
@@ -625,6 +662,8 @@ export interface paths {
         /**
          * Universal Get
          * @description The same stream as POST, for EventSource (which can only GET).
+         *
+         *     `preset` runs one of the section's pre-built searches (GET /api/sections).
          */
         get: operations["universalStream"];
         put?: never;
@@ -1208,6 +1247,13 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** LinkOut */
+        LinkOut: {
+            /** Label */
+            label: string;
+            /** Url */
+            url: string;
+        };
         /** LoginBody */
         LoginBody: {
             /** Email */
@@ -1242,6 +1288,13 @@ export interface components {
             priority?: number | null;
             /** Target */
             target: string;
+        };
+        /** PresetOut */
+        PresetOut: {
+            /** Id */
+            id: string;
+            /** Query */
+            query: string;
         };
         /** ProbeRequest */
         ProbeRequest: {
@@ -1324,6 +1377,25 @@ export interface components {
             page?: number | null;
             /** Total */
             total: number;
+        };
+        /** SectionOut */
+        SectionOut: {
+            /** Id */
+            id: string;
+            /** Links */
+            links: components["schemas"]["LinkOut"][];
+            /** Media */
+            media: string[];
+            /** Needs Key */
+            needs_key: string[];
+            /** Pages */
+            pages: string[];
+            /** Parent */
+            parent?: string | null;
+            /** Presets */
+            presets: components["schemas"]["PresetOut"][];
+            /** Sources */
+            sources: string[];
         };
         /**
          * SettingsUpdate
@@ -1470,9 +1542,14 @@ export interface components {
         };
         /** UniversalIn */
         UniversalIn: {
+            /** Preset */
+            preset?: string | null;
             /** Section */
             section?: ("movies" | "books" | "music" | "video" | "declassified" | "maps" | "newspapers" | "photos" | "manuscripts" | "more") | null;
-            /** Text */
+            /**
+             * Text
+             * @default
+             */
             text: string;
         };
         /** UniversalSearch */
@@ -3663,6 +3740,95 @@ export interface operations {
             };
         };
     };
+    listSections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SectionOut"][];
+                };
+            };
+        };
+    };
+    getSection: {
+        parameters: {
+            query?: {
+                q?: string | null;
+            };
+            header?: never;
+            path: {
+                section_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SectionOut"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     getSettings: {
         parameters: {
             query?: never;
@@ -3774,9 +3940,10 @@ export interface operations {
     };
     universalStream: {
         parameters: {
-            query: {
-                q: string;
+            query?: {
+                q?: string;
                 section?: ("movies" | "books" | "music" | "video" | "declassified" | "maps" | "newspapers" | "photos" | "manuscripts" | "more") | null;
+                preset?: string | null;
             };
             header?: never;
             path?: never;

@@ -8,6 +8,8 @@ and Arabic.
 from anyget.core.text import words
 from anyget.universal.classify import classify, language_of
 from anyget.universal.models import Intent, Media, QuerySpec, RouterPlan, SourceName
+from anyget.universal.sections import BY_ID as SECTIONS_BY_ID
+from anyget.universal.sections import preset_of
 
 _MEDIA_TEXT: dict[Media, str] = {
     "movie": "movie movies film films cinema feature फिल्म फ़िल्म पिक्चर فيلم أفلام سينما",
@@ -34,29 +36,16 @@ INTENT_WORDS: dict[Intent, frozenset[str]] = {
 }
 FILLER = frozenset(words("free full online hd best legal the a an of for me please chahiye"))
 
-# Sections (Phase 4) narrow the media; "more" and unknown sections leave it open.
-SECTION_MEDIA: dict[str, list[Media]] = {
-    "movies": ["movie"],
-    "books": ["book"],
-    "music": ["music"],
-    "video": ["video"],
-    "declassified": ["declassified"],
-    "maps": ["map"],
-    "newspapers": ["newspaper"],
-    "photos": ["photo"],
-    "manuscripts": ["manuscript"],
-}
-
 # Which sources can answer for each media, and archive.org's mediatype for it.
 SOURCES_FOR: dict[Media, tuple[SourceName, ...]] = {
-    "movie": ("archive", "videos"),
+    "movie": ("tmdb", "archive", "videos"),
     "music": ("archive", "videos"),
     "video": ("archive", "videos"),
     "book": ("books", "archive", "libraries"),
     "manuscript": ("libraries", "archive"),
     "map": ("libraries", "archive"),
     "newspaper": ("libraries", "archive"),
-    "photo": ("archive", "libraries"),
+    "photo": ("commons", "archive", "libraries"),
     "declassified": ("archive",),
     "other": ("archive",),
 }
@@ -81,29 +70,40 @@ def clean_query(text: str) -> str:
     return " ".join(kept).strip(" ?؟.,!") or text.strip(" ?؟.,!")
 
 
-def plan(text: str, section: str | None = None) -> RouterPlan:
+def plan(text: str, section: str | None = None, preset: str | None = None) -> RouterPlan:
+    chosen = preset_of(section, preset)
+    if chosen is not None:
+        text = chosen.query
     kind, urls = classify(text)
     language = language_of(text)
     if kind == "url":
         return RouterPlan(kind="url", intent="download", language=language, urls=urls)
     asked = words(text)
     media: list[Media] = [m for m, hints in MEDIA_WORDS.items() if asked & hints]
-    if section in SECTION_MEDIA:
-        media = SECTION_MEDIA[section]
+    scope = SECTIONS_BY_ID.get(section or "")
+    if scope is not None and scope.id != "more":
+        media = list(scope.media)
     intent: Intent = next((i for i, hints in INTENT_WORDS.items() if asked & hints), "find")
     if kind == "question":
         intent = "explore"
-    q = clean_query(text)[:300]
-    queries: list[QuerySpec] = []
+    q = (text.strip() if chosen is not None else clean_query(text))[:300]
     sources: list[SourceName] = []
-    for m in media or []:
-        for source in SOURCES_FOR[m]:
-            if source not in sources:
-                sources.append(source)
+    if scope is not None and scope.id != "more":
+        sources = list(scope.sources)
+    else:
+        for m in media:
+            for source in SOURCES_FOR[m]:
+                if source not in sources:
+                    sources.append(source)
+    if chosen is not None and chosen.filters:
+        sources = [s for s in sources if s in chosen.filters] or sources
+    queries: list[QuerySpec] = []
     for source in sources or list(ALL_SOURCES):
         filters: dict[str, str] = {}
         if source == "archive" and len(media) == 1 and media[0] in ARCHIVE_MEDIATYPE:
             filters["mediatype"] = ARCHIVE_MEDIATYPE[media[0]]
+        if chosen is not None:
+            filters.update(chosen.filters.get(source, {}))
         queries.append(QuerySpec(source=source, q=q, filters=filters))
     return RouterPlan(
         kind=kind,

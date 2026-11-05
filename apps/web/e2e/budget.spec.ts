@@ -11,6 +11,8 @@ for (const path of [
   "/en/youtube",
   "/en/settings",
   "/en/connections",
+  "/en/sections",
+  "/en/sections/movies",
   "/en/archive",
   "/en/wayback",
   "/en/code",

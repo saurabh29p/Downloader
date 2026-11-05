@@ -63,8 +63,8 @@ def test_plans() -> None:
 
     film = plan("download taj mahal film")
     assert film.media == ["movie"] and film.intent == "download"
-    assert [q.source for q in film.queries] == ["archive", "videos"]
-    assert film.queries[0].q == "taj mahal" and film.queries[0].filters == {"mediatype": "movies"}
+    assert [q.source for q in film.queries] == ["tmdb", "archive", "videos"]
+    assert film.queries[1].q == "taj mahal" and film.queries[1].filters == {"mediatype": "movies"}
 
     books = plan("Godaan", section="books")
     assert books.media == ["book"] and books.queries[0].source == "books"
@@ -167,7 +167,7 @@ async def test_a_failing_or_slow_source_does_not_stop_the_rest(
     engine = Engine(net, settings, broken)
     film = plan("taj mahal film")
     statuses = {p.source: p.status async for p in engine.stream(film) if isinstance(p, SourceDone)}
-    assert statuses == {"archive": "timeout", "videos": "error"}
+    assert statuses == {"tmdb": "needs_key", "archive": "timeout", "videos": "error"}
 
 
 @pytest.fixture
