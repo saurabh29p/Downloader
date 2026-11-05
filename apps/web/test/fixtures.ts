@@ -16,6 +16,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     error_code: null,
     checksum_ok: null,
     connect: null,
+    connect_label: null,
     options: {},
     created_at: "2026-11-04T10:00:00Z",
     updated_at: "2026-11-04T10:00:01Z",

@@ -11,7 +11,8 @@
       "home": "Home",
       "downloads": "Downloads",
       "activeCount": "{count, plural, one {# active download} other {# active downloads}}",
-      "youtube": "YouTube"
+      "youtube": "YouTube",
+      "connections": "Connections"
     },
     "theme": {
       "label": "Theme",
@@ -239,7 +240,8 @@
     "goLibraries": "Libraries worldwide",
     "goLibrary": "Library",
     "goWatch": "Watches",
-    "goHelp": "Help"
+    "goHelp": "Help",
+    "goConnections": "Connections"
   },
   "Status": {
     "checking": "Checking the server…",
@@ -304,17 +306,6 @@
   "Settings": {
     "title": "Settings",
     "subtitle": "Saved on this computer. Changes apply to new downloads.",
-    "cookiesTitle": "Cookies for sites you are signed in to",
-    "cookiesHelp": "Export cookies.txt (Netscape format) from your own browser with a cookies extension, then upload it here. yt-dlp then sees what your account can see, such as age-checked videos.",
-    "cookiesLegal": "Use only your own account. The file stays on this computer, is readable only by AnyGet, and is never shown again.",
-    "cookiesPresent": "{count, plural, one {A cookies file with # cookie is saved} other {A cookies file with # cookies is saved}} ({date}).",
-    "cookiesNone": "No cookies file saved.",
-    "cookiesUpload": "Upload cookies.txt",
-    "cookiesReplace": "Replace cookies.txt",
-    "cookiesRemove": "Remove",
-    "cookiesSaved": "Cookies saved",
-    "cookiesRemoved": "Cookies removed",
-    "cookiesTooBig": "That file is too big (max 1 MB).",
     "retry": "Try again",
     "saved": "Settings saved",
     "save": "Save settings",
@@ -338,23 +329,6 @@
     "contactEmailHint": "Sent to archive.org and other APIs so they can reach you if something goes wrong.",
     "watchEnabled": "Run watches on schedule",
     "keys": "API keys",
-    "keysHint": "Free keys from each site. They are stored on this computer and never shown again.",
-    "keyNames": {
-      "github_token": "GitHub token",
-      "hf_token": "Hugging Face token",
-      "civitai_token": "Civitai token",
-      "kaggle_username": "Kaggle user name",
-      "kaggle_key": "Kaggle key",
-      "europeana_key": "Europeana key",
-      "dpla_key": "DPLA key",
-      "trove_key": "Trove key",
-      "digitalnz_key": "DigitalNZ key",
-      "bhl_key": "BHL key",
-      "ddb_key": "DDB key"
-    },
-    "keySet": "Set",
-    "keyNotSet": "Not set",
-    "clearKey": "Clear",
     "ytdlp": "yt-dlp",
     "checkUpdates": "Check for updates",
     "installed": "AnyGet is installed on this device.",
@@ -370,7 +344,9 @@
     "torrentsHint": "Off by default. Use only for files you may share (Linux images, public domain films, Creative Commons releases). Torrent peers are other people's computers, so this traffic is outside AnyGet's network guard.",
     "torrentsMissing": "Torrent support is not installed. Install it with:",
     "torrentsEnabled": "Allow magnet links and .torrent files",
-    "torrentsSeed": "Keep sharing after a download finishes"
+    "torrentsSeed": "Keep sharing after a download finishes",
+    "keysMoved": "API keys and cookies for your accounts are now in Connections.",
+    "openConnections": "Open Connections"
   },
   "Archive": {
     "title": "archive.org",
@@ -771,5 +747,58 @@
     "account": "Account",
     "signedInAs": "Signed in as",
     "signOut": "Sign out"
+  },
+  "Connections": {
+    "title": "Connections",
+    "subtitle": "Connect your own accounts and keys. AnyGet then downloads what you can see when signed in. It never gets around paywalls, DRM, members-only content or region blocks.",
+    "keyFile": "Saved connections are encrypted with a key kept in the data folder. For more safety, set ANYGET_SECRETS_KEY on the server (make one with anyget gen-key).",
+    "importTitle": "Add cookies from your browser",
+    "importHelp": "Export a cookies.txt file from your browser while you are signed in, then add it here. AnyGet keeps only the cookies of the sites below and encrypts them.",
+    "howTitle": "How to get a cookies.txt file",
+    "how1": "Install a cookies.txt exporter in your browser, such as “Get cookies.txt LOCALLY” (Chrome or Firefox).",
+    "how2": "Sign in to the site with your own account.",
+    "how3": "Open the extension on that site and export cookies.txt (Netscape format).",
+    "how4": "Add the file here. Don't share it: it works like your password.",
+    "importButton": "Add cookies.txt",
+    "imported": "Connected: {sites}",
+    "cookieSites": "Sites you sign in to",
+    "keySites": "API keys",
+    "keysHelp": "Free keys and tokens raise limits and unlock sources. They are saved encrypted and never shown again.",
+    "status": {
+      "connected": "Connected",
+      "expired": "Expired",
+      "server": "Set on the server",
+      "not_connected": "Not connected"
+    },
+    "connectedOn": "Connected on {date}",
+    "expiresOn": "expires {date}",
+    "viaProxy": "uses a proxy",
+    "uploadCookies": "Upload cookies.txt",
+    "replaceCookies": "Replace cookies",
+    "fields": {
+      "token": "Key or token",
+      "username": "Username",
+      "key": "Key"
+    },
+    "keepCurrent": "Saved — type to replace",
+    "saveKey": "Save",
+    "testButton": "Test",
+    "remove": "Remove",
+    "helpCookies": "How to export",
+    "helpKey": "Get a key",
+    "proxyTitle": "Proxy for this site",
+    "proxySave": "Save proxy",
+    "proxyClear": "Remove proxy",
+    "proxySaved": "Proxy saved.",
+    "saved": "{site} is connected.",
+    "removed": "{site} was removed.",
+    "retry": "Try again",
+    "test": {
+      "ok": "{site} works.",
+      "rejected": "{site} refused this key. Check it and save it again.",
+      "unreachable": "{site} could not be reached. Try again later.",
+      "expired": "These {site} cookies have expired. Export new ones.",
+      "untested": "Saved. {site} can't be tested from here."
+    }
   }
 }

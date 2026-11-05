@@ -1,4 +1,4 @@
-# ruff: noqa: S105, S106  (fake test secrets)
+# ruff: noqa: S105  (fake test secrets)
 """Connections (v2): cookies and keys per site, encrypted at rest, never returned."""
 
 import logging

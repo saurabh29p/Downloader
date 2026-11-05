@@ -11,7 +11,8 @@
       "home": "الرئيسية",
       "downloads": "التنزيلات",
       "activeCount": "{count, plural, zero {لا تنزيلات نشطة} one {تنزيل نشط واحد} two {تنزيلان نشطان} few {# تنزيلات نشطة} many {# تنزيلًا نشطًا} other {# تنزيل نشط}}",
-      "youtube": "يوتيوب"
+      "youtube": "يوتيوب",
+      "connections": "الاتصالات"
     },
     "theme": {
       "label": "المظهر",
@@ -239,7 +240,8 @@
     "goLibraries": "مكتبات العالم",
     "goLibrary": "المكتبة",
     "goWatch": "المتابعات",
-    "goHelp": "المساعدة"
+    "goHelp": "المساعدة",
+    "goConnections": "الاتصالات"
   },
   "Status": {
     "checking": "جارٍ فحص الخادم…",
@@ -304,17 +306,6 @@
   "Settings": {
     "title": "الإعدادات",
     "subtitle": "محفوظة على هذا الحاسوب. تُطبَّق التغييرات على التنزيلات الجديدة.",
-    "cookiesTitle": "ملفات تعريف الارتباط للمواقع التي سجّلت الدخول إليها",
-    "cookiesHelp": "صدّر ملف cookies.txt (بتنسيق Netscape) من متصفحك بإضافة لملفات تعريف الارتباط، ثم ارفعه هنا. عندها يرى yt-dlp ما يراه حسابك، مثل الفيديوهات التي تتطلب التحقق من العمر.",
-    "cookiesLegal": "استخدم حسابك فقط. يبقى الملف على هذا الحاسوب، ولا يقرؤه إلا AnyGet، ولا يُعرض مرة أخرى أبدًا.",
-    "cookiesPresent": "{count, plural, zero {حُفظ ملف بلا ملفات تعريف ارتباط} one {حُفظ ملف فيه ملف تعريف ارتباط واحد} two {حُفظ ملف فيه ملفا تعريف ارتباط} few {حُفظ ملف فيه # ملفات تعريف ارتباط} many {حُفظ ملف فيه # ملف تعريف ارتباط} other {حُفظ ملف فيه # ملف تعريف ارتباط}} ({date}).",
-    "cookiesNone": "لا يوجد ملف محفوظ.",
-    "cookiesUpload": "ارفع cookies.txt",
-    "cookiesReplace": "استبدل cookies.txt",
-    "cookiesRemove": "احذف",
-    "cookiesSaved": "حُفظت ملفات تعريف الارتباط",
-    "cookiesRemoved": "حُذفت ملفات تعريف الارتباط",
-    "cookiesTooBig": "الملف كبير جدًا (الحد الأقصى 1 ميغابايت).",
     "retry": "حاول مرة أخرى",
     "saved": "حُفظت الإعدادات",
     "save": "احفظ الإعدادات",
@@ -338,23 +329,6 @@
     "contactEmailHint": "يُرسل إلى archive.org وواجهات أخرى ليتمكنوا من التواصل معك إن حدث خطأ.",
     "watchEnabled": "شغّل المتابعات في مواعيدها",
     "keys": "مفاتيح API",
-    "keysHint": "مفاتيح مجانية من كل موقع. تُحفظ على هذا الحاسوب ولا تُعرض مجددًا.",
-    "keyNames": {
-      "github_token": "رمز GitHub",
-      "hf_token": "رمز Hugging Face",
-      "civitai_token": "رمز Civitai",
-      "kaggle_username": "اسم مستخدم Kaggle",
-      "kaggle_key": "مفتاح Kaggle",
-      "europeana_key": "مفتاح Europeana",
-      "dpla_key": "مفتاح DPLA",
-      "trove_key": "مفتاح Trove",
-      "digitalnz_key": "مفتاح DigitalNZ",
-      "bhl_key": "مفتاح BHL",
-      "ddb_key": "مفتاح DDB"
-    },
-    "keySet": "مضبوط",
-    "keyNotSet": "غير مضبوط",
-    "clearKey": "مسح",
     "ytdlp": "yt-dlp",
     "checkUpdates": "تحقق من التحديثات",
     "installed": "AnyGet مثبّت على هذا الجهاز.",
@@ -370,7 +344,9 @@
     "torrentsHint": "معطّل افتراضيًا. استخدمه فقط لملفات يحق لك مشاركتها (صور Linux، أفلام الملكية العامة، إصدارات Creative Commons). أقران التورنت حواسيب أشخاص آخرين، لذا تمر هذه الحركة خارج حارس الشبكة في AnyGet.",
     "torrentsMissing": "دعم التورنت غير مثبت. ثبّته بالأمر:",
     "torrentsEnabled": "اسمح بروابط magnet وملفات ‎.torrent",
-    "torrentsSeed": "واصل المشاركة بعد اكتمال التنزيل"
+    "torrentsSeed": "واصل المشاركة بعد اكتمال التنزيل",
+    "keysMoved": "أصبحت مفاتيح API وملفات تعريف الارتباط لحساباتك في الاتصالات.",
+    "openConnections": "افتح الاتصالات"
   },
   "Archive": {
     "title": "archive.org",
@@ -771,5 +747,58 @@
     "account": "الحساب",
     "signedInAs": "تم تسجيل الدخول باسم",
     "signOut": "تسجيل الخروج"
+  },
+  "Connections": {
+    "title": "الاتصالات",
+    "subtitle": "اربط حساباتك ومفاتيحك الخاصة. عندها ينزّل AnyGet ما يمكنك رؤيته عند تسجيل الدخول. لا يتجاوز أبدًا جدران الدفع أو DRM أو المحتوى الخاص بالأعضاء أو الحظر الإقليمي.",
+    "keyFile": "تُشفَّر الاتصالات المحفوظة بمفتاح موجود في مجلد البيانات. لمزيد من الأمان، اضبط ANYGET_SECRETS_KEY على الخادم (أنشئه بالأمر anyget gen-key).",
+    "importTitle": "أضف ملفات تعريف الارتباط من متصفحك",
+    "importHelp": "صدّر ملف cookies.txt من متصفحك وأنت مسجّل الدخول، ثم أضفه هنا. يحتفظ AnyGet فقط بملفات تعريف الارتباط للمواقع أدناه ويشفّرها.",
+    "howTitle": "كيف تحصل على ملف cookies.txt",
+    "how1": "ثبّت أداة لتصدير cookies.txt في متصفحك، مثل “Get cookies.txt LOCALLY” (Chrome أو Firefox).",
+    "how2": "سجّل الدخول إلى الموقع بحسابك الخاص.",
+    "how3": "افتح الإضافة على ذلك الموقع وصدّر cookies.txt (بتنسيق Netscape).",
+    "how4": "أضف الملف هنا. لا تشاركه: فهو يعمل مثل كلمة مرورك.",
+    "importButton": "أضف cookies.txt",
+    "imported": "تم الربط: {sites}",
+    "cookieSites": "المواقع التي تسجّل الدخول إليها",
+    "keySites": "مفاتيح API",
+    "keysHelp": "المفاتيح والرموز المجانية ترفع الحدود وتفتح مصادر أكثر. تُحفظ مشفّرة ولا تُعرض مرة أخرى.",
+    "status": {
+      "connected": "متصل",
+      "expired": "منتهي",
+      "server": "مضبوط على الخادم",
+      "not_connected": "غير متصل"
+    },
+    "connectedOn": "تم الربط في {date}",
+    "expiresOn": "ينتهي في {date}",
+    "viaProxy": "يستخدم وكيلًا",
+    "uploadCookies": "ارفع cookies.txt",
+    "replaceCookies": "استبدل ملفات تعريف الارتباط",
+    "fields": {
+      "token": "المفتاح أو الرمز",
+      "username": "اسم المستخدم",
+      "key": "المفتاح"
+    },
+    "keepCurrent": "محفوظ — اكتب للاستبدال",
+    "saveKey": "احفظ",
+    "testButton": "اختبر",
+    "remove": "أزل",
+    "helpCookies": "طريقة التصدير",
+    "helpKey": "احصل على مفتاح",
+    "proxyTitle": "وكيل لهذا الموقع",
+    "proxySave": "احفظ الوكيل",
+    "proxyClear": "أزل الوكيل",
+    "proxySaved": "تم حفظ الوكيل.",
+    "saved": "تم ربط {site}.",
+    "removed": "تمت إزالة {site}.",
+    "retry": "حاول مرة أخرى",
+    "test": {
+      "ok": "{site} يعمل.",
+      "rejected": "رفض {site} هذا المفتاح. تحقق منه واحفظه مرة أخرى.",
+      "unreachable": "تعذّر الوصول إلى {site}. حاول لاحقًا.",
+      "expired": "انتهت صلاحية ملفات تعريف الارتباط هذه لـ {site}. صدّر ملفات جديدة.",
+      "untested": "تم الحفظ. لا يمكن اختبار {site} من هنا."
+    }
   }
 }

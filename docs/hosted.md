@@ -26,6 +26,8 @@ Variables:
 | `ANYGET_OWNER_PASSWORD_HASH` | the `$argon2id$…` line from step 1, pasted as it is |
 | `ANYGET_SESSION_SECRET` | a long random string: `python3 -c "import secrets; print(secrets.token_urlsafe(48))"` |
 | `ANYGET_API_TOKEN` | optional: a long random string for the CLI and browser extension |
+| `ANYGET_SECRETS_KEY` | encrypts saved Connections: output of `uv run anyget gen-key`. Set it before connecting sites; connections saved with another key can't be read |
+| `TMDB_API_KEY`, `OPENROUTER_API_KEY` | optional: or add them on the Connections page |
 
 Keep the volume mounted at `/data`: the database and the thumbnails live there.
 Redeploy, then open `https://<your-railway-domain>/api/health`. It should answer with
