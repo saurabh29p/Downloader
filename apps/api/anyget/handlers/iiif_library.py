@@ -33,6 +33,7 @@ _LOC = re.compile(r"^/(?:item|resource)/([^/]+)")
 _NDL = re.compile(r"^/(?:info:ndljp/)?pid/(\d+)")
 _EUROPEANA = re.compile(r"/item/(\d+)/([^/?#]+)")
 _QDL = re.compile(r"^/[a-z]{2}/archive/([^/]+)/([^/?#]+)")
+_LOC_MANIFEST = re.compile(r"^https://www\.loc\.gov/item/([^/]+)/manifest\.json$")
 _EXT = {"image/jpeg": "jpg", "image/png": "png", "image/tiff": "tif", "image/jp2": "jp2"}
 
 
@@ -63,7 +64,8 @@ def manifest_url_for(url: str, settings: Settings | None = None) -> str | None:
     if host == "loc.gov" and (m := _LOC.match(path)):
         return f"https://www.loc.gov/item/{m.group(1)}/manifest.json"
     if host == "dl.ndl.go.jp" and (m := _NDL.match(path)):
-        return f"https://dl.ndl.go.jp/api/iiif/{m.group(1)}/manifest.json"
+        # NDL's IIIF interface document: https://www.dl.ndl.go.jp/api/iiif/<pid>/manifest.json
+        return f"https://www.dl.ndl.go.jp/api/iiif/{m.group(1)}/manifest.json"
     if host == "europeana.eu" and (m := _EUROPEANA.search(path)):
         key = settings.europeana_key if settings else ""
         suffix = f"?wskey={quote(key)}" if key else ""
@@ -152,6 +154,37 @@ def parse_manifest(data: dict[str, Any]) -> Manifest:
     )
 
 
+def parse_loc_item(data: dict[str, Any]) -> Manifest:
+    """Pages from a loc.gov item JSON (`?fo=json`): the largest JPEG of each page."""
+    item = data.get("item") or {}
+    if item.get("access_restricted") or data.get("access_restricted"):
+        return Manifest(
+            title=_label(item.get("title")) or "LoC item", pages=[], rights=None, attribution=None
+        )
+    pages: list[Page] = []
+    for resource in data.get("resources") or []:
+        for index, variants in enumerate(resource.get("files") or [], 1):
+            jpegs = [
+                v
+                for v in variants
+                if isinstance(v, dict) and v.get("mimetype") == "image/jpeg" and v.get("url")
+            ]
+            if not jpegs:
+                continue
+            best = max(jpegs, key=lambda v: int(v.get("width") or 0))
+            small = min(jpegs, key=lambda v: int(v.get("width") or 10**9))
+            pages.append(Page(str(index), str(best["url"]), str(small["url"]), "jpg"))
+        if pages:
+            break
+    rights = _label(item.get("rights_advisory")) or None
+    return Manifest(
+        title=_label(item.get("title")) or "LoC item",
+        pages=pages[:MAX_PAGES],
+        rights=rights,
+        attribution="Library of Congress",
+    )
+
+
 class IiifLibraryHandler:
     name = "iiif_library"
 
@@ -170,6 +203,10 @@ class IiifLibraryHandler:
         response = await self.net.request(
             "GET", manifest_url, headers={"Accept": "application/ld+json, application/json"}
         )
+        loc = _LOC_MANIFEST.match(manifest_url)
+        if loc and response.status_code in (403, 404):
+            # Some clients get 403 for LoC manifests; the item JSON lists the same pages.
+            return manifest_url, await self._loc_item(loc.group(1))
         if response.status_code == 404:
             raise HandlerError("not_found", "the library has no item like this")
         if response.status_code in (401, 403):
@@ -187,6 +224,19 @@ class IiifLibraryHandler:
         if not manifest.pages:
             raise HandlerError("not_found", "this item has no page images")
         return manifest_url, manifest
+
+    async def _loc_item(self, item_id: str) -> Manifest:
+        response = await self.net.request("GET", f"https://www.loc.gov/item/{item_id}/?fo=json")
+        if response.status_code == 404:
+            raise HandlerError("not_found", "the library has no item like this")
+        if response.status_code >= 400:
+            raise HandlerError("upstream", f"the library answered {response.status_code}")
+        manifest = parse_loc_item(response.json())
+        if not manifest.pages:
+            raise HandlerError(
+                "restricted", "this item is not published openly (read it on the library's site)"
+            )
+        return manifest
 
     async def probe(self, url: str, options: dict[str, Any] | None = None) -> Probe:
         manifest_url, manifest = await self._manifest(url)

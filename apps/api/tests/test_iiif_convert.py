@@ -70,10 +70,13 @@ def test_registry_covers_every_region() -> None:
             "https://www.loc.gov/item/2021667404/",
             "https://www.loc.gov/item/2021667404/manifest.json",
         ),
-        ("https://dl.ndl.go.jp/pid/2567680", "https://dl.ndl.go.jp/api/iiif/2567680/manifest.json"),
+        (
+            "https://dl.ndl.go.jp/pid/2567680",
+            "https://www.dl.ndl.go.jp/api/iiif/2567680/manifest.json",
+        ),
         (
             "https://dl.ndl.go.jp/info:ndljp/pid/2567680",
-            "https://dl.ndl.go.jp/api/iiif/2567680/manifest.json",
+            "https://www.dl.ndl.go.jp/api/iiif/2567680/manifest.json",
         ),
         (
             "https://www.europeana.eu/en/item/9200365/BibliographicResource_3000",
@@ -110,7 +113,7 @@ def test_parse_v2_and_v3() -> None:
 
 @respx.mock
 async def test_iiif_probe_download_and_pdf(net: Net, settings: Settings) -> None:
-    respx.get("https://dl.ndl.go.jp/api/iiif/2567680/manifest.json").mock(
+    respx.get("https://www.dl.ndl.go.jp/api/iiif/2567680/manifest.json").mock(
         return_value=httpx.Response(200, json=manifest("v3.json"))
     )
     for n, color in ((1, "red"), (2, "blue")):
@@ -342,3 +345,58 @@ def test_convert_api_needs_a_known_job(client: TestClient) -> None:
     assert response.status_code == 404
     bad = client.post("/api/convert", json={"job_id": "x", "to": "exe"})
     assert bad.status_code == 422
+
+
+@respx.mock
+async def test_loc_falls_back_to_item_json(net: Net, settings: Settings) -> None:
+    respx.get("https://www.loc.gov/item/16014724/manifest.json").mock(
+        return_value=httpx.Response(403)
+    )
+    respx.get("https://www.loc.gov/item/16014724/?fo=json").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "item": {"title": "Alice's adventures in Wonderland", "access_restricted": False},
+                "resources": [
+                    {
+                        "files": [
+                            [
+                                {
+                                    "mimetype": "image/jpeg",
+                                    "url": "https://tile.loc.gov/p1-150.jpg",
+                                    "width": 150,
+                                },
+                                {
+                                    "mimetype": "image/jpeg",
+                                    "url": "https://tile.loc.gov/p1-full.jpg",
+                                    "width": 2400,
+                                },
+                                {
+                                    "mimetype": "image/tiff",
+                                    "url": "https://tile.loc.gov/p1.tif",
+                                    "width": 2400,
+                                },
+                            ],
+                            [
+                                {
+                                    "mimetype": "image/jpeg",
+                                    "url": "https://tile.loc.gov/p2.jpg",
+                                    "width": 800,
+                                }
+                            ],
+                        ]
+                    }
+                ],
+            },
+        )
+    )
+    probe = await IiifLibraryHandler(net, settings).probe("https://www.loc.gov/item/16014724/")
+    assert probe.title == "Alice's adventures in Wonderland" and probe.extra["count"] == 2
+    assert probe.extra["items"][0]["url"] == "https://tile.loc.gov/p1-150.jpg"
+    respx.get("https://www.loc.gov/item/2/manifest.json").mock(return_value=httpx.Response(403))
+    respx.get("https://www.loc.gov/item/2/?fo=json").mock(
+        return_value=httpx.Response(200, json={"item": {"access_restricted": True}})
+    )
+    with pytest.raises(HandlerError) as info:
+        await IiifLibraryHandler(net, settings).probe("https://www.loc.gov/item/2/")
+    assert info.value.code == "restricted"
