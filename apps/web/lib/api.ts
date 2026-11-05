@@ -1,4 +1,4 @@
-import { createApiClient, type ApiErrorBody, type Job } from "@anyget/shared";
+import { createApiClient, type ApiErrorBody, type Job, type JobItem } from "@anyget/shared";
 
 /** Browser-side client. Same origin: Next.js rewrites /api/* to the FastAPI server. */
 export const api = createApiClient("");
@@ -23,7 +23,7 @@ function toApiError(error: unknown, response?: Response): ApiError {
   return new ApiError(response ? "http" : "network", "request failed", response?.status);
 }
 
-async function call<T>(
+export async function call<T>(
   promise: Promise<{ data?: T; error?: unknown; response: Response }>,
 ): Promise<T> {
   let result: { data?: T; error?: unknown; response: Response };
@@ -44,10 +44,15 @@ export async function getHealth() {
   return data;
 }
 
-export const probeUrl = (url: string) => call(api.POST("/api/probe", { body: { url } }));
+export const probeUrl = (url: string, options: Record<string, unknown> = {}) =>
+  call(api.POST("/api/probe", { body: { url, options } }));
 
 export const createJobs = (urls: string[], options: Record<string, unknown> = {}) =>
   call(api.POST("/api/jobs", { body: { urls, options } }));
+
+/** One job per item, each with its own options (playlist entries), plus shared options. */
+export const createJobItems = (items: JobItem[], options: Record<string, unknown> = {}) =>
+  call(api.POST("/api/jobs", { body: { items, options } }));
 
 export const listJobs = () => call(api.GET("/api/jobs", { params: { query: { limit: 500 } } }));
 

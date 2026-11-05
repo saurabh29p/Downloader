@@ -1,5 +1,4 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { Slot } from "radix-ui";
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/utils";
@@ -27,16 +26,18 @@ const buttonVariants = cva(
   },
 );
 
+/**
+ * For links styled as buttons, use `buttonVariants()` on the <a>/<Link> directly
+ * (no Radix Slot, to keep it off the first-load bundle).
+ */
 function Button({
   className,
   variant,
   size,
-  asChild = false,
   ...props
-}: ComponentProps<"button"> & VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot.Root : "button";
+}: ComponentProps<"button"> & VariantProps<typeof buttonVariants>) {
   return (
-    <Comp
+    <button
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}

@@ -6,8 +6,8 @@ set -eu
 if [ "$(id -u)" = "0" ]; then
   PUID="${PUID:-1000}"
   PGID="${PGID:-1000}"
-  groupmod -o -g "$PGID" anyget
-  usermod -o -u "$PUID" anyget
+  [ "$(id -g anyget)" = "$PGID" ] || groupmod -o -g "$PGID" anyget
+  [ "$(id -u anyget)" = "$PUID" ] || usermod -o -u "$PUID" anyget
   for dir in "$ANYGET_DATA_DIR" "$ANYGET_DOWNLOADS_DIR"; do
     mkdir -p "$dir"
     chown "$PUID:$PGID" "$dir"

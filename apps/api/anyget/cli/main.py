@@ -3,7 +3,7 @@
 import asyncio
 import contextlib
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import httpx
 import typer
@@ -20,6 +20,7 @@ from rich.progress import (
 from rich.table import Table
 
 from anyget import __version__
+from anyget.core.filenames import sanitize_filename
 from anyget.core.jobs import ACTIVE_STATES, FINISHED_STATES, JobState
 from anyget.core.net import BlockedURLError
 from anyget.core.router import normalize
@@ -63,7 +64,39 @@ def _read_urls(urls: list[str], input_file: Path | None) -> list[str]:
     return collected
 
 
-async def _get(urls: list[str]) -> int:
+async def _plan(
+    services: Services, url: str, options: dict[str, Any]
+) -> list[tuple[str, dict[str, Any]]]:
+    """One job per link; playlists and channels expand into one job per video."""
+    _, handler = await services.router.resolve(url)
+    if handler.name != "ytdlp":
+        return [(url, options)]
+    probe = await handler.probe(url)
+    extra = probe.extra
+    if extra.get("kind") not in ("playlist", "channel"):
+        return [(url, options)]
+    folder = sanitize_filename(probe.title, fallback=str(extra.get("id") or "playlist"))
+    console.print(f"[cyan]≡[/cyan] {probe.title}: {len(extra['entries'])} items")
+    items = []
+    for entry in extra["entries"]:
+        if entry.get("saved") or entry.get("live"):
+            continue
+        items.append(
+            (
+                entry["url"],
+                {
+                    **options,
+                    "folder": folder,
+                    "index": entry["index"],
+                    "archive": extra["archive"],
+                    "archive_id": entry["archive_id"],
+                },
+            )
+        )
+    return items
+
+
+async def _get(urls: list[str], options: dict[str, Any]) -> int:
     services = Services.build(get_settings())
     await services.start(recover=False)  # leave other processes' jobs alone
     events = services.bus.subscribe()
@@ -78,16 +111,23 @@ async def _get(urls: list[str]) -> int:
                 console.print(f"[red]✗[/red] {raw}: {exc}")
                 failures += 1
                 continue
-            existing = services.store.find_resumable(url)
-            if existing is not None:
-                console.print(f"[cyan]↻[/cyan] resuming {url}")
-                if existing.state == JobState.queued:
-                    services.queue.schedule(existing.id)
+            try:
+                planned = await _plan(services, url, options)
+            except (HandlerError, BlockedURLError) as exc:
+                console.print(f"[red]✗[/red] {raw}: {exc}")
+                failures += 1
+                continue
+            for item_url, item_options in planned:
+                existing = services.store.find_resumable(item_url)
+                if existing is not None:
+                    console.print(f"[cyan]↻[/cyan] resuming {item_url}")
+                    if existing.state == JobState.queued:
+                        services.queue.schedule(existing.id)
+                    else:
+                        services.queue.resume(existing.id)
+                    job_ids.append(existing.id)
                 else:
-                    services.queue.resume(existing.id)
-                job_ids.append(existing.id)
-            else:
-                job_ids.append(services.queue.submit(url).id)
+                    job_ids.append(services.queue.submit(item_url, item_options).id)
 
         if not job_ids:
             return 1
@@ -147,6 +187,13 @@ def get(
     input_file: Annotated[
         Path | None, typer.Option("--input", "-i", help="Text file with one link per line")
     ] = None,
+    quality: Annotated[
+        str | None,
+        typer.Option("--quality", "-q", help="Video: best, 2160, 1440, 1080, 720, 480 or 360"),
+    ] = None,
+    audio: Annotated[
+        str | None, typer.Option("--audio", "-x", help="Audio only: mp3, m4a or opus")
+    ] = None,
 ) -> None:
     """Download one or more links into the downloads folder."""
     all_urls = _read_urls(urls or [], input_file)
@@ -154,7 +201,12 @@ def get(
         console.print("[red]Give at least one link (or -i list.txt).[/red]")
         raise typer.Exit(code=2)
     try:
-        code = asyncio.run(_get(all_urls))
+        options: dict[str, Any] = {}
+        if audio:
+            options.update(preset="audio", audio_format=audio)
+        elif quality:
+            options["preset"] = quality
+        code = asyncio.run(_get(all_urls, options))
     except KeyboardInterrupt:
         raise typer.Exit(code=130) from None
     raise typer.Exit(code=code)

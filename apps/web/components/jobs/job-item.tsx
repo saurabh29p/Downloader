@@ -25,6 +25,31 @@ const STATE_VARIANT: Record<Job["state"], BadgeVariant> = {
   canceled: "outline",
 };
 
+const NOTES: ReadonlySet<string> = new Set<Note>([
+  "merging",
+  "extracting_audio",
+  "remuxing",
+  "embedding_subtitles",
+  "converting_subtitles",
+  "adding_metadata",
+  "embedding_thumbnail",
+  "converting_thumbnail",
+  "already_downloaded",
+  "outside_date_range",
+]);
+
+type Note =
+  | "merging"
+  | "extracting_audio"
+  | "remuxing"
+  | "embedding_subtitles"
+  | "converting_subtitles"
+  | "adding_metadata"
+  | "embedding_thumbnail"
+  | "converting_thumbnail"
+  | "already_downloaded"
+  | "outside_date_range";
+
 /** One job as a list item: name, state, details, progress and errors. `actions` sit at the end. */
 export function JobItem({ job, actions }: { job: Job; actions?: ReactNode }) {
   const t = useTranslations("Jobs");
@@ -55,6 +80,7 @@ export function JobItem({ job, actions }: { job: Job; actions?: ReactNode }) {
     job.state === "downloading" && eta != null
       ? t("eta", { time: isolate(formatDuration(eta)) })
       : null,
+    job.note && NOTES.has(job.note) ? t(`notes.${job.note as Note}`) : null,
   ].filter(Boolean);
 
   return (

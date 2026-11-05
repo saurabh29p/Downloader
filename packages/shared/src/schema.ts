@@ -193,6 +193,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings/cookies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Cookies */
+        get: operations["getCookiesStatus"];
+        /** Put Cookies */
+        put: operations["putCookies"];
+        post?: never;
+        /** Delete Cookies */
+        delete: operations["deleteCookies"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/version": {
         parameters: {
             query?: never;
@@ -245,14 +264,33 @@ export interface components {
             /** Size */
             size?: number | null;
         };
-        /** CreateJobs */
+        /** CookiesStatus */
+        CookiesStatus: {
+            /** Lines */
+            lines?: number | null;
+            /** Present */
+            present: boolean;
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /** CookiesUpload */
+        CookiesUpload: {
+            /** Content */
+            content: string;
+        };
+        /**
+         * CreateJobs
+         * @description Either `urls` (all share `options`) or `items` (each has its own), or both.
+         */
         CreateJobs: {
+            /** Items */
+            items?: components["schemas"]["JobItem"][];
             /** Options */
             options?: {
                 [key: string]: unknown;
             };
             /** Urls */
-            urls: string[];
+            urls?: string[];
         };
         /** CreateJobsResult */
         CreateJobsResult: {
@@ -260,6 +298,8 @@ export interface components {
             jobs: components["schemas"]["JobOut"][];
             /** Rejected */
             rejected: components["schemas"]["RejectedUrl"][];
+            /** Skipped */
+            skipped?: components["schemas"]["RejectedUrl"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -268,11 +308,24 @@ export interface components {
         };
         /** Health */
         Health: {
+            components: components["schemas"]["ToolVersions"];
             /**
              * Status
              * @constant
              */
             status: "ok";
+        };
+        /**
+         * JobItem
+         * @description One link with its own options (e.g. a playlist entry with its index).
+         */
+        JobItem: {
+            /** Options */
+            options?: {
+                [key: string]: unknown;
+            };
+            /** Url */
+            url: string;
         };
         /**
          * JobOut
@@ -294,12 +347,16 @@ export interface components {
             error_code: string | null;
             /** Filename */
             filename: string | null;
+            /** Files */
+            files?: string[] | null;
             /** Finished At */
             finished_at: string | null;
             /** Handler */
             handler: string | null;
             /** Id */
             id: string;
+            /** Note */
+            note?: string | null;
             /** Options */
             options: {
                 [key: string]: unknown;
@@ -328,6 +385,10 @@ export interface components {
         JobState: "queued" | "probing" | "downloading" | "paused" | "done" | "failed" | "canceled";
         /** ProbeRequest */
         ProbeRequest: {
+            /** Options */
+            options?: {
+                [key: string]: unknown;
+            };
             /** Url */
             url: string;
         };
@@ -360,6 +421,17 @@ export interface components {
             message: string;
             /** Url */
             url: string;
+        };
+        /** ToolVersions */
+        ToolVersions: {
+            /** Deno */
+            deno: string | null;
+            /** Ffmpeg */
+            ffmpeg: string | null;
+            /** Yt Dlp */
+            yt_dlp: string | null;
+            /** Yt Dlp Ejs */
+            yt_dlp_ejs: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1097,6 +1169,113 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiError"];
                 };
+            };
+        };
+    };
+    getCookiesStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CookiesStatus"];
+                };
+            };
+        };
+    };
+    putCookies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CookiesUpload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CookiesStatus"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    deleteCookies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

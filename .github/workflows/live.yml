@@ -1,0 +1,37 @@
+name: Live tests
+
+# Manual: real downloads from YouTube and Vimeo (Creative Commons / test media).
+# Not a required check: sites sometimes rate-limit or bot-check CI runners.
+# Run it from Actions → Live tests, or add the "live-tests" label to a pull request
+# (manual runs need this file on the default branch; the label works before merging).
+on:
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      playlist:
+        description: "Playlist or channel URL for the 3-item test (optional)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: yt-dlp live (Docker, ffmpeg + Deno)
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'live-tests'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build the test image
+        run: docker compose --profile test build api-test
+      - name: Tool versions
+        run: docker compose --profile test run --rm api-test sh -c 'yt-dlp --version; deno --version | head -1; ffmpeg -version | head -1'
+      - name: Live tests
+        env:
+          ANYGET_LIVE_PLAYLIST: ${{ inputs.playlist }}
+          # Optional: a cookies.txt from your own account (YouTube bot checks, Vimeo sign-in).
+          ANYGET_LIVE_COOKIES: ${{ secrets.ANYGET_LIVE_COOKIES }}
+        run: docker compose --profile test run --rm api-test

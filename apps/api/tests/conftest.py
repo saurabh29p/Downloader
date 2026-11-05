@@ -20,16 +20,22 @@ class FakeDNS:
     def set(self, host: str, *ips: str) -> None:
         self.records[host] = list(ips)
 
-    async def resolve(self, host: str, port: int) -> list[str]:
+    def resolve_sync(self, host: str, port: int) -> list[str]:
         self.calls.append(host)
         record = self.records.get(host, [PUBLIC_IP])
         return record() if callable(record) else list(record)
 
+    async def resolve(self, host: str, port: int) -> list[str]:
+        return self.resolve_sync(host, port)
+
 
 @pytest.fixture(autouse=True)
-def fake_dns(monkeypatch: pytest.MonkeyPatch) -> FakeDNS:
+def fake_dns(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> FakeDNS:
     dns = FakeDNS()
+    if request.node.get_closest_marker("live"):
+        return dns  # live tests use real DNS
     monkeypatch.setattr(net, "resolve_host", dns.resolve)
+    monkeypatch.setattr(net, "resolve_host_sync", dns.resolve_sync)
     return dns
 
 

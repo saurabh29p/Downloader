@@ -3,6 +3,7 @@
 import type { ProbeResult } from "@anyget/shared";
 import { DownloadIcon, Loader2Icon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,11 +19,16 @@ import {
 import { formatBytes, isolate } from "@/lib/format";
 import { hostOf } from "@/lib/links";
 
+// Media links (YouTube, Vimeo…) get the format picker, loaded only when needed.
+const MediaPreview = dynamic(() =>
+  import("@/components/preview/media-preview").then((m) => m.MediaPreview),
+);
+
 type Props = {
   probe: ProbeResult | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onDownload: () => void;
+  onDownload: (options?: Record<string, unknown>) => void;
   pending: boolean;
 };
 
@@ -36,7 +42,13 @@ export function PreviewSheet({ probe, open, onOpenChange, onDownload, pending }:
     checksums?: Record<string, string>;
   };
   const checksums = Object.keys(extra.checksums ?? {});
-  const handlerLabel = probe.handler === "http" ? t("handlers.http") : probe.handler;
+  const isMedia = probe.handler === "ytdlp";
+  const handlerLabel =
+    probe.handler === "http"
+      ? t("handlers.http")
+      : isMedia
+        ? String((probe.extra as { extractor?: string }).extractor ?? t("handlers.media"))
+        : probe.handler;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -47,42 +59,48 @@ export function PreviewSheet({ probe, open, onOpenChange, onDownload, pending }:
           <SheetDescription>{hostOf(probe.normalized_url)}</SheetDescription>
         </SheetHeader>
 
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 text-sm">
-          <dt className="text-muted-foreground">{t("size")}</dt>
-          <dd className="tabular-nums">
-            {probe.size ? isolate(formatBytes(probe.size, locale)) : t("unknown")}
-          </dd>
-          <dt className="text-muted-foreground">{t("type")}</dt>
-          <dd dir="ltr" className="text-start">
-            {extra.content_type || t("unknown")}
-          </dd>
-          <dt className="text-muted-foreground">{t("resumable")}</dt>
-          <dd>{extra.resumable ? t("yes") : t("no")}</dd>
-          {checksums.length > 0 && (
-            <>
-              <dt className="text-muted-foreground">{t("checksum")}</dt>
-              <dd>{t("checksumWillVerify", { algos: checksums.join(", ").toUpperCase() })}</dd>
-            </>
-          )}
-          <dt className="text-muted-foreground">{t("source")}</dt>
-          <dd dir="ltr" className="text-start break-all">
-            {probe.normalized_url}
-          </dd>
-        </dl>
+        {isMedia ? (
+          <MediaPreview probe={probe} onDownload={onDownload} pending={pending} />
+        ) : (
+          <>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 text-sm">
+              <dt className="text-muted-foreground">{t("size")}</dt>
+              <dd className="tabular-nums">
+                {probe.size ? isolate(formatBytes(probe.size, locale)) : t("unknown")}
+              </dd>
+              <dt className="text-muted-foreground">{t("type")}</dt>
+              <dd dir="ltr" className="text-start">
+                {extra.content_type || t("unknown")}
+              </dd>
+              <dt className="text-muted-foreground">{t("resumable")}</dt>
+              <dd>{extra.resumable ? t("yes") : t("no")}</dd>
+              {checksums.length > 0 && (
+                <>
+                  <dt className="text-muted-foreground">{t("checksum")}</dt>
+                  <dd>{t("checksumWillVerify", { algos: checksums.join(", ").toUpperCase() })}</dd>
+                </>
+              )}
+              <dt className="text-muted-foreground">{t("source")}</dt>
+              <dd dir="ltr" className="text-start break-all">
+                {probe.normalized_url}
+              </dd>
+            </dl>
 
-        <SheetFooter>
-          <SheetClose asChild>
-            <Button variant="outline">{t("cancel")}</Button>
-          </SheetClose>
-          <Button onClick={onDownload} disabled={pending} autoFocus>
-            {pending ? (
-              <Loader2Icon className="animate-spin" aria-hidden="true" />
-            ) : (
-              <DownloadIcon aria-hidden="true" />
-            )}
-            {t("download")}
-          </Button>
-        </SheetFooter>
+            <SheetFooter>
+              <SheetClose asChild>
+                <Button variant="outline">{t("cancel")}</Button>
+              </SheetClose>
+              <Button onClick={() => onDownload()} disabled={pending} autoFocus>
+                {pending ? (
+                  <Loader2Icon className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <DownloadIcon aria-hidden="true" />
+                )}
+                {t("download")}
+              </Button>
+            </SheetFooter>
+          </>
+        )}
       </SheetContent>
     </Sheet>
   );

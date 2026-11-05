@@ -10,7 +10,7 @@ class DummyHandler:
     def can_handle(self, url: str) -> bool:
         return url.startswith("dummy:")
 
-    async def probe(self, url: str) -> Probe:
+    async def probe(self, url: str, options: dict[str, Any] | None = None) -> Probe:
         return Probe(url=url, handler=self.name, title="Dummy")
 
     async def download(

@@ -13,7 +13,7 @@ import {
 import { useTranslations } from "next-intl";
 
 import { JobItem } from "@/components/jobs/job-item";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { deleteJob, fileUrl, jobAction, type JobAction } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 import { applyJobEvent, isActive, jobName } from "@/lib/jobs";
@@ -64,12 +64,15 @@ export function JobRow({ job }: { job: Job }) {
       actions={
         <>
           {job.state === "done" && (
-            <Button asChild variant="outline" size="sm">
-              <a href={fileUrl(job.id)} download aria-label={`${t("actions.save")}: ${name}`}>
-                <DownloadIcon aria-hidden="true" />
-                <span className="hidden sm:inline">{t("actions.save")}</span>
-              </a>
-            </Button>
+            <a
+              href={fileUrl(job.id)}
+              download
+              aria-label={`${t("actions.save")}: ${name}`}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <DownloadIcon aria-hidden="true" />
+              <span className="hidden sm:inline">{t("actions.save")}</span>
+            </a>
           )}
           {isActive(job) && iconButton("pause", t("actions.pause"), PauseIcon)}
           {job.state === "paused" && iconButton("resume", t("actions.resume"), PlayIcon)}

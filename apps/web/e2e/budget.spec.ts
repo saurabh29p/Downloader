@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 // CLAUDE.md budget: first-load JS under 170 KB gzip.
 const BUDGET_KB = 170;
 
-for (const path of ["/en", "/en/downloads"]) {
+for (const path of ["/en", "/en/downloads", "/en/youtube", "/en/settings"]) {
   test(`first-load JS on ${path} stays under ${BUDGET_KB} KB gzip`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "measured once");
     const sizes = new Map<string, number>();

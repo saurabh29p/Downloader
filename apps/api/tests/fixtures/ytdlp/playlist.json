@@ -1,0 +1,72 @@
+{
+ "_type": "playlist",
+ "id": "PLexample123",
+ "title": "Open Movies",
+ "extractor_key": "YoutubeTab",
+ "extractor": "youtube:tab",
+ "webpage_url": "https://www.youtube.com/playlist?list=PLexample123",
+ "uploader": "Blender",
+ "playlist_count": 3,
+ "entries": [
+  {
+   "_type": "url",
+   "ie_key": "Youtube",
+   "id": "aqz-KE-bpKQ",
+   "url": "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+   "title": "Big Buck Bunny",
+   "duration": 635,
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/aqz-KE-bpKQ/default.jpg",
+     "width": 120,
+     "height": 90
+    },
+    {
+     "url": "https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg",
+     "width": 480,
+     "height": 360
+    }
+   ]
+  },
+  {
+   "_type": "url",
+   "ie_key": "Youtube",
+   "id": "eRsGyueVLvQ",
+   "url": "https://www.youtube.com/watch?v=eRsGyueVLvQ",
+   "title": "Sintel",
+   "duration": 888,
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/eRsGyueVLvQ/default.jpg",
+     "width": 120,
+     "height": 90
+    },
+    {
+     "url": "https://i.ytimg.com/vi/eRsGyueVLvQ/hqdefault.jpg",
+     "width": 480,
+     "height": 360
+    }
+   ]
+  },
+  {
+   "_type": "url",
+   "ie_key": "Youtube",
+   "id": "R6MlUcmOul8",
+   "url": "https://www.youtube.com/watch?v=R6MlUcmOul8",
+   "title": "Tears of Steel",
+   "duration": 734,
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/R6MlUcmOul8/default.jpg",
+     "width": 120,
+     "height": 90
+    },
+    {
+     "url": "https://i.ytimg.com/vi/R6MlUcmOul8/hqdefault.jpg",
+     "width": 480,
+     "height": 360
+    }
+   ]
+  }
+ ]
+}

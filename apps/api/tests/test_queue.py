@@ -34,7 +34,7 @@ class GateHandler:
     def can_handle(self, url: str) -> bool:
         return "gate.test" in url
 
-    async def probe(self, url: str) -> Probe:
+    async def probe(self, url: str, options: dict[str, Any] | None = None) -> Probe:
         return Probe(url=url, handler=self.name, title=f"title of {url}", size=3)
 
     async def download(

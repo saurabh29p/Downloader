@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const base = process.argv[2] ?? "http://127.0.0.1:3000";
-const pages = ["/en", "/en/downloads", "/ar"];
+const pages = ["/en", "/en/downloads", "/en/youtube", "/ar/youtube", "/en/settings"];
 const budgets = { performance: 0.9, accessibility: 1, "best-practices": 0.9 };
 const out = mkdtempSync(join(tmpdir(), "anyget-lh-"));
 let failed = false;

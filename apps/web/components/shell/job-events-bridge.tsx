@@ -27,6 +27,8 @@ export function JobEventsBridge({ children }: { children: ReactNode }) {
     let retry: ReturnType<typeof setTimeout> | undefined;
     let attempts = 0;
     let closed = false;
+    let finished: string[] = [];
+    let flush: ReturnType<typeof setTimeout> | undefined;
 
     const handle = (type: JobEvent["type"]) => (message: MessageEvent<string>) => {
       const job = JSON.parse(message.data) as Job;
@@ -35,7 +37,19 @@ export function JobEventsBridge({ children }: { children: ReactNode }) {
         applyJobEvent(jobs, { type, job } as JobEvent),
       );
       if (type === "job.updated" && previous && previous.state !== job.state) {
-        if (job.state === "done") toast.success(t("finished", { name: jobName(job) }));
+        if (job.state === "done") {
+          // Group completions that land close together (a batch) into one toast.
+          finished.push(jobName(job));
+          clearTimeout(flush);
+          flush = setTimeout(() => {
+            toast.success(
+              finished.length === 1
+                ? t("finished", { name: finished[0]! })
+                : t("finishedMany", { count: finished.length }),
+            );
+            finished = [];
+          }, 800);
+        }
         if (job.state === "failed") toast.error(t("failedToast", { name: jobName(job) }));
       }
     };
@@ -68,6 +82,7 @@ export function JobEventsBridge({ children }: { children: ReactNode }) {
     return () => {
       closed = true;
       clearTimeout(retry);
+      clearTimeout(flush);
       source?.close();
     };
   }, [queryClient, t]);

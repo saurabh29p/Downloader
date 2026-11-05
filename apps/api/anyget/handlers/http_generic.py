@@ -94,7 +94,7 @@ class HttpGenericHandler:
     def can_handle(self, url: str) -> bool:
         return urlsplit(url).scheme in ("http", "https")
 
-    async def probe(self, url: str) -> Probe:
+    async def probe(self, url: str, options: dict[str, Any] | None = None) -> Probe:
         response = await self.net.request("HEAD", url)
         if response.status_code in (403, 405, 501) or response.status_code >= 500:
             # Some servers refuse HEAD; ask for the first byte instead.

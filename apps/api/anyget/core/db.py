@@ -30,6 +30,24 @@ class Database:
         from anyget.core import jobs  # noqa: F401  (register tables)
 
         SQLModel.metadata.create_all(self.engine)
+        self._add_missing_columns()
+
+    def _add_missing_columns(self) -> None:
+        """Tiny additive migration: new nullable columns on existing tables."""
+        with self.engine.begin() as conn:
+            for table in SQLModel.metadata.sorted_tables:
+                existing = {
+                    row[1] for row in conn.exec_driver_sql(f'PRAGMA table_info("{table.name}")')
+                }
+                for column in table.columns:
+                    if column.name in existing:
+                        continue
+                    if not column.nullable:  # pragma: no cover - only nullable additions
+                        raise RuntimeError(f"cannot add NOT NULL column {table.name}.{column.name}")
+                    col_type = column.type.compile(dialect=self.engine.dialect)
+                    conn.exec_driver_sql(
+                        f'ALTER TABLE "{table.name}" ADD COLUMN "{column.name}" {col_type}'
+                    )
 
     @contextmanager
     def session(self) -> Iterator[Session]:

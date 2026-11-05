@@ -1,0 +1,27 @@
+{
+ "_type": "playlist",
+ "id": "UCSMOQeBJ2RAnuFungnQOxLg",
+ "title": "Blender",
+ "extractor_key": "YoutubeTab",
+ "webpage_url": "https://www.youtube.com/@BlenderStudio",
+ "entries": [
+  {
+   "_type": "url",
+   "ie_key": "YoutubeTab",
+   "url": "https://www.youtube.com/@BlenderStudio/videos",
+   "title": "Blender - Videos"
+  },
+  {
+   "_type": "url",
+   "ie_key": "YoutubeTab",
+   "url": "https://www.youtube.com/@BlenderStudio/shorts",
+   "title": "Blender - Shorts"
+  },
+  {
+   "_type": "url",
+   "ie_key": "YoutubeTab",
+   "url": "https://www.youtube.com/@BlenderStudio/streams",
+   "title": "Blender - Streams"
+  }
+ ]
+}

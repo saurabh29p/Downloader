@@ -38,3 +38,14 @@ EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=5 \
     CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=2)"]
 CMD ["uvicorn", "anyget.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+
+# ---- test image: production image + dev tools + tests (used by `make live`) ----
+FROM base AS test
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen
+COPY tests ./tests
+ENV PYTEST_ADDOPTS="-p no:cacheprovider"
+HEALTHCHECK NONE
+CMD ["pytest", "-m", "live", "tests/live", "-v", "-rA"]
+
+# ---- production image (default target) ----
+FROM base AS runtime

@@ -1,7 +1,15 @@
 "use client";
 
 import { Command } from "cmdk";
-import { DownloadIcon, HomeIcon, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
+import {
+  ClapperboardIcon,
+  DownloadIcon,
+  HomeIcon,
+  MonitorIcon,
+  MoonIcon,
+  SettingsIcon,
+  SunIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
@@ -47,9 +55,17 @@ export default function CommandDialog({
             <HomeIcon aria-hidden="true" />
             {t("goHome")}
           </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/youtube"))}>
+            <ClapperboardIcon aria-hidden="true" />
+            {t("goYoutube")}
+          </Command.Item>
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/downloads"))}>
             <DownloadIcon aria-hidden="true" />
             {t("goDownloads")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/settings"))}>
+            <SettingsIcon aria-hidden="true" />
+            {t("goSettings")}
           </Command.Item>
         </Command.Group>
         <Command.Group heading={t("theme")} className={groupClass}>

@@ -15,6 +15,9 @@ export type ProbeResult = components["schemas"]["ProbeResult"];
 export type CreateJobsResult = components["schemas"]["CreateJobsResult"];
 export type RejectedUrl = components["schemas"]["RejectedUrl"];
 export type ApiErrorBody = components["schemas"]["ApiError"];
+export type JobItem = components["schemas"]["JobItem"];
+export type CookiesStatus = components["schemas"]["CookiesStatus"];
+export type ToolVersions = components["schemas"]["ToolVersions"];
 
 export function createApiClient(baseUrl = "", init?: { fetch?: typeof fetch }) {
   return createClient<paths>({ baseUrl, ...init });

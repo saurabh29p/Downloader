@@ -13,6 +13,8 @@ router = APIRouter(tags=["probe"])
 
 class ProbeRequest(BaseModel):
     url: str = Field(min_length=1, max_length=8192)
+    # Handler-specific, e.g. {"tab": "shorts", "max_entries": 50} for channels.
+    options: dict[str, Any] = Field(default_factory=dict)
 
 
 class ProbeResult(BaseModel):
@@ -29,7 +31,7 @@ class ProbeResult(BaseModel):
 @router.post("/probe", operation_id="probeUrl", responses=ERROR_RESPONSES)
 async def probe(body: ProbeRequest, services: ServicesDep) -> ProbeResult:
     normalized, handler = await services.router.resolve(body.url)
-    result = await handler.probe(normalized)
+    result = await handler.probe(normalized, body.options or None)
     return ProbeResult(
         url=body.url,
         normalized_url=normalized,

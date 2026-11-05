@@ -49,6 +49,10 @@ class Job(SQLModel, table=True):
     error: str | None = None
     error_code: str | None = None
     checksum_ok: bool | None = None
+    # Short status detail, e.g. "merging", "already_downloaded" (a code the UI translates).
+    note: str | None = None
+    # Extra files next to the main one (subtitles, info.json), relative to downloads.
+    files: list[str] | None = Field(default=None, sa_column=Column(JSON, nullable=True))
     options: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=_now, index=True)
     updated_at: datetime = Field(default_factory=_now)
@@ -147,6 +151,8 @@ class JobOut(BaseModel):
     error: str | None
     error_code: str | None
     checksum_ok: bool | None
+    note: str | None = None
+    files: list[str] | None = None
     options: dict[str, Any]
     created_at: datetime
     updated_at: datetime

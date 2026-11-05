@@ -12,6 +12,9 @@ dependencies = [
     "httpx>=0.28",
     "typer>=0.27",
     "rich>=15",
+    # Video/audio sites. The [default] extra pulls yt-dlp-ejs (YouTube challenge
+    # solver run by Deno). Update with: uv lock --upgrade-package yt-dlp
+    "yt-dlp[default]==2026.10.26",
 ]
 
 [project.scripts]
@@ -48,6 +51,10 @@ ignore = []
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["yt_dlp", "yt_dlp.*", "urllib3", "urllib3.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

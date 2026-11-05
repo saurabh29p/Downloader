@@ -10,11 +10,13 @@ from anyget.core.queue import DownloadQueue
 from anyget.core.router import Router
 from anyget.core.settings import Settings
 from anyget.handlers.http_generic import HttpGenericHandler
-from anyget.handlers.registry import PRIORITY_FALLBACK, Registry
+from anyget.handlers.registry import PRIORITY_FALLBACK, PRIORITY_YTDLP, Registry
+from anyget.handlers.ytdlp import YtDlpHandler
 
 
-def build_registry(net: Net) -> Registry:
+def build_registry(net: Net, settings: Settings) -> Registry:
     registry = Registry()
+    registry.register(YtDlpHandler(settings), PRIORITY_YTDLP)
     registry.register(HttpGenericHandler(net), PRIORITY_FALLBACK)
     return registry
 
@@ -38,7 +40,7 @@ class Services:
         store = JobStore(db)
         bus = EventBus()
         net = net or Net(settings)
-        registry = build_registry(net)
+        registry = build_registry(net, settings)
         router = Router(registry, net)
         queue = DownloadQueue(settings, store, bus, router)
         return cls(settings, db, store, bus, net, registry, router, queue)

@@ -9,7 +9,11 @@ client = TestClient(create_app())
 def test_health() -> None:
     response = client.get("/api/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    body = response.json()
+    assert body["status"] == "ok"
+    assert set(body["components"]) == {"yt_dlp", "yt_dlp_ejs", "deno", "ffmpeg"}
+    assert body["components"]["yt_dlp"] == "2026.10.26"
+    assert body["components"]["yt_dlp_ejs"]
 
 
 def test_version() -> None:
