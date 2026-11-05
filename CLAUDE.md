@@ -23,7 +23,7 @@ v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-u
 - [x] v2 Phase 2 — Connections (encrypted cookies/keys per site)
 - [x] v2 Phase 3 — universal search engine
 - [x] v2 Phase 4 — Sections (Movies, Books, Music, Video, Declassified, More)
-- [ ] v2 Phase 5 — OpenRouter brain (optional)
+- [x] v2 Phase 5 — OpenRouter brain (optional)
 - [ ] v2 Phase 6 — "The Reading Room" UI
 - [ ] v2 Phase 7 — polish and ship
 
@@ -254,6 +254,12 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Ctrl+K's "Search for …" item is last so Enter still picks a matching page first.
 - Sections live in `universal/sections.py` (sources, `Preset`s with per-source filters such as an archive.org `collection`, and `SiteLink`s with a `{q}` placeholder for official sites without an open API). `keyword_router.plan(text, section, preset)` uses the section's sources; a preset's filters keep only the sources it names. The web lists ids in `lib/sections.ts` and translates names and preset labels under `Sections.*` (fallback: the preset's query). Never add torrent/piracy/mirror sources (`test_every_preset_plans_and_no_piracy_sources`).
 - TMDB (`universal/tmdb.py`): v3 key as `api_key`, v4 token (`eyJ…`) as Bearer; details for the first 4 hits (credits, videos, `watch/providers` region IN). Cards have `movie` info and `download: None`. Without a key the source answers `needs_key` and the page links to `/connections#tmdb`. Commons photos: `universal/commons.py` (`generator=search`, `extmetadata` licences).
+
+### AI helper gotchas
+- `anyget/llm/`: `client.OpenRouter.ask(kind, models, system, user, Model)` → a validated Pydantic answer or `LlmUnavailable` (no key, daily limit, refused, two bad answers). Response models subclass `_Strict` (`extra="forbid"`, no defaults) so the JSON schema is strict-mode valid; check enum-like fields in code, not with `Literal`, or one bad value voids the whole answer. Cache key = kind + models + prompts (24 h, `llm_cache`); usage per UTC day in `llm_usage`.
+- `brain.Brain`: `plan` (keyword plan for links and presets; the LLM's sources are filtered to the section's), `answer`, `rerank`, `suggestions` (falls back to presets). `Services.brain`; `/api/universal` emits `rerank`/`answer` after the last source and before `done`, each with a 15 s limit.
+- Never put cookies, keys, file contents or downloaded text in prompts (`test_prompts_never_carry_secrets`). `Net.request(..., content=)` sends bodies; only 307/308 redirects resend them.
+- Model IDs can't be checked from the sandbox (openrouter.ai is blocked): read the "OpenRouter model IDs" step of the CI API job.
 
 ### Books / libraries / convert gotchas
 - Standard Ebooks download links need `?source=download` (without it: an HTML "Your Download Has Started" page). `HttpGenericHandler` refuses HTML for links ending in a file suffix (`is_file_link`) and whenever the probe expected a non-HTML file but the GET answers HTML (`not_a_file`).

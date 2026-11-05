@@ -9,7 +9,7 @@ import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { checkYtDlp, getSettings, putSettings } from "@/lib/api-library";
+import { checkYtDlp, getLlm, getSettings, putSettings } from "@/lib/api-library";
 import { errorMessage } from "@/lib/errors";
 import { isolate } from "@/lib/format";
 import { toast } from "@/lib/toast";
@@ -101,6 +101,7 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
     watch_enabled: initial.watch_enabled,
     torrent_enabled: initial.torrent_enabled,
     torrent_seed: initial.torrent_seed,
+    llm_free_mode: initial.llm_free_mode,
     host_limits: Object.entries(initial.host_limits ?? {})
       .map(([host, n]) => `${host}=${n}`)
       .join(", "),
@@ -278,6 +279,22 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
         </label>
       </Section>
 
+      <Section title={t("ai")}>
+        <p className="text-sm text-muted-foreground">
+          {initial.llm_available ? t("aiOn") : t("aiOff")}
+        </p>
+        <label className="flex min-h-11 items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={form.llm_free_mode}
+            onChange={(e) => set("llm_free_mode", e.target.checked)}
+            className="size-5 accent-primary"
+          />
+          {t("aiFreeMode")}
+        </label>
+        <AiUsage />
+      </Section>
+
       <Section title={t("keys")}>
         <p className="text-sm text-muted-foreground">
           {t("keysMoved")}{" "}
@@ -343,3 +360,20 @@ function YtDlpCheck() {
 }
 
 export default AppSettings;
+
+/** Today's AI helper use: calls against the daily limit, and the cost OpenRouter reported. */
+function AiUsage() {
+  const t = useTranslations("Settings");
+  const status = useQuery({ queryKey: ["llm"], queryFn: getLlm });
+  if (!status.data) return null;
+  const { today, daily_limit } = status.data;
+  return (
+    <p className="text-sm" data-testid="ai-usage">
+      {t("aiUsage", {
+        calls: today.calls,
+        limit: daily_limit,
+        cost: today.cost_usd.toFixed(4),
+      })}
+    </p>
+  );
+}

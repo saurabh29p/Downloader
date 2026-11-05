@@ -52,3 +52,5 @@ export const getSettings = () => call(api.GET("/api/settings"));
 export const putSettings = (body: SettingsUpdate) => call(api.PUT("/api/settings", { body }));
 
 export const checkYtDlp = () => call(api.GET("/api/settings/ytdlp"));
+
+export const getLlm = () => call(api.GET("/api/llm"));
