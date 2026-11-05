@@ -9,6 +9,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import httpx
+
 from anyget.handlers.base import DownloadResult, JobContext, JobRef, Progress, ProgressCallback
 from anyget.handlers.http_generic import HttpGenericHandler
 
@@ -22,6 +24,9 @@ class RemoteFile:
     sha1: str | None = None
     sha256: str | None = None
     headers: dict[str, str] = field(default_factory=dict)
+    # Other URLs for the same bytes (e.g. archive.org's second storage server),
+    # tried in order when a server can't be reached. The .part file carries over.
+    mirrors: tuple[str, ...] = ()
 
 
 async def download_many(
@@ -46,14 +51,21 @@ async def download_many(
         parts = remote.name.replace("\\", "/").split("/")
         target_dir = safe_join(folder, *parts[:-1]) if len(parts) > 1 else folder
         target_dir.mkdir(parents=True, exist_ok=True)
-        sub = JobContext(id=f"{job.id}-{index}", url=remote.url, output_dir=target_dir)
         options: dict[str, object] = {"filename": parts[-1]}
         for algo in ("md5", "sha1", "sha256"):
             if getattr(remote, algo):
                 options[algo] = getattr(remote, algo)
         if remote.headers:
             options["_headers"] = remote.headers
-        result = await http.download(sub, options, report)
+        urls = [remote.url, *remote.mirrors]
+        for attempt, url in enumerate(urls):
+            sub = JobContext(id=f"{job.id}-{index}", url=url, output_dir=target_dir)
+            try:
+                result = await http.download(sub, options, report)
+                break
+            except (httpx.ConnectError, httpx.ConnectTimeout):
+                if attempt == len(urls) - 1:
+                    raise
         paths.extend(result.paths)
         has_checksum = bool(remote.md5 or remote.sha1 or remote.sha256)
         verified = verified and (not has_checksum or bool(result.checksum_ok))

@@ -18,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Fixed (Phase 6)
 - Downloads ask for `Accept-Encoding: identity`; a server that compresses anyway no longer fails the size check (raw.githubusercontent.com sends gzip with the compressed length).
 - IPv4 addresses are tried before IPv6, so a host without a working IPv6 route doesn't use up the connect timeout (seen on archive.org storage hosts in CI).
+- archive.org downloads fall back to the item's other storage servers (`d2`, `d1`) when one can't be reached; the live run showed a storage host stalling in the TLS handshake.
 
 ### Added (Phase 5 — archive.org and Wayback)
 - archive.org handler: item metadata (cached), file picker, "all of format X", best-format defaults per media type, multi-file downloads into a folder with Range resume and per-file md5 checks; restricted, lending-library and dark items are explained, never downloaded.

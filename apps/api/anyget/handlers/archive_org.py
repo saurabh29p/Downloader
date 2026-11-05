@@ -73,6 +73,9 @@ class ArchiveItem(BaseModel):
     restricted: str | None = None  # None, "borrow_only", "restricted", "dark"
     item_size: int | None = None
     files: list[ArchiveFile] = Field(default_factory=list)
+    # Storage servers holding the item (d2 first: /download/ usually sends us to d1).
+    servers: list[str] = Field(default_factory=list)
+    dir: str | None = None
 
     @property
     def thumbnail(self) -> str:
@@ -156,6 +159,14 @@ def parse_metadata(data: dict[str, Any]) -> ArchiveItem:
         restricted=restricted,
         item_size=data.get("item_size"),
         files=files,
+        servers=list(
+            dict.fromkeys(
+                str(s)
+                for s in [data.get("d2"), data.get("d1"), *(data.get("workable_servers") or [])]
+                if s and str(s).endswith(".archive.org")
+            )
+        ),
+        dir=str(data["dir"]) if data.get("dir") else None,
     )
 
 
@@ -399,6 +410,11 @@ class ArchiveOrgHandler:
                 name=f.name.replace("/", " - "),
                 size=f.size,
                 md5=f.md5,
+                mirrors=tuple(
+                    f"https://{server}{quote(item.dir)}/{quote(f.name)}" for server in item.servers
+                )
+                if item.dir
+                else (),
             )
             for f in files
         ]
