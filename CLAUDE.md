@@ -22,7 +22,7 @@ v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-u
 - [x] v2 Phase 1 — owner sign-in, per-user rows, bug fixes
 - [x] v2 Phase 2 — Connections (encrypted cookies/keys per site)
 - [x] v2 Phase 3 — universal search engine
-- [ ] v2 Phase 4 — Sections (Movies, Books, Music, Video, Declassified, More)
+- [x] v2 Phase 4 — Sections (Movies, Books, Music, Video, Declassified, More)
 - [ ] v2 Phase 5 — OpenRouter brain (optional)
 - [ ] v2 Phase 6 — "The Reading Room" UI
 - [ ] v2 Phase 7 — polish and ship
@@ -252,6 +252,8 @@ Personal use only. Download only what the user owns, what is public domain or op
 - The SSE event shapes are not in OpenAPI: `apps/web/lib/api-universal.ts` mirrors `universal/models.py` by hand; update both together.
 - Media words are stripped from queries ("atlas" is a map word, "novel" a book word): e2e queries must avoid them or they change the sources asked. `ANYGET_UNIVERSAL_SOURCES=books` in e2e keeps search off real sites.
 - Ctrl+K's "Search for …" item is last so Enter still picks a matching page first.
+- Sections live in `universal/sections.py` (sources, `Preset`s with per-source filters such as an archive.org `collection`, and `SiteLink`s with a `{q}` placeholder for official sites without an open API). `keyword_router.plan(text, section, preset)` uses the section's sources; a preset's filters keep only the sources it names. The web lists ids in `lib/sections.ts` and translates names and preset labels under `Sections.*` (fallback: the preset's query). Never add torrent/piracy/mirror sources (`test_every_preset_plans_and_no_piracy_sources`).
+- TMDB (`universal/tmdb.py`): v3 key as `api_key`, v4 token (`eyJ…`) as Bearer; details for the first 4 hits (credits, videos, `watch/providers` region IN). Cards have `movie` info and `download: None`. Without a key the source answers `needs_key` and the page links to `/connections#tmdb`. Commons photos: `universal/commons.py` (`generator=search`, `extmetadata` licences).
 
 ### Books / libraries / convert gotchas
 - Standard Ebooks download links need `?source=download` (without it: an HTML "Your Download Has Started" page). `HttpGenericHandler` refuses HTML for links ending in a file suffix (`is_file_link`) and whenever the probe expected a non-HTML file but the GET answers HTML (`not_a_file`).

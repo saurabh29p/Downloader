@@ -11,6 +11,7 @@ import {
   EyeIcon,
   HistoryIcon,
   HomeIcon,
+  LayoutGridIcon,
   ImagesIcon,
   LandmarkIcon,
   LibraryIcon,
@@ -70,6 +71,10 @@ export default function CommandDialog({
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/"))}>
             <HomeIcon aria-hidden="true" />
             {t("goHome")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/sections"))}>
+            <LayoutGridIcon aria-hidden="true" />
+            {t("goSections")}
           </Command.Item>
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/search"))}>
             <SearchIcon aria-hidden="true" />

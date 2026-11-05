@@ -186,6 +186,7 @@ def test_sections_api(client: TestClient) -> None:
     assert ids[:6] == ["movies", "books", "music", "video", "declassified", "more"]
     movies = sections[0]
     assert movies["needs_key"] == ["tmdb"] and len(movies["presets"]) >= 6
+    assert all("{q}" in link["url"] for link in movies["links"])
     declassified = client.get("/api/sections/declassified", params={"q": "MK Ultra"}).json()
     cia = next(link for link in declassified["links"] if "cia.gov" in link["url"])
     assert cia["url"].endswith("/MK%20Ultra")

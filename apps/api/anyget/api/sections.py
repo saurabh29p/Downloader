@@ -36,7 +36,8 @@ class SectionOut(BaseModel):
 
 def _out(section: Section, services: ServicesDep, q: str | None = None) -> SectionOut:
     needs = ["tmdb"] if "tmdb" in section.sources and not services.settings.tmdb_key else []
-    encoded = quote(q or "")
+    # Without `q` the "{q}" placeholder stays, for the web to fill in.
+    encoded = quote(q) if q else "{q}"
     return SectionOut(
         id=section.id,
         media=list(section.media),
