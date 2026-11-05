@@ -5,6 +5,7 @@ import { use } from "react";
 
 import { AppSettings } from "@/components/settings/app-settings";
 import { CookiesSettings } from "@/components/settings/cookies-settings";
+import { InstallApp } from "@/components/settings/install-app";
 import type { Locale } from "@/i18n/routing";
 
 export async function generateMetadata({
@@ -27,6 +28,7 @@ export default function SettingsPage({ params }: { params: Promise<{ locale: Loc
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t("title")}</h1>
         <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
+      <InstallApp />
       <CookiesSettings />
       <AppSettings />
     </div>

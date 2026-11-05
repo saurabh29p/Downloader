@@ -1,0 +1,43 @@
+:root {
+  color-scheme: light dark;
+  font:
+    15px/1.5 system-ui,
+    sans-serif;
+}
+main {
+  max-width: 32rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+label {
+  display: block;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  font: inherit;
+}
+.hint {
+  margin: 0.25rem 0 0;
+  opacity: 0.75;
+  font-size: 0.875rem;
+}
+.row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+button {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}

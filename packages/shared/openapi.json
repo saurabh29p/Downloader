@@ -718,10 +718,23 @@
           "components": {
             "$ref": "#/components/schemas/ToolVersions"
           },
+          "plugins": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PluginInfo"
+            },
+            "title": "Plugins",
+            "type": "array"
+          },
           "status": {
             "const": "ok",
             "title": "Status",
             "type": "string"
+          },
+          "torrent": {
+            "default": false,
+            "title": "Torrent",
+            "type": "boolean"
           }
         },
         "required": [
@@ -1308,6 +1321,62 @@
         "title": "Link",
         "type": "object"
       },
+      "PluginInfo": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "handler": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handler"
+          },
+          "loaded": {
+            "title": "Loaded",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "target",
+          "loaded"
+        ],
+        "title": "PluginInfo",
+        "type": "object"
+      },
       "ProbeRequest": {
         "properties": {
           "options": {
@@ -1762,6 +1831,28 @@
             ],
             "title": "Rate Limit Kbps"
           },
+          "torrent_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Torrent Enabled"
+          },
+          "torrent_seed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Torrent Seed"
+          },
           "trove_key": {
             "anyOf": [
               {
@@ -1840,6 +1931,18 @@
             "title": "Secrets",
             "type": "object"
           },
+          "torrent_available": {
+            "title": "Torrent Available",
+            "type": "boolean"
+          },
+          "torrent_enabled": {
+            "title": "Torrent Enabled",
+            "type": "boolean"
+          },
+          "torrent_seed": {
+            "title": "Torrent Seed",
+            "type": "boolean"
+          },
           "watch_enabled": {
             "title": "Watch Enabled",
             "type": "boolean"
@@ -1855,6 +1958,9 @@
           "proxy",
           "contact_email",
           "watch_enabled",
+          "torrent_enabled",
+          "torrent_seed",
+          "torrent_available",
           "secrets"
         ],
         "title": "SettingsView",

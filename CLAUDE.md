@@ -15,8 +15,8 @@ Read this file at the start of every session. The full research doc lives in `do
 - [x] Phase 6 — code, cloud, images, AI
 - [x] Phase 7 — books, libraries, search
 - [x] Phase 8 — library, watch, settings
-- [ ] Phase 9 — PWA, extension, plugins (next)
-- [ ] Phase 10 — deploy and release
+- [x] Phase 9 — PWA, extension, plugins
+- [ ] Phase 10 — deploy and release (next)
 
 Update this checklist at the end of every phase.
 
@@ -105,6 +105,8 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `uv run anyget convert JOB --to ocr\|pdf\|mp3…` | convert a finished download (OCR needs OCRmyPDF + Tesseract) |
 | `uv run anyget library [--scan]` / `anyget watch add\|list\|run` | the offline library / scheduled watches |
 | `uv run --extra desktop anyget watch-clipboard [--auto]` | offer copied links as downloads (desktop) |
+| `make extension` | build the browser extension zips (`apps/extension/dist/`) |
+| `cd examples/anyget-plugin-example && uv run pytest` | example plugin tests (also part of `make test`) |
 
 ## Architecture rules
 
@@ -250,8 +252,17 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Library files are served with `content_disposition_type="inline"` and `Content-Security-Policy: sandbox`; keep that header if you change the endpoint.
 - The Settings page reserves the form's height in its skeleton (CLS); update `h-[166rem] sm:h-[115rem]` if the form grows a lot.
 
+### PWA / extension / plugins / torrent gotchas
+- PWA: `app/manifest.ts` (served at `/manifest.webmanifest`), icons in `public/icons/`, `public/sw.js`. The service worker is registered by the static inline `lib/pwa.ts` script in the root layout (production builds only, no React JS in the shell). It caches only `/_next/static/`, icons and the favicon, **never `/api/`**; bump `VERSION` in `sw.js` if its logic changes. The web Dockerfile must copy `public/`.
+- Share target: the manifest's `share_target` posts GET `/share?title&text&url`; `[locale]/(app)/share/page.tsx` redirects to `/<locale>?url=…`, and `PasteBox` reads `?url=` once, clears it, and probes. Keep `/share` free of client JS.
+- The install button reads `window.__anygetInstall` (the saved `beforeinstallprompt`) through `useSyncExternalStore`.
+- Extension: plain ES modules, no bundler. `src/lib.js` is pure and tested; `scripts/build.mjs` writes `dist/chrome` and `dist/firefox` (only the `background` key and Firefox's gecko id differ) and store-only zips. Host permissions are localhost only; other addresses are requested at runtime (`optional_host_permissions`). Headless smoke test: Playwright `launchPersistentContext` with `channel: "chromium"` (the headless shell can't load extensions).
+- Plugins (`anyget/plugins.py`): entry point group `anyget.handlers`, factory `make(net, settings)`, optional `priority` (default 85). Load only with `ANYGET_PLUGINS` (env only, not a UI setting: plugins are code). Results are in `Services.plugins` and `/api/health`.
+- Torrent (`handlers/torrent.py`): always registered so magnet links get a clear message; `probe`/`download` require `settings.torrent_enabled` (UI setting) and libtorrent (`--extra torrent`). Peer traffic is outside the SSRF guard by nature; LSD/UPnP/NAT-PMP are off. Paths from metadata go through `safe_parts` (no `..`, no absolute). Tests use a fake libtorrent module.
+- The Libraries page reserves the list height in its skeleton (`h-[77rem] sm:h-[39rem]`) and Settings reserves `h-[178rem] sm:h-[124rem]` (CLS). When measuring Lighthouse locally, build the web with the same `API_URL` the API listens on, or pages show their error state and CLS numbers are wrong.
+
 ### Frontend gotchas
-- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Downloads ≈168.6, others ≈162–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
+- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Settings ≈169.3, Downloads ≈168.6, others ≈162–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
 - `Button` has no `asChild` (Radix Slot was dropped to save bytes): style links with `buttonVariants()`.
 - Media pills (`components/media/choice.tsx`) are native radios/checkboxes hidden inside labels; in Playwright click the label (`pick()` in `e2e/youtube.spec.ts`), not the input.
 - No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).

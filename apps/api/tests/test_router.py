@@ -58,9 +58,11 @@ async def test_routes_to_http_fallback(router: Router) -> None:
 
 
 @pytest.mark.parametrize("url", ["magnet:?xt=urn:btih:abc", "https://files.test/x.torrent"])
-async def test_torrents_not_supported_yet(router: Router, url: str) -> None:
-    with pytest.raises(HandlerError) as info:
-        await router.resolve(url)
+async def test_torrents_route_to_the_torrent_handler_which_is_off(router: Router, url: str) -> None:
+    _, handler = await router.resolve(url)
+    assert handler.name == "torrent"
+    with pytest.raises(HandlerError) as info:  # off by default
+        await handler.probe(url)
     assert info.value.code == "unsupported"
 
 

@@ -345,11 +345,20 @@
     "clearKey": "مسح",
     "ytdlp": "yt-dlp",
     "checkUpdates": "تحقق من التحديثات",
-    "installed": "المثبّت: {version}.",
+    "installed": "AnyGet مثبّت على هذا الجهاز.",
     "updateAvailable": "{version} متاح",
     "upToDate": "محدّث.",
     "couldNotCheck": "تعذّر التحقق الآن.",
-    "updateHow": "للتحديث، أعد البناء:"
+    "updateHow": "للتحديث، أعد البناء:",
+    "installTitle": "ثبّت التطبيق",
+    "installHelp": "بعد التثبيت يفتح AnyGet في نافذته الخاصة، ويظهر على Android في قائمة المشاركة: شارك أي رابط مع AnyGet لترى معاينته.",
+    "installButton": "ثبّت AnyGet",
+    "installManual": "استخدم قائمة متصفحك: تثبيت التطبيق (Chrome وEdge) أو الإضافة إلى الشاشة الرئيسية (Safari وFirefox على Android).",
+    "torrents": "التورنت",
+    "torrentsHint": "معطّل افتراضيًا. استخدمه فقط لملفات يحق لك مشاركتها (صور Linux، أفلام الملكية العامة، إصدارات Creative Commons). أقران التورنت حواسيب أشخاص آخرين، لذا تمر هذه الحركة خارج حارس الشبكة في AnyGet.",
+    "torrentsMissing": "دعم التورنت غير مثبت. ثبّته بالأمر:",
+    "torrentsEnabled": "اسمح بروابط magnet وملفات ‎.torrent",
+    "torrentsSeed": "واصل المشاركة بعد اكتمال التنزيل"
   },
   "Archive": {
     "title": "archive.org",
@@ -727,5 +736,10 @@
       }
     },
     "disclaimer": "أنت مسؤول عما تنزّله. عند الشك، راجع شروط الموقع وقانونك المحلي."
+  },
+  "Share": {
+    "title": "لا شيء للتنزيل",
+    "noLink": "لا يحتوي النص المشارَك على رابط. شارك صفحة ويب أو رابطًا إلى ملف.",
+    "home": "اذهب إلى الرئيسية"
   }
 }

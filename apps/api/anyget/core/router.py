@@ -89,6 +89,12 @@ class Router:
             return url
         return normalize(str(response.url))
 
+    def _torrent(self) -> Handler:
+        handler = self.registry.get("torrent")
+        if handler is None:
+            raise HandlerError("unsupported", "torrent links are not supported")
+        return handler
+
     async def resolve(self, url: str) -> tuple[str, Handler]:
         """Return the normalized (and expanded) URL and the handler for it."""
         internal = url.strip()
@@ -99,11 +105,11 @@ class Router:
             return internal, handler
         normalized = normalize(url)
         if normalized.startswith("magnet:"):
-            raise HandlerError("unsupported", "torrent links are not supported yet")
+            return normalized, self._torrent()
         await self.net.check(normalized)
         normalized = await self.expand(normalized)
-        if urlsplit(normalized).path.endswith(".torrent"):
-            raise HandlerError("unsupported", "torrent links are not supported yet")
+        if urlsplit(normalized).path.lower().endswith(".torrent"):
+            return normalized, self._torrent()
         handler = self.registry.find(normalized)
         if handler is None:
             raise HandlerError("unsupported", "no handler can download this link")

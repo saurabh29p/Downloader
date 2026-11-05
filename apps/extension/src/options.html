@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AnyGet settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>AnyGet</h1>
+      <p>Links you send go to your own AnyGet, which downloads them.</p>
+      <form id="form">
+        <label for="base">AnyGet address</label>
+        <input id="base" name="base" type="url" placeholder="http://127.0.0.1:3000" required />
+        <p class="hint">Your computer, or your private address (Cloudflare Access, Tailscale).</p>
+        <label for="token">Access token (optional)</label>
+        <input id="token" name="token" type="password" autocomplete="off" />
+        <p class="hint">The value of ANYGET_API_TOKEN, if you set one.</p>
+        <div class="row">
+          <button type="submit">Save</button>
+          <button type="button" id="test">Test connection</button>
+        </div>
+        <p id="status" role="status" aria-live="polite"></p>
+      </form>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

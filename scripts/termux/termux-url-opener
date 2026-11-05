@@ -1,0 +1,45 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# AnyGet for Termux: Android "Share → Termux" sends the link here.
+# Install: see docs/termux.md. Settings live in ~/.config/anyget/termux.env:
+#   ANYGET_URL=https://dl.example.org   # your AnyGet (or http://127.0.0.1:3000 on this phone)
+#   ANYGET_TOKEN=...                    # optional, the server's ANYGET_API_TOKEN
+#   ANYGET_MODE=api                     # "api" (send to your AnyGet) or "cli" (download here)
+set -euo pipefail
+
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/anyget/termux.env"
+# shellcheck source=/dev/null
+[ -f "$CONFIG" ] && . "$CONFIG"
+ANYGET_URL="${ANYGET_URL:-http://127.0.0.1:3000}"
+ANYGET_MODE="${ANYGET_MODE:-api}"
+
+shared="${1:-}"
+link="$(printf '%s' "$shared" | grep -oE 'https?://[^[:space:]<>"]+' | head -n 1 || true)"
+if [ -z "$link" ]; then
+  echo "AnyGet: no link in what was shared." >&2
+  exit 1
+fi
+
+notify() {
+  if command -v termux-notification >/dev/null 2>&1; then
+    termux-notification --title "AnyGet" --content "$1"
+  fi
+  echo "AnyGet: $1"
+}
+
+if [ "$ANYGET_MODE" = "cli" ]; then
+  notify "Downloading $link"
+  anyget get "$link" && notify "Done: $link" || notify "Failed: $link"
+  exit 0
+fi
+
+body="$(printf '{"urls":[%s],"options":{}}' "$(printf '%s' "$link" | python3 -c 'import json,sys;print(json.dumps(sys.stdin.read()))')")"
+auth=()
+[ -n "${ANYGET_TOKEN:-}" ] && auth=(-H "Authorization: Bearer $ANYGET_TOKEN")
+status="$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${ANYGET_URL%/}/api/jobs" \
+  -H 'Content-Type: application/json' "${auth[@]}" --data "$body" || echo 000)"
+case "$status" in
+  201) notify "Sent to AnyGet: $link" ;;
+  401|403) notify "AnyGet refused the token (check ANYGET_TOKEN)"; exit 1 ;;
+  000) notify "Could not reach $ANYGET_URL"; exit 1 ;;
+  *) notify "AnyGet answered $status"; exit 1 ;;
+esac

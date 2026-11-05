@@ -57,7 +57,7 @@ export function LibrariesView() {
             </ChoicePill>
           ))}
         </div>
-        {list.isPending && <Skeleton className="h-48" aria-busy="true" />}
+        {list.isPending && <Skeleton className="h-[77rem] sm:h-[39rem]" aria-busy="true" />}
         {list.isError && (
           <div className="flex flex-col gap-2">
             <p role="alert">{errorMessage(tErrors, list.error)}</p>

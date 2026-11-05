@@ -809,10 +809,20 @@ export interface components {
         Health: {
             components: components["schemas"]["ToolVersions"];
             /**
+             * Plugins
+             * @default []
+             */
+            plugins: components["schemas"]["PluginInfo"][];
+            /**
              * Status
              * @constant
              */
             status: "ok";
+            /**
+             * Torrent
+             * @default false
+             */
+            torrent: boolean;
         };
         /**
          * JobItem
@@ -990,6 +1000,21 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** PluginInfo */
+        PluginInfo: {
+            /** Error */
+            error?: string | null;
+            /** Handler */
+            handler?: string | null;
+            /** Loaded */
+            loaded: boolean;
+            /** Name */
+            name: string;
+            /** Priority */
+            priority?: number | null;
+            /** Target */
+            target: string;
+        };
         /** ProbeRequest */
         ProbeRequest: {
             /** Options */
@@ -1107,6 +1132,10 @@ export interface components {
             proxy?: string | null;
             /** Rate Limit Kbps */
             rate_limit_kbps?: number | null;
+            /** Torrent Enabled */
+            torrent_enabled?: boolean | null;
+            /** Torrent Seed */
+            torrent_seed?: boolean | null;
             /** Trove Key */
             trove_key?: string | null;
             /** Watch Enabled */
@@ -1138,6 +1167,12 @@ export interface components {
             secrets: {
                 [key: string]: boolean;
             };
+            /** Torrent Available */
+            torrent_available: boolean;
+            /** Torrent Enabled */
+            torrent_enabled: boolean;
+            /** Torrent Seed */
+            torrent_seed: boolean;
             /** Watch Enabled */
             watch_enabled: boolean;
         };

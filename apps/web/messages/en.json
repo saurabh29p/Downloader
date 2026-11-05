@@ -345,11 +345,20 @@
     "clearKey": "Clear",
     "ytdlp": "yt-dlp",
     "checkUpdates": "Check for updates",
-    "installed": "Installed: {version}.",
+    "installed": "AnyGet is installed on this device.",
     "updateAvailable": "{version} is available",
     "upToDate": "Up to date.",
     "couldNotCheck": "Could not check now.",
-    "updateHow": "To update, rebuild:"
+    "updateHow": "To update, rebuild:",
+    "installTitle": "Install the app",
+    "installHelp": "Installed, AnyGet opens in its own window and, on Android, appears in the Share menu: share any link to AnyGet to see its preview.",
+    "installButton": "Install AnyGet",
+    "installManual": "Use your browser's menu: Install app (Chrome, Edge) or Add to Home Screen (Safari, Firefox on Android).",
+    "torrents": "Torrents",
+    "torrentsHint": "Off by default. Use only for files you may share (Linux images, public domain films, Creative Commons releases). Torrent peers are other people's computers, so this traffic is outside AnyGet's network guard.",
+    "torrentsMissing": "Torrent support is not installed. Install it with:",
+    "torrentsEnabled": "Allow magnet links and .torrent files",
+    "torrentsSeed": "Keep sharing after a download finishes"
   },
   "Archive": {
     "title": "archive.org",
@@ -727,5 +736,10 @@
       }
     },
     "disclaimer": "You are responsible for what you download. When in doubt, check the site's terms and your local law."
+  },
+  "Share": {
+    "title": "Nothing to download",
+    "noLink": "The shared text has no link in it. Share a web page or a link to a file.",
+    "home": "Go to Home"
   }
 }
