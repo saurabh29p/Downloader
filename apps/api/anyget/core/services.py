@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from anyget.connections.migrate import migrate_v1
+from anyget.connections.store import ConnectionStore
 from anyget.core.auth import AccessVerifier, RateLimiter
 from anyget.core.db import Database
 from anyget.core.events import EventBus
@@ -46,7 +48,12 @@ from anyget.plugins import PluginInfo, load_plugins
 from anyget.watch.runner import WatchScheduler, WatchService
 
 
-def build_registry(net: Net, settings: Settings, store: JobStore | None = None) -> Registry:
+def build_registry(
+    net: Net,
+    settings: Settings,
+    store: JobStore | None = None,
+    connections: ConnectionStore | None = None,
+) -> Registry:
     registry = Registry()
     if store is not None:
         registry.register(ConvertHandler(settings, store), PRIORITY_CONVERT)
@@ -60,7 +67,7 @@ def build_registry(net: Net, settings: Settings, store: JobStore | None = None) 
     registry.register(BooksHandler(net, settings, archive), PRIORITY_BOOKS)
     registry.register(AiResourcesHandler(net, settings), PRIORITY_AI)
     registry.register(WikimediaHandler(net), PRIORITY_WIKIMEDIA)
-    registry.register(YtDlpHandler(settings), PRIORITY_YTDLP)
+    registry.register(YtDlpHandler(settings, connections), PRIORITY_YTDLP)
     registry.register(GalleryHandler(net), PRIORITY_GALLERY)
     registry.register(HttpGenericHandler(net), PRIORITY_FALLBACK)
     return registry
@@ -84,6 +91,7 @@ class Services:
     access: AccessVerifier
     sessions: Sessions
     login_limiter: RateLimiter
+    connections: ConnectionStore
 
     @classmethod
     def build(cls, settings: Settings, net: Net | None = None) -> "Services":
@@ -93,10 +101,13 @@ class Services:
         settings_store = SettingsStore(db, settings)
         settings_store.load()  # saved settings override .env
         adopt_rows(db, settings)  # v2: rows from before sign-in get an owner
+        connections = ConnectionStore(db, settings)
+        migrate_v1(settings, connections, settings_store)  # v1 plain-text secrets
+        connections.apply()  # saved keys fill settings (github_token, tmdb_key…)
         store = JobStore(db)
         bus = EventBus()
         net = net or Net(settings)
-        registry = build_registry(net, settings, store)
+        registry = build_registry(net, settings, store, connections)
         plugins = load_plugins(registry, net, settings)
         router = Router(registry, net)
         queue = DownloadQueue(settings, store, bus, router)
@@ -120,6 +131,7 @@ class Services:
             AccessVerifier(net, settings),
             Sessions(settings),
             RateLimiter(),
+            connections,
         )
 
     async def start(self, recover: bool = True, watch: bool | None = None) -> None:

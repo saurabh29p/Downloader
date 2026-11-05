@@ -39,6 +39,18 @@ def version() -> None:
     console.print(f"anyget {__version__}")
 
 
+@app.command("gen-key")
+def gen_key() -> None:
+    """Print a new key for ANYGET_SECRETS_KEY (encrypts saved Connections)."""
+    from anyget.connections.store import new_key
+
+    typer.echo(new_key())
+    typer.echo(
+        "Set it before connecting sites: connections saved with another key can't be read.",
+        err=True,
+    )
+
+
 @app.command("hash-password")
 def hash_password_cmd(
     password: Annotated[

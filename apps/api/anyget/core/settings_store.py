@@ -1,7 +1,8 @@
 """Settings changed in the app, saved in SQLite. They override .env/environment.
 
-Only the fields in EDITABLE can be changed this way. Secrets (API keys) are
-write-only: the API reports whether one is set, never its value.
+Only the fields in EDITABLE can be changed this way. API keys are not settings any
+more: they live in Connections (encrypted, v2). Rows saved by v1 are moved there once
+(`pop_legacy_secrets`).
 """
 
 import json
@@ -16,7 +17,8 @@ from anyget.core.settings import Settings
 from anyget.core.templates import TemplateError, validate
 from anyget.handlers.torrent import load_libtorrent
 
-SECRETS = (
+# v1 saved these here in plain text; Services.build moves them into Connections.
+LEGACY_SECRETS = (
     "github_token",
     "hf_token",
     "civitai_token",
@@ -41,7 +43,7 @@ PLAIN = (
     "torrent_enabled",
     "torrent_seed",
 )
-EDITABLE = PLAIN + SECRETS
+EDITABLE = PLAIN
 # Read when the HTTP client is built: changing them needs a restart.
 RESTART_NEEDED = ("proxy",)
 
@@ -54,7 +56,7 @@ class SettingRow(SQLModel, table=True):
 
 
 class SettingsUpdate(BaseModel):
-    """Fields to change; omitted fields stay as they are. An empty secret clears it."""
+    """Fields to change; omitted fields stay as they are."""
 
     folder_template: str | None = Field(default=None, max_length=200)
     max_concurrent_downloads: int | None = Field(default=None, ge=1, le=16)
@@ -66,17 +68,6 @@ class SettingsUpdate(BaseModel):
     watch_enabled: bool | None = None
     torrent_enabled: bool | None = None
     torrent_seed: bool | None = None
-    github_token: str | None = Field(default=None, max_length=500)
-    hf_token: str | None = Field(default=None, max_length=500)
-    civitai_token: str | None = Field(default=None, max_length=500)
-    kaggle_username: str | None = Field(default=None, max_length=200)
-    kaggle_key: str | None = Field(default=None, max_length=500)
-    europeana_key: str | None = Field(default=None, max_length=500)
-    dpla_key: str | None = Field(default=None, max_length=500)
-    trove_key: str | None = Field(default=None, max_length=500)
-    digitalnz_key: str | None = Field(default=None, max_length=500)
-    bhl_key: str | None = Field(default=None, max_length=500)
-    ddb_key: str | None = Field(default=None, max_length=500)
 
     @field_validator("folder_template")
     @classmethod
@@ -122,7 +113,6 @@ class SettingsView(BaseModel):
     torrent_enabled: bool
     torrent_seed: bool
     torrent_available: bool
-    secrets: dict[str, bool]  # name → is it set
     restart_needed: list[str] = Field(default_factory=list)
 
 
@@ -146,6 +136,23 @@ class SettingsStore:
                 continue  # an old or broken row never stops the app
             setattr(self.settings, row.key, getattr(checked, row.key))
 
+    def pop_legacy_secrets(self) -> dict[str, str]:
+        """API keys saved by v1 (plain text): returned once, then deleted here."""
+        found: dict[str, str] = {}
+        with self.db.session() as session:
+            for row in session.exec(select(SettingRow)).all():
+                if row.key not in LEGACY_SECRETS:
+                    continue
+                try:
+                    value = json.loads(row.value)
+                except ValueError:
+                    value = ""
+                if isinstance(value, str) and value:
+                    found[row.key] = value
+                session.delete(row)
+            session.commit()
+        return found
+
     def view(self) -> SettingsView:
         s = self.settings
         return SettingsView(
@@ -161,7 +168,6 @@ class SettingsStore:
             torrent_enabled=s.torrent_enabled,
             torrent_seed=s.torrent_seed,
             torrent_available=load_libtorrent() is not None,
-            secrets={name: bool(getattr(s, name)) for name in SECRETS},
             restart_needed=sorted(self.pending_restart),
         )
 
@@ -171,9 +177,8 @@ class SettingsStore:
         changed = []
         with self.db.session() as session:
             for key, value in changes.items():
-                if value is None and key not in SECRETS:
+                if value is None:
                     continue
-                value = "" if value is None else value
                 if getattr(self.settings, key) == value:
                     continue
                 row = session.get(SettingRow, key) or SettingRow(key=key, value="")

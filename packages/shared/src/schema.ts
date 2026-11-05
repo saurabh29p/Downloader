@@ -132,6 +132,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Connections */
+        get: operations["listConnections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Cookies
+         * @description One cookies.txt for several sites: each known site gets its own cookies.
+         */
+        post: operations["importCookies"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/{site_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Connection */
+        put: operations["putConnection"];
+        post?: never;
+        /** Delete Connection */
+        delete: operations["deleteConnection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/{site_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Test Connection */
+        post: operations["testConnection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/convert": {
         parameters: {
             query?: never;
@@ -511,50 +583,11 @@ export interface paths {
         };
         /**
          * Get Settings View
-         * @description Current settings. API keys are reported only as set or not set.
+         * @description Current settings (API keys and cookies are in Connections).
          */
         get: operations["getSettings"];
         /** Put Settings */
         put: operations["putSettings"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/settings/cookies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Cookies */
-        get: operations["getCookiesStatus"];
-        /** Put Cookies */
-        put: operations["putCookies"];
-        post?: never;
-        /** Delete Cookies */
-        delete: operations["deleteCookies"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/settings/keys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Key Status
-         * @description Which optional API keys are set. Values are never returned.
-         */
-        get: operations["getKeyStatus"];
-        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -836,6 +869,66 @@ export interface components {
             /** Size */
             size?: number | null;
         };
+        /**
+         * ConnectionIn
+         * @description Cookie sites take `cookies` (a cookies.txt); key sites take `fields`.
+         */
+        ConnectionIn: {
+            /** Cookies */
+            cookies?: string | null;
+            /** Fields */
+            fields?: {
+                [key: string]: string;
+            } | null;
+            /** Proxy */
+            proxy?: string | null;
+        };
+        /** ConnectionView */
+        ConnectionView: {
+            /** Connected On */
+            connected_on?: string | null;
+            /** Cookie Count */
+            cookie_count?: number | null;
+            /** Expires On */
+            expires_on?: string | null;
+            /** Fields */
+            fields: string[];
+            /** Help Url */
+            help_url?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "cookies" | "key";
+            /** Label */
+            label: string;
+            /** Last Test At */
+            last_test_at?: string | null;
+            /** Last Test Ok */
+            last_test_ok?: boolean | null;
+            /**
+             * Proxy
+             * @default false
+             */
+            proxy: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "connected" | "not_connected" | "expired" | "server";
+        };
+        /** ConnectionsView */
+        ConnectionsView: {
+            /**
+             * Key Source
+             * @enum {string}
+             */
+            key_source: "env" | "file";
+            /** Sites */
+            sites: components["schemas"]["ConnectionView"][];
+        };
         /** ConvertRequest */
         ConvertRequest: {
             /** Job Id */
@@ -848,19 +941,10 @@ export interface components {
              */
             to: "pdf" | "ocr" | "mp3" | "m4a" | "opus" | "flac" | "wav" | "mp4" | "mkv" | "webm";
         };
-        /** CookiesStatus */
-        CookiesStatus: {
-            /** Lines */
-            lines?: number | null;
-            /** Present */
-            present: boolean;
-            /** Updated At */
-            updated_at?: string | null;
-        };
-        /** CookiesUpload */
-        CookiesUpload: {
-            /** Content */
-            content: string;
+        /** CookiesImport */
+        CookiesImport: {
+            /** Cookies */
+            cookies: string;
         };
         /**
          * CreateJobs
@@ -918,6 +1002,12 @@ export interface components {
              */
             torrent: boolean;
         };
+        /** ImportResult */
+        ImportResult: {
+            /** Imported */
+            imported: string[];
+            view: components["schemas"]["ConnectionsView"];
+        };
         /**
          * JobItem
          * @description One link with its own options (e.g. a playlist entry with its index).
@@ -939,9 +1029,14 @@ export interface components {
             checksum_ok: boolean | null;
             /**
              * Connect
-             * @description Site whose account would fix this failure ("YouTube"), shown as "Connect …".
+             * @description Connections id of the site whose account would fix this failure ("youtube").
              */
             readonly connect: string | null;
+            /**
+             * Connect Label
+             * @description That site's name, for "Connect your YouTube account".
+             */
+            readonly connect_label: string | null;
             /**
              * Created At
              * Format: date-time
@@ -991,15 +1086,6 @@ export interface components {
          * @enum {string}
          */
         JobState: "queued" | "probing" | "downloading" | "paused" | "done" | "failed" | "canceled";
-        /** KeyStatus */
-        KeyStatus: {
-            /** Configured */
-            configured: boolean;
-            /** Env */
-            env: string;
-            /** Name */
-            name: string;
-        };
         /** LibraryItemOut */
         LibraryItemOut: {
             /**
@@ -1218,37 +1304,17 @@ export interface components {
         };
         /**
          * SettingsUpdate
-         * @description Fields to change; omitted fields stay as they are. An empty secret clears it.
+         * @description Fields to change; omitted fields stay as they are.
          */
         SettingsUpdate: {
-            /** Bhl Key */
-            bhl_key?: string | null;
-            /** Civitai Token */
-            civitai_token?: string | null;
             /** Contact Email */
             contact_email?: string | null;
-            /** Ddb Key */
-            ddb_key?: string | null;
-            /** Digitalnz Key */
-            digitalnz_key?: string | null;
-            /** Dpla Key */
-            dpla_key?: string | null;
-            /** Europeana Key */
-            europeana_key?: string | null;
             /** Folder Template */
             folder_template?: string | null;
-            /** Github Token */
-            github_token?: string | null;
-            /** Hf Token */
-            hf_token?: string | null;
             /** Host Limits */
             host_limits?: {
                 [key: string]: number;
             } | null;
-            /** Kaggle Key */
-            kaggle_key?: string | null;
-            /** Kaggle Username */
-            kaggle_username?: string | null;
             /** Max Concurrent Downloads */
             max_concurrent_downloads?: number | null;
             /** Max Per Host */
@@ -1261,8 +1327,6 @@ export interface components {
             torrent_enabled?: boolean | null;
             /** Torrent Seed */
             torrent_seed?: boolean | null;
-            /** Trove Key */
-            trove_key?: string | null;
             /** Watch Enabled */
             watch_enabled?: boolean | null;
         };
@@ -1288,10 +1352,6 @@ export interface components {
             rate_limit_kbps: number;
             /** Restart Needed */
             restart_needed?: string[];
-            /** Secrets */
-            secrets: {
-                [key: string]: boolean;
-            };
             /** Torrent Available */
             torrent_available: boolean;
             /** Torrent Enabled */
@@ -1353,6 +1413,13 @@ export interface components {
              * @enum {string}
              */
             status: "ok" | "needs_key" | "timeout" | "error" | "link_only" | "skipped";
+        };
+        /** TestResult */
+        TestResult: {
+            /** Ok */
+            ok: boolean;
+            /** Result */
+            result: string;
         };
         /** ToolVersions */
         ToolVersions: {
@@ -1877,6 +1944,298 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listConnections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionsView"];
+                };
+            };
+        };
+    };
+    importCookies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CookiesImport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResult"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    putConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                site_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionsView"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    deleteConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                site_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    testConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                site_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestResult"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };
@@ -3359,133 +3718,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiError"];
-                };
-            };
-        };
-    };
-    getCookiesStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CookiesStatus"];
-                };
-            };
-        };
-    };
-    putCookies: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CookiesUpload"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CookiesStatus"];
-                };
-            };
-            /** @description Blocked or invalid link */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-            /** @description Action does not fit the job state */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-            /** @description Link not supported */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-            /** @description The remote server failed */
-            502: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-        };
-    };
-    deleteCookies: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getKeyStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KeyStatus"][];
                 };
             };
         };

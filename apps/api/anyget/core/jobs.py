@@ -171,8 +171,16 @@ class JobOut(BaseModel):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def connect(self) -> str | None:
-        """Site whose account would fix this failure ("YouTube"), shown as "Connect …"."""
-        return connect_site(self.error_code, self.url)
+        """Connections id of the site whose account would fix this failure ("youtube")."""
+        site = connect_site(self.error_code, self.url)
+        return site.id if site else None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def connect_label(self) -> str | None:
+        """That site's name, for "Connect your YouTube account"."""
+        site = connect_site(self.error_code, self.url)
+        return site.label if site else None
 
     @field_validator("created_at", "updated_at", "finished_at", mode="after")
     @classmethod

@@ -5,7 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 from anyget import __version__
@@ -105,6 +105,21 @@ class Settings(BaseSettings):
     digitalnz_key: str = Field(default="", repr=False)
     bhl_key: str = Field(default="", repr=False)
     ddb_key: str = Field(default="", repr=False)
+
+    # Movies (TMDB "where to watch") and the optional AI helper (OpenRouter). Both also
+    # read their usual names, TMDB_API_KEY and OPENROUTER_API_KEY.
+    tmdb_key: str = Field(
+        default="", repr=False, validation_alias=AliasChoices("anyget_tmdb_key", "tmdb_api_key")
+    )
+    openrouter_key: str = Field(
+        default="",
+        repr=False,
+        validation_alias=AliasChoices("anyget_openrouter_key", "openrouter_api_key"),
+    )
+
+    # Encrypts saved Connections (cookies, keys) at rest: a Fernet key from
+    # `anyget gen-key`. Empty: a key is made once in data/secrets.key.
+    secrets_key: str = Field(default="", repr=False)
 
     # Books: limit which sources are asked (empty = all), and Gutendex's address
     # (it is open source and can be self-hosted).

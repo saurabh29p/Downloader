@@ -174,9 +174,13 @@ async def test_html_instead_of_a_book_is_never_saved(net: Net, settings: Setting
 def test_failed_jobs_name_the_site_to_connect() -> None:
     from anyget.core.sites import connect_site
 
-    assert connect_site("bot_check", "https://www.youtube.com/watch?v=x") == "YouTube"
-    assert connect_site("login_required", "https://mobile.x.com/a/status/1") == "X"
-    assert connect_site("forbidden", "https://old.reddit.com/r/a") == "Reddit"
-    assert connect_site("login_required", "https://www.example.org/v") == "example.org"
-    assert connect_site("geo_blocked", "https://www.youtube.com/watch?v=x") is None
-    assert connect_site("members_only", "https://www.youtube.com/watch?v=x") is None
+    def site(code: str, url: str) -> str | None:
+        found = connect_site(code, url)
+        return found.id if found else None
+
+    assert site("bot_check", "https://www.youtube.com/watch?v=x") == "youtube"
+    assert site("login_required", "https://mobile.x.com/a/status/1") == "x"
+    assert site("forbidden", "https://old.reddit.com/r/a") == "reddit"
+    assert site("login_required", "https://www.example.org/v") is None
+    assert site("geo_blocked", "https://www.youtube.com/watch?v=x") is None
+    assert site("members_only", "https://www.youtube.com/watch?v=x") is None

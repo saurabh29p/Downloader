@@ -307,12 +307,6 @@ def test_libraries_api(client: TestClient) -> None:
     assert trove["key_configured"] is False
 
 
-def test_key_status_never_shows_values(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    body = client.get("/api/settings/keys").json()
-    assert {k["name"] for k in body} >= {"europeana_key", "dpla_key", "github_token"}
-    assert all(set(k) == {"name", "env", "configured"} for k in body)
-
-
 @respx.mock(assert_all_called=False)
 def test_universal_search_books_tab(client: TestClient, respx_mock: respx.MockRouter) -> None:
     respx_mock.route(host="testserver").pass_through()

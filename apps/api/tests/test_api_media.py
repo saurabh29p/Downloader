@@ -12,8 +12,6 @@ from anyget.handlers.ytdlp import YtDlpHandler
 from anyget.handlers.ytdlp_support.archive import archive_path
 from anyget.main import create_app
 
-COOKIES = "# Netscape HTTP Cookie File\n.example.com\tTRUE\t/\tTRUE\t0\tSID\tsecret-value\n"
-
 
 @pytest.fixture
 def client(settings: Settings, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
@@ -65,27 +63,3 @@ def test_items_with_own_options_and_archive_skip(client: TestClient, settings: S
 
 def test_create_needs_urls_or_items(client: TestClient) -> None:
     assert client.post("/api/jobs", json={}).status_code == 422
-
-
-def test_cookies_lifecycle(client: TestClient, settings: Settings) -> None:
-    assert client.get("/api/settings/cookies").json() == {
-        "present": False,
-        "updated_at": None,
-        "lines": None,
-    }
-    bad = client.put("/api/settings/cookies", json={"content": "not cookies at all"})
-    assert bad.status_code == 400 and bad.json()["code"] == "invalid_cookies"
-
-    ok = client.put("/api/settings/cookies", json={"content": COOKIES})
-    assert ok.status_code == 200
-    status = ok.json()
-    assert status["present"] is True and status["lines"] == 1
-    assert "secret-value" not in ok.text
-    path = settings.data_dir / "cookies.txt"
-    assert path.stat().st_mode & 0o777 == 0o600
-
-    got = client.get("/api/settings/cookies")
-    assert "secret-value" not in got.text and got.json()["present"] is True
-
-    assert client.delete("/api/settings/cookies").status_code == 204
-    assert not path.exists()
