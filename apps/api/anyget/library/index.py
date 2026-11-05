@@ -21,6 +21,8 @@ from anyget.core.jobs import Job
 from anyget.core.users import OWNER_ID
 from anyget.library.kinds import kind_of
 from anyget.library.models import LibraryItem, LibraryItemOut, LibraryPage
+from anyget.library.thumbs import KINDS as THUMB_KINDS
+from anyget.library.thumbs import PILLOW_SUFFIXES
 
 SKIP_PREFIXES = (".anyget-", ".")
 SKIP_SUFFIXES = (".part", ".tmp", ".ytdl")
@@ -41,6 +43,16 @@ def _source_id(job: Job) -> str | None:
     if isinstance(archive_id, str) and archive_id:
         return archive_id
     return f"url:{job.url}"
+
+
+def thumbnail_url(item: LibraryItem) -> str | None:
+    if item.kind == "image" and item.rel_path.lower().endswith(".svg"):
+        return f"/api/library/{item.id}/file"  # the browser draws SVG itself
+    if item.kind not in THUMB_KINDS:
+        return None
+    if item.kind == "image" and not item.rel_path.lower().endswith(PILLOW_SUFFIXES):
+        return None
+    return f"/api/library/{item.id}/thumb"
 
 
 class LibraryIndex:
@@ -174,7 +186,7 @@ class LibraryIndex:
             missing = not self.path_of(item).is_file()
         except UnsafePathError:
             missing = True
-        return LibraryItemOut(**item.model_dump(), missing=missing)
+        return LibraryItemOut(**item.model_dump(), missing=missing, thumbnail=thumbnail_url(item))
 
     def get(self, item_id: str) -> LibraryItem | None:
         with self.db.session() as session:

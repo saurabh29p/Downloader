@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field, model_validator
 
 from anyget.api.deps import ERROR_RESPONSES, ServicesDep, UserDep
-from anyget.core.events import sse_stream
+from anyget.core.events import SSE_HEADERS, sse_stream
 from anyget.core.filenames import UnsafePathError, ensure_inside
 from anyget.core.jobs import JobOut, JobState
 from anyget.core.net import BlockedURLError
@@ -17,8 +17,6 @@ from anyget.core.users import OWNER_ID
 from anyget.handlers.ytdlp_support.archive import archive_path, contains
 
 router = APIRouter(tags=["jobs"])
-
-SSE_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
 
 
 class JobItem(BaseModel):

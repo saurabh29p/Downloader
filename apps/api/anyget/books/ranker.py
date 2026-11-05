@@ -7,10 +7,8 @@
 4. Whole works before chapters or single volumes; then the more trusted source.
 """
 
-import re
-import unicodedata
-
 from anyget.books.base import Access, BookHit
+from anyget.core.text import words
 
 FORMAT_RANK = {"epub": 0, "pdf_text": 1, "pdf_scan": 2, "images": 3, "txt": 4, "html": 5}
 ACCESS_RANK = {
@@ -22,9 +20,7 @@ ACCESS_RANK = {
 
 
 def _words(text: str) -> set[str]:
-    folded = unicodedata.normalize("NFKD", text.casefold())
-    plain = "".join(c for c in folded if not unicodedata.combining(c))
-    return {w for w in re.split(r"\W+", plain) if len(w) > 1 or not w.isascii()}
+    return words(text)
 
 
 def relevance(hit: BookHit, query: str) -> float:

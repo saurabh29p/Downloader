@@ -47,6 +47,8 @@ class LibraryItemOut(BaseModel):
     duplicate_of: str | None
     added_at: datetime
     missing: bool = False
+    # A small picture for the Library grid (made on first request), or None.
+    thumbnail: str | None = None
 
 
 class LibraryPage(BaseModel):

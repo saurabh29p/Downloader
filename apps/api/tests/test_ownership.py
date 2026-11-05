@@ -52,8 +52,10 @@ def test_someone_elses_rows_are_invisible(client: TestClient, env_settings: Path
     assert client.delete(f"/api/watches/{watch.id}").status_code == 404
 
 
-def _legacy_db(tmp_path: Path, **extra: object) -> tuple[Settings, Database]:
-    settings = Settings(downloads_dir=tmp_path / "downloads", data_dir=tmp_path / "data", **extra)
+def _legacy_db(tmp_path: Path, public: bool = False) -> tuple[Settings, Database]:
+    settings = Settings(
+        downloads_dir=tmp_path / "downloads", data_dir=tmp_path / "data", public=public
+    )
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     db = Database(settings)
     db.create_all()

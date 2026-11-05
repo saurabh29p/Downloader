@@ -109,6 +109,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/books/search/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Books Search Stream
+         * @description Server-Sent Events: a `source` event per source as it answers, then `done`.
+         *
+         *     `source` carries {source: SourceStatus, results: [BookHit]}; `done` the ranked
+         *     BookSearch. Pass `sources=` to ask only some sources again (retry).
+         */
+        get: operations["streamBookSearch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/convert": {
         parameters: {
             query?: never;
@@ -419,6 +442,26 @@ export interface paths {
         put?: never;
         /** Redownload */
         post: operations["redownloadLibraryItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/{item_id}/thumb": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Thumb
+         * @description A 320 px WebP picture of the file (video frame, PDF page, cover art, image).
+         */
+        get: operations["getLibraryThumb"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -987,6 +1030,8 @@ export interface components {
             source_url: string | null;
             /** Tags */
             tags: string[];
+            /** Thumbnail */
+            thumbnail?: string | null;
             /** Title */
             title: string;
         };
@@ -1136,6 +1181,8 @@ export interface components {
         };
         /** SearchHit */
         SearchHit: {
+            /** Collection */
+            collection?: string[] | null;
             /** Creator */
             creator?: string | null;
             /** Downloads */
@@ -1144,6 +1191,8 @@ export interface components {
             identifier: string;
             /** Mediatype */
             mediatype?: string | null;
+            /** Subject */
+            subject?: string[] | null;
             /** Thumbnail */
             thumbnail: string;
             /** Title */
@@ -1729,6 +1778,7 @@ export interface operations {
                 q: string;
                 lang?: string | null;
                 limit?: number;
+                sources?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -1788,6 +1838,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    streamBookSearch: {
+        parameters: {
+            query: {
+                q: string;
+                lang?: string | null;
+                limit?: number;
+                sources?: string[] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2934,6 +3018,71 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["JobOut"];
                 };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getLibraryThumb: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Blocked or invalid link */
             400: {

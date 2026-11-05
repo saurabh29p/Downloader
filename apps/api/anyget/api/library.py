@@ -12,6 +12,7 @@ from anyget.core.jobs import JobOut
 from anyget.core.users import OWNER_ID
 from anyget.library.epub import EpubPreview, epub_preview
 from anyget.library.models import Kind, LibraryItem, LibraryItemOut, LibraryPage
+from anyget.library.thumbs import forget, thumbnail_for
 
 router = APIRouter(tags=["library"])
 
@@ -85,6 +86,7 @@ async def delete_item(
     item_id: str, services: ServicesDep, user: UserDep, delete_file: bool = False
 ) -> Response:
     _item(services, item_id, user)
+    forget(services.settings.data_dir, item_id)
     if not services.library.delete(item_id, delete_file=delete_file):
         raise _missing()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -120,6 +122,29 @@ async def get_file(
             # The Library page shows PDFs in an iframe on the same site.
             "X-Frame-Options": "SAMEORIGIN",
         },
+    )
+
+
+@router.get(
+    "/library/{item_id}/thumb",
+    operation_id="getLibraryThumb",
+    response_class=FileResponse,
+    responses=ERROR_RESPONSES,
+)
+async def get_thumb(item_id: str, services: ServicesDep, user: UserDep) -> FileResponse:
+    """A 320 px WebP picture of the file (video frame, PDF page, cover art, image)."""
+    item = _item(services, item_id, user)
+    try:
+        source = services.library.path_of(item)
+    except UnsafePathError as exc:
+        raise _missing() from exc
+    thumb = await thumbnail_for(services.settings.data_dir, item.id, source, item.kind)
+    if thumb is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, {"code": "not_found", "message": "no thumbnail"}
+        )
+    return FileResponse(
+        thumb, media_type="image/webp", headers={"Cache-Control": "private, max-age=86400"}
     )
 
 

@@ -1,15 +1,17 @@
 """Books, worldwide libraries, universal search and conversions."""
 
 import asyncio
-from collections.abc import Awaitable
+from collections.abc import AsyncIterator, Awaitable
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from anyget.api.deps import ERROR_RESPONSES, ServicesDep, UserDep
-from anyget.books.search import BookSearch, search_books
+from anyget.books.search import BookSearch, search_books, stream_books
 from anyget.books.sources import BY_NAME
+from anyget.core.events import SSE_HEADERS, format_sse
 from anyget.core.jobs import JobOut
 from anyget.core.users import OWNER_ID
 from anyget.handlers.archive_org import SearchHit, build_query
@@ -18,6 +20,7 @@ from anyget.handlers.base import HandlerError
 from anyget.handlers.convert import TARGETS, convert_url
 from anyget.handlers.ytdlp import YtDlpHandler
 from anyget.libraries.registry import LIBRARIES, REGIONS, Library
+from anyget.universal.relevance import rank_hits
 
 router = APIRouter(tags=["books"])
 
@@ -77,8 +80,40 @@ async def books_search(
     q: Annotated[str, Query(min_length=1, max_length=300)],
     lang: Annotated[str | None, Query(pattern=r"^[a-z]{2,3}$")] = None,
     limit: Annotated[int, Query(ge=1, le=40)] = 10,
+    sources: Annotated[list[str] | None, Query(max_length=40)] = None,
 ) -> BookSearch:
-    return await search_books(services.net, services.settings, q, lang=lang, limit=limit)
+    return await search_books(
+        services.net, services.settings, q, lang=lang, limit=limit, sources=sources
+    )
+
+
+@router.get(
+    "/books/search/stream",
+    operation_id="streamBookSearch",
+    response_class=StreamingResponse,
+    responses={200: {"content": {"text/event-stream": {}}}},
+)
+async def books_search_stream(
+    services: ServicesDep,
+    q: Annotated[str, Query(min_length=1, max_length=300)],
+    lang: Annotated[str | None, Query(pattern=r"^[a-z]{2,3}$")] = None,
+    limit: Annotated[int, Query(ge=1, le=40)] = 10,
+    sources: Annotated[list[str] | None, Query(max_length=40)] = None,
+) -> StreamingResponse:
+    """Server-Sent Events: a `source` event per source as it answers, then `done`.
+
+    `source` carries {source: SourceStatus, results: [BookHit]}; `done` the ranked
+    BookSearch. Pass `sources=` to ask only some sources again (retry).
+    """
+
+    async def events() -> AsyncIterator[str]:
+        async for part in stream_books(
+            services.net, services.settings, q, lang=lang, limit=limit, sources=sources
+        ):
+            name = "done" if isinstance(part, BookSearch) else "source"
+            yield format_sse(name, part.model_dump(mode="json"))
+
+    return StreamingResponse(events(), media_type="text/event-stream", headers=SSE_HEADERS)
 
 
 @router.get("/libraries", operation_id="listLibraries")
@@ -102,13 +137,14 @@ async def libraries(services: ServicesDep) -> LibraryList:
 async def _archive(services: ServicesDep, q: str, limit: int) -> ArchiveGroup:
     try:
         page = await asyncio.wait_for(
-            archive_search(services.net, build_query(q), rows=limit), TIME_LIMIT
+            archive_search(services.net, build_query(q), rows=min(limit * 4, 50)), TIME_LIMIT
         )
     except TimeoutError:
         return ArchiveGroup(status="timeout")
     except Exception as exc:  # network and upstream errors become a group status
         return ArchiveGroup(status="error", message=type(exc).__name__)
-    return ArchiveGroup(items=page.items)
+    # archive.org sorts by downloads: rank by relevance, then keep the best few.
+    return ArchiveGroup(items=rank_hits(page.items, q)[:limit])
 
 
 async def _videos(services: ServicesDep, q: str, limit: int) -> VideoGroup:

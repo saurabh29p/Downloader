@@ -22,6 +22,7 @@ HANDLER_ERROR_STATUS = {
     "not_found": 404,
     "restricted": 403,
     "borrow_only": 403,
+    "not_a_file": 422,
 }
 
 

@@ -21,7 +21,7 @@ import { ChoicePill } from "@/components/media/choice";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { libraryFileUrl, listLibrary, scanLibrary, type LibraryKind } from "@/lib/api-library";
+import { listLibrary, scanLibrary, type LibraryKind } from "@/lib/api-library";
 import { errorMessage } from "@/lib/errors";
 import { formatBytes, isolate } from "@/lib/format";
 import { toast } from "@/lib/toast";
@@ -196,22 +196,7 @@ export function LibraryView() {
                     data-testid="library-item"
                     data-kind={item.kind}
                   >
-                    {item.kind === "image" && !item.missing ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- local files
-                      <img
-                        src={libraryFileUrl(item.id)}
-                        alt=""
-                        loading="lazy"
-                        className="aspect-video w-full rounded bg-muted object-cover"
-                      />
-                    ) : (
-                      <span
-                        className="flex aspect-video w-full items-center justify-center rounded bg-muted"
-                        aria-hidden="true"
-                      >
-                        <Icon className="size-8 text-muted-foreground" />
-                      </span>
-                    )}
+                    <Thumb item={item} Icon={Icon} />
                     <span className="line-clamp-2 font-medium break-words" dir="auto">
                       {item.title}
                     </span>
@@ -234,3 +219,29 @@ export function LibraryView() {
 }
 
 export default LibraryView;
+
+/** The item's thumbnail (video frame, PDF page, cover, image), or its kind's icon. */
+function Thumb({ item, Icon }: { item: LibraryItem; Icon: (typeof ICONS)[LibraryKind] }) {
+  const [failed, setFailed] = useState(false);
+  if (item.thumbnail && !item.missing && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- local thumbnails
+      <img
+        src={item.thumbnail}
+        alt=""
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="aspect-video w-full rounded bg-muted object-cover"
+        data-testid="library-thumb"
+      />
+    );
+  }
+  return (
+    <span
+      className="flex aspect-video w-full items-center justify-center rounded bg-muted"
+      aria-hidden="true"
+    >
+      <Icon className="size-8 text-muted-foreground" />
+    </span>
+  );
+}

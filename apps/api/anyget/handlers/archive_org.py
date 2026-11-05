@@ -29,7 +29,17 @@ from anyget.handlers.multi import RemoteFile, download_many
 ARCHIVE_HOSTS = {"archive.org", "www.archive.org"}
 METADATA_TTL = 600.0
 _ID = re.compile(r"^[A-Za-z0-9._-]{1,100}$")
-SEARCH_FIELDS = ("identifier", "title", "mediatype", "creator", "year", "date", "downloads")
+SEARCH_FIELDS = (
+    "identifier",
+    "title",
+    "mediatype",
+    "creator",
+    "year",
+    "date",
+    "downloads",
+    "subject",
+    "collection",
+)
 
 # Preferred formats when the user does not pick files, per media type.
 DEFAULT_FORMATS: dict[str, tuple[str, ...]] = {
@@ -90,6 +100,8 @@ class SearchHit(BaseModel):
     year: str | None = None
     downloads: int | None = None
     thumbnail: str
+    subject: list[str] | None = None
+    collection: list[str] | None = None
 
 
 class SearchPage(BaseModel):
@@ -97,6 +109,13 @@ class SearchPage(BaseModel):
     items: list[SearchHit]
     page: int | None = None
     cursor: str | None = None
+
+
+def _many(value: Any, limit: int = 12) -> list[str] | None:
+    if value in (None, "", []):
+        return None
+    items = value if isinstance(value, list) else [value]
+    return [str(v)[:120] for v in items[:limit]]
 
 
 def _first(value: Any) -> str | None:
@@ -235,6 +254,8 @@ def _hit(doc: dict[str, Any]) -> SearchHit:
         creator=_first(doc.get("creator")),
         year=_first(doc.get("year")) or (_first(doc.get("date")) or "")[:4] or None,
         downloads=int(downloads) if isinstance(downloads, int | float) else None,
+        subject=_many(doc.get("subject")),
+        collection=_many(doc.get("collection")),
         thumbnail=f"https://archive.org/services/img/{identifier}",
     )
 

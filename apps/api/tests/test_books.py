@@ -15,7 +15,7 @@ from anyget.books import search as search_mod
 from anyget.books.base import Access, Adapter, BookFormat, BookHit, SearchContext, find_links
 from anyget.books.hathitrust import identifier
 from anyget.books.ranker import rank, relevance
-from anyget.books.search import search_books
+from anyget.books.search import BookSearch, search_books
 from anyget.books.sources import ADAPTERS, BY_NAME
 from anyget.books.standard_ebooks import epub_url
 from anyget.core.net import Net
@@ -150,10 +150,10 @@ async def test_standard_ebooks_search_page(net: Net, settings: Settings) -> None
     assert found[0].title == "Pride and Prejudice" and found[0].authors == ["Jane Austen"]
     assert found[0].formats[0].url == (
         "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/"
-        "jane-austen_pride-and-prejudice.epub"
+        "jane-austen_pride-and-prejudice.epub?source=download"
     )
     assert epub_url("/ebooks/leo-tolstoy/war-and-peace/louise-maude_aylmer-maude").endswith(
-        "/downloads/leo-tolstoy_war-and-peace_louise-maude_aylmer-maude.epub"
+        "/downloads/leo-tolstoy_war-and-peace_louise-maude_aylmer-maude.epub?source=download"
     )
     assert await BY_NAME["standard_ebooks"].search(ctx(net, settings, "fr"), "x", 5) == []  # type: ignore[misc]
 
@@ -394,3 +394,37 @@ async def test_open_library_borrow_only_is_refused(net: Net, settings: Settings)
     with pytest.raises(HandlerError) as info:
         await handler.probe("https://openlibrary.org/works/OL2W")
     assert info.value.code == "borrow_only"
+
+
+async def test_stream_books_sends_each_source_then_the_ranking(
+    net: Net, settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from anyget.books.search import SourceResult, stream_books
+
+    hit = BookHit(
+        source="fast",
+        id="1",
+        title="Pride and Prejudice",
+        access=Access.full_view,
+        details_url="https://example.org/1",
+    )
+
+    async def fast(_ctx: SearchContext, _q: str, _limit: int) -> list[BookHit]:
+        return [hit]
+
+    async def slow(_ctx: SearchContext, _q: str, _limit: int) -> list[BookHit]:
+        await asyncio.sleep(5)
+        return []
+
+    adapters = (Adapter("slow", "Slow", "global", slow), Adapter("fast", "Fast", "global", fast))
+    monkeypatch.setattr(search_mod, "ADAPTERS", adapters)
+    parts = [p async for p in stream_books(net, settings, "pride", time_limit=0.2)]
+    first, second, done = parts
+    assert isinstance(first, SourceResult) and first.source.name == "fast"  # first to answer
+    assert first.results[0].source_label == "Fast"
+    assert isinstance(second, SourceResult) and second.source.status == "timeout"
+    assert isinstance(done, BookSearch)
+    assert [s.name for s in done.sources] == ["slow", "fast"]  # stable order at the end
+
+    only = [p async for p in stream_books(net, settings, "pride", sources=["fast"])]
+    assert len(only) == 2 and isinstance(only[-1], BookSearch)

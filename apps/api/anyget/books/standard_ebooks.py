@@ -19,9 +19,13 @@ _IMG = re.compile(r'<img[^>]+src="([^"]+)"')
 
 
 def epub_url(path: str) -> str:
-    """/ebooks/jane-austen/pride-and-prejudice → …/downloads/jane-austen_pride-and-prejudice.epub"""
+    """/ebooks/jane-austen/pride-and-prejudice →
+    …/downloads/jane-austen_pride-and-prejudice.epub?source=download
+
+    Without `?source=download` the link opens a "Your Download Has Started" page.
+    """
     parts = path.strip("/").split("/")[1:]
-    return f"{BASE}{path.rstrip('/')}/downloads/{'_'.join(parts)}.epub"
+    return f"{BASE}{path.rstrip('/')}/downloads/{'_'.join(parts)}.epub?source=download"
 
 
 def parse_search(html: str, limit: int) -> list[BookHit]:

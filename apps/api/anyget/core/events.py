@@ -7,6 +7,8 @@ from collections.abc import AsyncGenerator
 from typing import Any
 
 HEARTBEAT_SECONDS = 15.0
+# No caching, and no buffering in proxies (nginx), so events arrive at once.
+SSE_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
 
 
 class EventBus:

@@ -1093,6 +1093,17 @@
             "title": "Tags",
             "type": "array"
           },
+          "thumbnail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -1572,6 +1583,20 @@
       },
       "SearchHit": {
         "properties": {
+          "collection": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collection"
+          },
           "creator": {
             "anyOf": [
               {
@@ -1608,6 +1633,20 @@
               }
             ],
             "title": "Mediatype"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject"
           },
           "thumbnail": {
             "title": "Thumbnail",
@@ -3227,6 +3266,26 @@
               "title": "Limit",
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sources",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 40,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sources"
+            }
           }
         ],
         "responses": {
@@ -3292,6 +3351,96 @@
           }
         },
         "summary": "Books Search",
+        "tags": [
+          "books"
+        ]
+      }
+    },
+    "/api/books/search/stream": {
+      "get": {
+        "description": "Server-Sent Events: a `source` event per source as it answers, then `done`.\n\n`source` carries {source: SourceStatus, results: [BookHit]}; `done` the ranked\nBookSearch. Pass `sources=` to ask only some sources again (retry).",
+        "operationId": "streamBookSearch",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z]{2,3}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 40,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sources",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 40,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sources"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Books Search Stream",
         "tags": [
           "books"
         ]
@@ -4844,6 +4993,82 @@
           }
         },
         "summary": "Redownload",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/{item_id}/thumb": {
+      "get": {
+        "description": "A 320 px WebP picture of the file (video frame, PDF page, cover art, image).",
+        "operationId": "getLibraryThumb",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Get Thumb",
         "tags": [
           "library"
         ]

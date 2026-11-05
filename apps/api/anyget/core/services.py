@@ -33,11 +33,13 @@ from anyget.handlers.registry import (
     PRIORITY_GIT,
     PRIORITY_IIIF,
     PRIORITY_TORRENT,
+    PRIORITY_WIKIMEDIA,
     PRIORITY_YTDLP,
     Registry,
 )
 from anyget.handlers.torrent import TorrentHandler
 from anyget.handlers.wayback import WaybackHandler
+from anyget.handlers.wikimedia import WikimediaHandler
 from anyget.handlers.ytdlp import YtDlpHandler
 from anyget.library.index import LibraryIndex
 from anyget.plugins import PluginInfo, load_plugins
@@ -57,6 +59,7 @@ def build_registry(net: Net, settings: Settings, store: JobStore | None = None) 
     registry.register(IiifLibraryHandler(net, settings), PRIORITY_IIIF)
     registry.register(BooksHandler(net, settings, archive), PRIORITY_BOOKS)
     registry.register(AiResourcesHandler(net, settings), PRIORITY_AI)
+    registry.register(WikimediaHandler(net), PRIORITY_WIKIMEDIA)
     registry.register(YtDlpHandler(settings), PRIORITY_YTDLP)
     registry.register(GalleryHandler(net), PRIORITY_GALLERY)
     registry.register(HttpGenericHandler(net), PRIORITY_FALLBACK)

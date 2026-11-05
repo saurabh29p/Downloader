@@ -10,5 +10,6 @@
  "login_required": "ERROR: [vimeo] 123: This video is only available for registered users",
  "unavailable": "ERROR: [youtube] abc: Video unavailable. This video has been removed by the uploader",
  "unsupported": "ERROR: Unsupported URL: https://example.com/page",
- "upstream": "ERROR: [youtube] abc: HTTP Error 500: Internal Server Error"
+ "upstream": "ERROR: [youtube] abc: HTTP Error 500: Internal Server Error",
+ "forbidden": "ERROR: unable to download video data: HTTP Error 403: Forbidden"
 }
