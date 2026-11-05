@@ -1803,6 +1803,17 @@
             "title": "Identifier",
             "type": "string"
           },
+          "licenseurl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licenseurl"
+          },
           "mediatype": {
             "anyOf": [
               {
@@ -2388,6 +2399,44 @@
           "ffmpeg"
         ],
         "title": "ToolVersions",
+        "type": "object"
+      },
+      "UniversalIn": {
+        "properties": {
+          "section": {
+            "anyOf": [
+              {
+                "enum": [
+                  "movies",
+                  "books",
+                  "music",
+                  "video",
+                  "declassified",
+                  "maps",
+                  "newspapers",
+                  "photos",
+                  "manuscripts",
+                  "more"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "UniversalIn",
         "type": "object"
       },
       "UniversalSearch": {
@@ -5807,6 +5856,110 @@
         "summary": "Ytdlp Version",
         "tags": [
           "settings"
+        ]
+      }
+    },
+    "/api/universal": {
+      "get": {
+        "description": "The same stream as POST, for EventSource (which can only GET).",
+        "operationId": "universalStream",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "section",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "movies",
+                    "books",
+                    "music",
+                    "video",
+                    "declassified",
+                    "maps",
+                    "newspapers",
+                    "photos",
+                    "manuscripts",
+                    "more"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Section"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Universal Get",
+        "tags": [
+          "universal"
+        ]
+      },
+      "post": {
+        "operationId": "universalPost",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UniversalIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Universal Post",
+        "tags": [
+          "universal"
         ]
       }
     },

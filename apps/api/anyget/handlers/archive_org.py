@@ -39,6 +39,7 @@ SEARCH_FIELDS = (
     "downloads",
     "subject",
     "collection",
+    "licenseurl",
 )
 
 # Preferred formats when the user does not pick files, per media type.
@@ -102,6 +103,7 @@ class SearchHit(BaseModel):
     thumbnail: str
     subject: list[str] | None = None
     collection: list[str] | None = None
+    licenseurl: str | None = None
 
 
 class SearchPage(BaseModel):
@@ -256,6 +258,7 @@ def _hit(doc: dict[str, Any]) -> SearchHit:
         downloads=int(downloads) if isinstance(downloads, int | float) else None,
         subject=_many(doc.get("subject")),
         collection=_many(doc.get("collection")),
+        licenseurl=_first(doc.get("licenseurl")),
         thumbnail=f"https://archive.org/services/img/{identifier}",
     )
 

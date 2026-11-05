@@ -615,6 +615,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/universal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Universal Get
+         * @description The same stream as POST, for EventSource (which can only GET).
+         */
+        get: operations["universalStream"];
+        put?: never;
+        /** Universal Post */
+        post: operations["universalPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/version": {
         parameters: {
             query?: never;
@@ -1280,6 +1301,8 @@ export interface components {
             downloads?: number | null;
             /** Identifier */
             identifier: string;
+            /** Licenseurl */
+            licenseurl?: string | null;
             /** Mediatype */
             mediatype?: string | null;
             /** Subject */
@@ -1444,6 +1467,13 @@ export interface components {
             yt_dlp: string | null;
             /** Yt Dlp Ejs */
             yt_dlp_ejs: string | null;
+        };
+        /** UniversalIn */
+        UniversalIn: {
+            /** Section */
+            section?: ("movies" | "books" | "music" | "video" | "declassified" | "maps" | "newspapers" | "photos" | "manuscripts" | "more") | null;
+            /** Text */
+            text: string;
         };
         /** UniversalSearch */
         UniversalSearch: {
@@ -3738,6 +3768,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["YtDlpVersion"];
+                };
+            };
+        };
+    };
+    universalStream: {
+        parameters: {
+            query: {
+                q: string;
+                section?: ("movies" | "books" | "music" | "video" | "declassified" | "maps" | "newspapers" | "photos" | "manuscripts" | "more") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    universalPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UniversalIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
