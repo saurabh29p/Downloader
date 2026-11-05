@@ -4,14 +4,17 @@ import asyncio
 import contextlib
 import logging
 import time
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
 import httpx
 
+from anyget.core import templates
 from anyget.core.events import EventBus
-from anyget.core.filenames import UnsafePathError, ensure_inside
+from anyget.core.filenames import UnsafePathError, ensure_inside, safe_join
 from anyget.core.jobs import ACTIVE_STATES, Job, JobOut, JobState, JobStore
 from anyget.core.net import BlockedURLError, HostLimiter
 from anyget.core.router import Router
@@ -49,6 +52,21 @@ class DownloadQueue:
         self._hosts = HostLimiter(settings.max_per_host, settings.host_limits)
         self._tasks: dict[str, asyncio.Task[None]] = {}
         self._stop_as: dict[str, JobState] = {}
+        # Called with each job that finishes with files (e.g. the library index).
+        self.on_done: list[Callable[[Job], Awaitable[object]]] = []
+        self._hook_tasks: set[asyncio.Task[None]] = set()
+
+    def reconfigure(self) -> None:
+        """Apply new concurrency settings to jobs that start from now on."""
+        self._global = asyncio.Semaphore(self.settings.max_concurrent_downloads)
+        self._hosts = HostLimiter(self.settings.max_per_host, self.settings.host_limits)
+
+    def job_dir(self, job: Job) -> Path:
+        """The folder a job saves into (downloads, or its folder-template subfolder)."""
+        folder = (job.options or {}).get("_folder")
+        if isinstance(folder, list) and folder:
+            return safe_join(self.output_dir, *[str(p) for p in folder])
+        return self.output_dir
 
     # ----- lifecycle -------------------------------------------------------
 
@@ -68,6 +86,14 @@ class DownloadQueue:
         for task in tasks:
             with contextlib.suppress(asyncio.CancelledError):
                 await task
+        await self.wait_hooks()
+
+    async def wait_hooks(self, time_limit: float = 60.0) -> None:
+        """Let after-download work (library indexing) finish, up to a time limit."""
+        if self._hook_tasks:
+            _, pending = await asyncio.wait(list(self._hook_tasks), timeout=time_limit)
+            for task in pending:
+                task.cancel()
 
     async def wait_idle(self) -> None:
         while self._tasks:
@@ -92,7 +118,7 @@ class DownloadQueue:
         if job.state not in (*ACTIVE_STATES, JobState.paused, JobState.failed):
             raise InvalidStateError(f"cannot cancel a {job.state} job")
         job = await self._halt(job_id, JobState.canceled)
-        remove_partials(self.output_dir, job_id)
+        remove_partials(self.job_dir(job), job_id)
         return job
 
     def resume(self, job_id: str) -> Job:
@@ -114,7 +140,7 @@ class DownloadQueue:
         job = self._require(job_id)
         if job_id in self._tasks:
             await self._halt(job_id, JobState.canceled)
-        remove_partials(self.output_dir, job_id)
+        remove_partials(self.job_dir(job), job_id)
         if delete_file:
             for rel in [job.rel_path, *(job.files or [])]:
                 if rel:
@@ -203,8 +229,20 @@ class DownloadQueue:
             total=probe.size,
         )
 
+        if "_folder" not in (job.options or {}) and handler.name != "convert":
+            # Decided once, so a resumed job finds its partial files again.
+            folder = templates.render(
+                self.settings.folder_template,
+                kind=templates.kind_for(handler.name, job.options),
+                url=url,
+                title=job.title or probe.title,
+            )
+            job = self._update(job.id, options={**(job.options or {}), "_folder": folder})
+        out_dir = self.job_dir(job)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
         tracker = _ProgressTracker(self, job)
-        context = JobContext(id=job.id, url=url, output_dir=self.output_dir)
+        context = JobContext(id=job.id, url=url, output_dir=out_dir)
         options = {**job.options, "probe": probe.model_dump(mode="json")}
         result = await handler.download(context, options, tracker)
 
@@ -226,6 +264,19 @@ class DownloadQueue:
             checksum_ok=result.checksum_ok,
             note=result.note,
         )
+        done = self.store.get(job.id)
+        if done is not None and self.on_done:
+            # Own task: indexing a big file must not hold up (or be cancelled with) the job.
+            task = asyncio.create_task(self._after_done(done), name=f"after-{job.id}")
+            self._hook_tasks.add(task)
+            task.add_done_callback(self._hook_tasks.discard)
+
+    async def _after_done(self, job: Job) -> None:
+        for hook in self.on_done:
+            try:
+                await hook(job)
+            except Exception:  # a hook (e.g. indexing) must never fail the download
+                log.exception("after-download hook failed for job %s", job.id)
 
 
 class _ProgressTracker:

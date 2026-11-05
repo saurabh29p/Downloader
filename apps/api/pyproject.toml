@@ -24,6 +24,10 @@ dependencies = [
 [project.scripts]
 anyget = "anyget.cli.main:app"
 
+[project.optional-dependencies]
+# `anyget watch-clipboard` on a desktop
+desktop = ["pyperclip==1.11.0"]
+
 [dependency-groups]
 dev = [
     "ruff>=0.17",

@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import re
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -331,6 +332,158 @@ def convert(
         raise typer.Exit(code=1)
     code = asyncio.run(_get([convert_url(matches[0].id, to, lang)], {}))
     raise typer.Exit(code=code)
+
+
+@app.command()
+def library(
+    query: Annotated[str | None, typer.Argument(help="Search titles and paths")] = None,
+    scan: Annotated[bool, typer.Option("--scan", help="Index files added by hand first")] = False,
+    kind: Annotated[str | None, typer.Option(help="video, audio, image, pdf, epub, …")] = None,
+    limit: Annotated[int, typer.Option(help="How many to show")] = 30,
+) -> None:
+    """List downloaded files in the library."""
+
+    async def run() -> Any:
+        services = Services.build(get_settings())
+        try:
+            if scan:
+                found = await services.library.scan()
+                console.print(f"Scanned: {found['added']} added, {found['removed']} removed")
+            return services.library.search(query, kind, None, None, 0, limit)
+        finally:
+            await services.stop()
+
+    page = asyncio.run(run())
+    if not page.items:
+        console.print("The library is empty. Try: anyget library --scan")
+        return
+    table = Table("Kind", "Title", "Size", "Path", "Id")
+    for item in page.items:
+        mark = " (copy)" if item.duplicate_of else ""
+        table.add_row(
+            item.kind, item.title[:40] + mark, f"{item.size:,}", item.rel_path[:50], item.id[:8]
+        )
+    console.print(table)
+
+
+watch_app = typer.Typer(help="Check channels, playlists and archive.org collections for new items.")
+app.add_typer(watch_app, name="watch")
+
+
+@watch_app.command("add")
+def watch_add(
+    url: Annotated[str, typer.Argument(help="Channel, playlist or archive.org collection")],
+    every: Annotated[int, typer.Option(help="Minutes between checks (min 60)")] = 360,
+    initial: Annotated[int, typer.Option(help="Items to fetch on the first run")] = 5,
+) -> None:
+    """Add a watch (the API server runs it on schedule; `anyget watch run` runs it now)."""
+    from anyget.watch.models import WatchIn
+
+    async def run() -> Any:
+        services = Services.build(get_settings())
+        try:
+            return await services.watches.create(
+                WatchIn(url=url, interval_minutes=every, initial=initial)
+            )
+        finally:
+            await services.stop()
+
+    try:
+        watch = asyncio.run(run())
+    except (HandlerError, BlockedURLError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from exc
+    console.print(f"Watching {watch.title} every {watch.interval_minutes} min (id {watch.id[:8]})")
+
+
+@watch_app.command("list")
+def watch_list() -> None:
+    """List watches."""
+    from anyget.watch.runner import out
+
+    services = Services.build(get_settings())
+    rows = [out(w) for w in services.watches.all()]
+    services.db.dispose()
+    if not rows:
+        console.print("No watches yet. Try: anyget watch add <channel or collection link>")
+        return
+    table = Table("Title", "Every", "Last run", "New", "Seen", "Id")
+    for w in rows:
+        last = w.last_run.strftime("%Y-%m-%d %H:%M") if w.last_run else "never"
+        new = "-" if w.last_new is None else str(w.last_new)
+        table.add_row(w.title[:40], f"{w.interval_minutes} min", last, new, str(w.seen), w.id[:8])
+    console.print(table)
+
+
+@watch_app.command("run")
+def watch_run(
+    watch_id: Annotated[str, typer.Argument(help="Watch id (or its first characters)")],
+) -> None:
+    """Check one watch now and download what is new."""
+    services = Services.build(get_settings())
+    matches = [w for w in services.watches.all() if w.id.startswith(watch_id)]
+    services.db.dispose()
+    if len(matches) != 1:
+        console.print(
+            f"[red]{'no watch' if not matches else 'more than one watch'} matches {watch_id}[/red]"
+        )
+        raise typer.Exit(code=1)
+
+    async def run() -> Any:
+        inner = Services.build(get_settings())
+        try:
+            return await inner.watches.run(matches[0].id)
+        finally:
+            await inner.stop()
+
+    result = asyncio.run(run())
+    console.print(f"{result.queued} new item(s) queued")
+    if result.queued:
+        queued = [
+            j
+            for j in Services.build(get_settings()).store.list_jobs(limit=200)
+            if j.id in set(result.job_ids)
+        ]
+        raise typer.Exit(code=asyncio.run(_get([j.url for j in queued], {})))
+
+
+LINK = re.compile(r"(?:https?://|magnet:\?)\S+", re.IGNORECASE)
+
+
+def links_in(text: str) -> list[str]:
+    """Links in copied text, without trailing punctuation, in order, once each."""
+    found = [m.group(0).rstrip(").,;'\"]>") for m in LINK.finditer(text or "")]
+    return list(dict.fromkeys(found))
+
+
+@app.command("watch-clipboard")
+def watch_clipboard(
+    auto: Annotated[bool, typer.Option("--auto", help="Download without asking")] = False,
+    interval: Annotated[float, typer.Option(help="Seconds between clipboard checks")] = 1.0,
+) -> None:
+    """Desktop helper: links you copy are offered as downloads (Ctrl+C to stop)."""
+    try:
+        import pyperclip  # type: ignore[import-untyped,unused-ignore]  # optional extra
+    except ImportError as exc:
+        console.print(
+            "This needs pyperclip: uv pip install 'anyget[desktop]' (or pip install pyperclip)"
+        )
+        raise typer.Exit(code=1) from exc
+    import time as _time
+
+    console.print("Watching the clipboard. Copy a link to download it. Ctrl+C to stop.")
+    last = ""
+    try:
+        while True:
+            text = str(pyperclip.paste() or "")
+            if text != last:
+                last = text
+                for link in links_in(text):
+                    if auto or typer.confirm(f"Download {link}?", default=True):
+                        asyncio.run(_get([link], {}))
+            _time.sleep(interval)
+    except KeyboardInterrupt:
+        console.print("Stopped.")
 
 
 if __name__ == "__main__":

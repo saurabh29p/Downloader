@@ -1,10 +1,12 @@
 """Direct file downloads over HTTP(S) with Range resume and checksum checks."""
 
+import asyncio
 import base64
 import binascii
 import contextlib
 import hashlib
 import re
+import time
 from email.message import Message
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -246,9 +248,16 @@ class HttpGenericHandler:
             total = None if _encoded(response) else (_total_from(response) or total)
             downloaded = existing
             progress_cb(Progress(downloaded=downloaded, total=total))
+            limit = self.net.settings.rate_limit_kbps * 1024
+            started, start_bytes = time.monotonic(), downloaded
             with part.open(mode) as fh:
                 async for chunk in response.aiter_bytes():
                     fh.write(chunk)
                     downloaded += len(chunk)
                     progress_cb(Progress(downloaded=downloaded, total=total))
+                    if limit:
+                        # Sleep until the average speed is back under the limit.
+                        ahead = (downloaded - start_bytes) / limit - (time.monotonic() - started)
+                        if ahead > 0:
+                            await asyncio.sleep(min(ahead, 5.0))
         return downloaded, total

@@ -5,6 +5,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (Phase 8 — library, watch, settings, help)
+- **Library:** every finished download (and anything you copy into the downloads folder, after a scan) is indexed with its kind, size, sha256, source and tags.
+  - Search, filter by kind or tag, and see which files are copies of others (same sha256, or the same source saved again). Copies are never deleted for you.
+  - Previews: video and audio with seeking (HTTP Range), images, PDF in the browser viewer, and an EPUB text preview (standard library only).
+  - Files are served inline with `Content-Security-Policy: sandbox`, so a downloaded HTML or SVG file can't run scripts.
+  - Re-download from the source, remove from the library with or without the file. CLI: `anyget library [--scan]`.
+- **Folder templates:** `{type}/{source}/{year}/{month}/{title}` decide where new downloads go, with every part sanitized. A job keeps its folder when resumed.
+- **Watches:** channels and playlists (yt-dlp) and archive.org collections are checked on a schedule (every hour up to every week) and only new items are queued.
+  - The first run fetches the newest few and marks the rest as seen. Items already in a download archive count as seen.
+  - The API server runs a scheduler. The UI and CLI (`anyget watch add|list|run`) can also run a watch now.
+- **Settings saved in the app** (SQLite, overriding `.env`):
+  - folder template, downloads at once, per-site limits, speed limit (yt-dlp `ratelimit` and an HTTP read throttle), proxy (applies after restart), contact email, and watches on/off
+  - API keys, which are write-only: only "set / not set" is ever returned
+- **yt-dlp update check** against PyPI (check only, never self-updating).
+- **Clipboard watcher:** `anyget watch-clipboard` offers every link you copy; `--auto` skips the question. Needs the optional `desktop` extra (pyperclip).
+- **Web:** Library page (grid, filters, tags, preview sheet), Watches page, a full Settings page (downloads, speed and limits, network, API keys, yt-dlp check, cookies), and server-rendered Help and Legal pages linked from the footer and Ctrl+K. en/hi/ar.
+
+### Fixed (Phase 8)
+- After-download work (library indexing) runs in its own task, so stopping the app while a file is being hashed can no longer put a finished job back in the queue.
+
 ### Added (Phase 7 — books, libraries, search, OCR, conversion)
 - Books: one search asks many free sources at once and ranks the best legal copy first: downloadable full view, then the closest match, then EPUB > text PDF > scanned PDF > page images > text, whole works before chapters.
   - Sources: Standard Ebooks, Project Gutenberg (Gutendex, self-hostable via `ANYGET_GUTENDEX_URL`), Internet Archive, Open Library, Wikisource (any language, EPUB export), Google Books free ebooks, HathiTrust (by ISBN/OCLC), Library of Congress, Gallica, NDL Japan, Europeana, DPLA, BHL, Trove, DigitalNZ, DDB, and the Wayback Machine for dead ebook links.

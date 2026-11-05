@@ -4,13 +4,16 @@ import { Command } from "cmdk";
 import {
   ArchiveIcon,
   BookOpenIcon,
+  CircleHelpIcon,
   ClapperboardIcon,
   CodeIcon,
   DownloadIcon,
+  EyeIcon,
   HistoryIcon,
   HomeIcon,
   ImagesIcon,
   LandmarkIcon,
+  LibraryIcon,
   MonitorIcon,
   MoonIcon,
   SearchIcon,
@@ -93,6 +96,18 @@ export default function CommandDialog({
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/images"))}>
             <ImagesIcon aria-hidden="true" />
             {t("goImages")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/library"))}>
+            <LibraryIcon aria-hidden="true" />
+            {t("goLibrary")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/watch"))}>
+            <EyeIcon aria-hidden="true" />
+            {t("goWatch")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/help"))}>
+            <CircleHelpIcon aria-hidden="true" />
+            {t("goHelp")}
           </Command.Item>
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/downloads"))}>
             <DownloadIcon aria-hidden="true" />

@@ -12,6 +12,8 @@ const SOURCES = [
   { href: "/search", key: "search" },
   { href: "/books", key: "books" },
   { href: "/libraries", key: "libraries" },
+  { href: "/library", key: "library" },
+  { href: "/watch", key: "watch" },
   { href: "/youtube", key: "youtube" },
   { href: "/archive", key: "archive" },
   { href: "/wayback", key: "wayback" },

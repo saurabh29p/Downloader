@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from anyget import __version__
-from anyget.api import archive, books, jobs, probe, system
+from anyget.api import archive, books, jobs, library, probe, system, watches
 from anyget.api import settings as settings_api
 from anyget.core.filenames import UnsafePathError
 from anyget.core.net import BlockedURLError
@@ -74,7 +74,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=exc.status_code, content=exc.detail)
         return _error(exc.status_code, "error", str(exc.detail))
 
-    for module in (system, probe, jobs, settings_api, archive, books):
+    for module in (system, probe, jobs, settings_api, archive, books, library, watches):
         app.include_router(module.router, prefix="/api")
     return app
 

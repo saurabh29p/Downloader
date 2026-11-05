@@ -263,7 +263,12 @@ async def search(net: Net, query: str, *, page: int = 1, rows: int = 50) -> Sear
 
 
 async def scrape(
-    net: Net, query: str, *, cursor: str | None = None, count: int = 100
+    net: Net,
+    query: str,
+    *,
+    cursor: str | None = None,
+    count: int = 100,
+    sorts: str | None = None,
 ) -> SearchPage:
     """Cursor paging (the scrape API) for walking big collections."""
     url = (
@@ -272,6 +277,8 @@ async def scrape(
     )
     if cursor:
         url += f"&cursor={quote(cursor)}"
+    if sorts:
+        url += f"&sorts={quote(sorts)}"
     response = await net.request("GET", url)
     if response.status_code >= 400:
         raise HandlerError("upstream", f"archive.org search answered {response.status_code}")
