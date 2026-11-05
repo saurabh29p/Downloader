@@ -103,7 +103,7 @@ test("playlist: select all queues one item per video, in order", async ({ page }
 test("Home preview drawer uses the same format picker for media links", async ({ page }) => {
   const sent = await mockApi(page, video);
   await page.goto("/en");
-  await page.getByLabel("Links to download").fill(video.url);
+  await page.getByLabel("Search or paste links").fill(video.url);
   await page.getByRole("button", { name: "Check link" }).click();
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByTestId("format-picker")).toBeVisible();

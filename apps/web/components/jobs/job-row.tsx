@@ -18,7 +18,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { deleteJob, fileUrl, jobAction, type JobAction } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 import { applyJobEvent, isActive, jobName } from "@/lib/jobs";
-import { toast } from "@/lib/toast";
+import { toast, withUndo } from "@/lib/toast";
 import { JOBS_KEY } from "@/lib/use-jobs";
 
 // Loaded only for finished files that can be converted (PDF, images, EPUB, audio, video).
@@ -43,15 +43,32 @@ export function JobRow({ job }: { job: Job }) {
       ),
     onError: (err) => toast.error(errorMessage(tErrors, err)),
   });
-  const remove = useMutation({
-    mutationFn: () => deleteJob(job.id),
-    onSuccess: () =>
-      queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) =>
-        applyJobEvent(jobs, { type: "job.deleted", job: { id: job.id } }),
-      ),
-    onError: (err) => toast.error(errorMessage(tErrors, err)),
-  });
-  const busy = action.isPending || remove.isPending;
+  const busy = action.isPending;
+
+  // Hidden at once; deleted when the Undo toast ends (the row is gone by then).
+  function remove() {
+    const at = queryClient.getQueryData<Job[]>(JOBS_KEY)?.findIndex((j) => j.id === job.id) ?? 0;
+    const restore = () =>
+      queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs = []) => {
+        if (jobs.some((j) => j.id === job.id)) return jobs;
+        const list = [...jobs];
+        list.splice(Math.max(0, at), 0, job);
+        return list;
+      });
+    queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) =>
+      applyJobEvent(jobs, { type: "job.deleted", job: { id: job.id } }),
+    );
+    withUndo(
+      t("removed", { name }),
+      t("undo"),
+      () =>
+        deleteJob(job.id).catch((err: unknown) => {
+          restore();
+          toast.error(errorMessage(tErrors, err));
+        }),
+      restore,
+    );
+  }
 
   const iconButton = (kind: JobAction | "remove", label: string, Icon: typeof PauseIcon) => (
     <Button
@@ -60,7 +77,7 @@ export function JobRow({ job }: { job: Job }) {
       aria-label={`${label}: ${name}`}
       title={label}
       disabled={busy}
-      onClick={() => (kind === "remove" ? remove.mutate() : action.mutate(kind))}
+      onClick={() => (kind === "remove" ? remove() : action.mutate(kind))}
     >
       <Icon aria-hidden="true" />
     </Button>

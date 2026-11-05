@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
+import { ApiStatus } from "@/components/api-status";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 
@@ -38,6 +39,12 @@ export default function HelpPage({ params }: { params: Promise<{ locale: Locale 
           <p>{t(`sections.${key}.text`)}</p>
         </section>
       ))}
+      <section className="flex flex-col gap-2" aria-labelledby="help-status">
+        <h2 id="help-status" className="text-lg font-semibold">
+          {t("statusTitle")}
+        </h2>
+        <ApiStatus />
+      </section>
       <section className="flex flex-col gap-2" aria-labelledby="help-keys">
         <h2 id="help-keys" className="text-lg font-semibold">
           {t("keysTitle")}

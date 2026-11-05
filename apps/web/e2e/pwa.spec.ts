@@ -22,7 +22,7 @@ test("sharing a link opens its preview", async ({ page }, testInfo) => {
   const sheet = page.getByRole("dialog");
   await expect(sheet).toContainText(name);
   await expect(page).toHaveURL(/\/en$/);
-  await expect(page.getByLabel("Links to download")).toHaveValue(fileLink(name));
+  await expect(page.getByLabel("Search or paste links")).toHaveValue(fileLink(name));
 });
 
 test("sharing text without a link says so", async ({ page }) => {

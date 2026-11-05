@@ -20,8 +20,9 @@ import { useId, useState, type FormEvent } from "react";
 import { ChoicePill } from "@/components/media/choice";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { listLibrary, scanLibrary, type LibraryKind } from "@/lib/api-library";
+import { listLibrary, scanLibrary, type LibraryKind, type LibraryQuery } from "@/lib/api-library";
 import { errorMessage } from "@/lib/errors";
 import { formatBytes, isolate } from "@/lib/format";
 import { toast } from "@/lib/toast";
@@ -56,6 +57,8 @@ export const LIBRARY_KEY = ["library"] as const;
 /** Every downloaded file: search, filter by kind or tag, preview, tag and tidy up. */
 export function LibraryView() {
   const t = useTranslations("Library");
+  const tSearch = useTranslations("Search");
+  const tSections = useTranslations("Sections");
   const tErrors = useTranslations("Errors");
   const locale = useLocale();
   const id = useId();
@@ -64,11 +67,13 @@ export function LibraryView() {
   const [q, setQ] = useState("");
   const [kind, setKind] = useState<LibraryKind | "all">("all");
   const [tag, setTag] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Pick<LibraryQuery, "section" | "source" | "licence">>({});
   const [open, setOpen] = useState<LibraryItem | null>(null);
-  const query = {
+  const query: LibraryQuery = {
     q: q || undefined,
     kind: kind === "all" ? undefined : kind,
     tag: tag ?? undefined,
+    ...filters,
   };
   const list = useQuery({
     queryKey: [...LIBRARY_KEY, query],
@@ -138,6 +143,42 @@ export function LibraryView() {
           </ChoicePill>
         ))}
       </div>
+      {list.data && (
+        <div className="flex flex-wrap items-center gap-2" data-testid="library-filters">
+          {(
+            [
+              [
+                "section",
+                list.data.sections ?? [],
+                (v: string) => tSections(`${v}.title` as "movies.title"),
+              ],
+              ["source", list.data.sources ?? [], (v: string) => v],
+              [
+                "licence",
+                list.data.licences ?? [],
+                (v: string) => tSearch(`licence.${v}` as "licence.cc"),
+              ],
+            ] as const
+          )
+            .filter(([, options]) => options.length > 0)
+            .map(([key, options, label]) => (
+              <NativeSelect
+                key={key}
+                aria-label={t(`filters.${key}`)}
+                value={filters[key] ?? ""}
+                onChange={(e) => setFilters((f) => ({ ...f, [key]: e.target.value || undefined }))}
+                className="border-input bg-card"
+              >
+                <option value="">{t(`filters.${key}Any`)}</option>
+                {options.map((v) => (
+                  <option key={v} value={v}>
+                    {label(v)}
+                  </option>
+                ))}
+              </NativeSelect>
+            ))}
+        </div>
+      )}
       {(list.data?.tags?.length ?? 0) > 0 && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-muted-foreground">{t("tags")}</span>
@@ -176,7 +217,9 @@ export function LibraryView() {
       )}
       {list.isSuccess && items.length === 0 && (
         <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
-          {q || kind !== "all" || tag ? t("noMatch") : t("empty")}
+          {q || kind !== "all" || tag || Object.values(filters).some(Boolean)
+            ? t("noMatch")
+            : t("empty")}
         </p>
       )}
       {items.length > 0 && (
@@ -192,17 +235,27 @@ export function LibraryView() {
                   <button
                     type="button"
                     onClick={() => setOpen(item)}
-                    className="flex w-full flex-col gap-2 rounded-lg border bg-card p-2 text-start shadow-card hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                    className="flex w-full flex-col gap-2 rounded-md border bg-card p-2 text-start shadow-card hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                     data-testid="library-item"
                     data-kind={item.kind}
                   >
                     <Thumb item={item} Icon={Icon} />
-                    <span className="line-clamp-2 font-medium break-words" dir="auto">
+                    <span className="line-clamp-2 font-serif font-semibold break-words" dir="auto">
                       {item.title}
                     </span>
-                    <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    {item.snippet && (
+                      <span
+                        className="line-clamp-2 text-sm text-muted-foreground"
+                        dir="auto"
+                        data-testid="library-snippet"
+                      >
+                        …{item.snippet}
+                      </span>
+                    )}
+                    <span className="call-number flex flex-wrap items-center gap-2">
                       <span>{t(`kinds.${item.kind}`)}</span>
                       <span>{isolate(formatBytes(item.size, locale))}</span>
+                      {item.source && <span dir="ltr">{item.source}</span>}
                       {item.duplicate_of && <Badge variant="outline">{t("duplicate")}</Badge>}
                       {item.missing && <Badge variant="destructive">{t("missing")}</Badge>}
                     </span>

@@ -6,7 +6,7 @@ import { FIXTURE, jobRow, uniqueName } from "./helpers";
 test("a web page lists its files; pick one and download it", async ({ page }, testInfo) => {
   const tag = uniqueName(testInfo, "page", "x").replace(/\.x$/, "");
   await page.goto("/en");
-  await page.getByLabel("Links to download").fill(`${FIXTURE}/page.html?id=${tag}`);
+  await page.getByLabel("Search or paste links").fill(`${FIXTURE}/page.html?id=${tag}`);
   await page.getByRole("button", { name: "Check link" }).click();
 
   const sheet = page.getByRole("dialog");

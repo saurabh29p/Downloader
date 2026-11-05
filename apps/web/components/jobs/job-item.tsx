@@ -84,7 +84,7 @@ export function JobItem({ job, actions }: { job: Job; actions?: ReactNode }) {
 
   return (
     <li
-      className="flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-card sm:p-4"
+      className="flex flex-col gap-1.5 rounded-md border bg-card px-3 py-2.5 shadow-card"
       data-testid="job-row"
       data-state={job.state}
       data-name={name}
@@ -92,7 +92,11 @@ export function JobItem({ job, actions }: { job: Job; actions?: ReactNode }) {
       <div className="flex items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h3 className="min-w-0 truncate font-medium" dir="auto" title={name}>
+            <h3
+              className="min-w-0 truncate text-sm font-medium sm:text-base"
+              dir="auto"
+              title={name}
+            >
               {name}
             </h3>
             <Badge variant={STATE_VARIANT[job.state]}>{t(`states.${job.state}`)}</Badge>
@@ -103,7 +107,7 @@ export function JobItem({ job, actions }: { job: Job; actions?: ReactNode }) {
               </Badge>
             )}
           </div>
-          <p className="text-sm text-muted-foreground tabular-nums">
+          <p className="call-number tabular-nums">
             {details.map((part, i) => (
               <span key={i}>
                 {i > 0 && <span aria-hidden="true"> · </span>}

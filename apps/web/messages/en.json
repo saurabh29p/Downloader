@@ -11,8 +11,12 @@
       "home": "Home",
       "downloads": "Downloads",
       "activeCount": "{count, plural, one {# active download} other {# active downloads}}",
-      "youtube": "YouTube",
-      "connections": "Connections"
+      "connections": "Connections",
+      "sections": "Sections",
+      "library": "Library",
+      "watch": "Watches",
+      "settings": "Settings",
+      "quick": "Jump to…"
     },
     "theme": {
       "label": "Theme",
@@ -22,35 +26,32 @@
     },
     "closeToast": "Dismiss",
     "help": "Help",
-    "legalPage": "Legal and fair use"
+    "legalPage": "Legal and fair use",
+    "dropHere": "Drop links or a .txt list",
+    "legalShort": "Legal"
   },
   "Nav": {
     "language": "Language"
   },
   "Home": {
-    "title": "Paste any link, get the file",
-    "subtitle": "Direct file links work today. Videos, archive.org, books and more are coming.",
-    "pasteLabel": "Links to download",
-    "pasteHint": "One link, or many (one per line). You can also drop a .txt file here.",
+    "title": "Find it, keep it — legally",
+    "subtitle": "Paste any public link to download it, or search films, books, music, video, declassified files and more.",
+    "pasteLabel": "Search or paste links",
+    "pasteHint": "Paste one link or many (one per line), drop a .txt list, or type a search or a question.",
     "linkCount": "{count, plural, one {# link} other {# links}}",
     "notALink": "That doesn't look like a link. Try something like https://example.com/file.pdf",
-    "noLinks": "Paste a link first.",
+    "noLinks": "Type a search or paste a link first.",
     "clipboardDenied": "The browser didn't allow reading the clipboard. Paste with Ctrl+V instead.",
     "fileTooBig": "That file is too big. Use a .txt list under 2 MB.",
     "queueMany": "{count, plural, one {Queue # link} other {Queue # links}}",
     "check": "Check link",
     "pasteButton": "Paste",
     "openFile": "Open .txt list",
-    "recent": "Recent downloads",
+    "recent": "Continue",
     "viewAll": "View all",
     "noRecent": "Nothing downloaded yet. Paste a link above to start.",
-    "statusHeading": "Server status",
     "sources": "More sources",
     "source": {
-      "youtube": {
-        "title": "YouTube and video",
-        "text": "Videos, Shorts, playlists, audio"
-      },
       "archive": {
         "title": "archive.org",
         "text": "Books, audio, film and software"
@@ -67,10 +68,6 @@
         "title": "Image galleries",
         "text": "Flickr, Imgur, DeviantArt and more"
       },
-      "search": {
-        "title": "Search everything",
-        "text": "Books, libraries, archive.org and videos"
-      },
       "books": {
         "title": "Books",
         "text": "The best legal copy of any free book"
@@ -78,18 +75,36 @@
       "libraries": {
         "title": "Libraries",
         "text": "National libraries worldwide, page by page"
-      },
-      "library": {
-        "title": "Library",
-        "text": "Everything you saved, with previews"
-      },
-      "watch": {
-        "title": "Watch",
-        "text": "New videos and items, fetched on a schedule"
       }
     },
-    "searchHint": "Type a title, a question, or paste links (one per line)",
-    "sectionsHeading": "Sections"
+    "sectionsHeading": "The catalogue",
+    "kicker": "Your reading room · free, personal, legal",
+    "go": "Search",
+    "modeLabel": "Search in",
+    "modeAll": "All",
+    "hints": {
+      "a": "Who built the Taj Mahal?",
+      "b": "Paste a YouTube, archive.org or file link",
+      "c": "Premchand short stories",
+      "d": "Charlie Chaplin films in the public domain",
+      "e": "FBI files on the Apollo programme"
+    },
+    "steps": {
+      "label": "Checking the link",
+      "reading": "Reading link",
+      "formats": "Finding formats",
+      "ready": "Ready"
+    },
+    "allSections": "All sections",
+    "tryHeading": "Try these",
+    "try": {
+      "a": "Who built the Taj Mahal?",
+      "b": "Premchand stories",
+      "c": "Nosferatu 1922",
+      "d": "JFK assassination records",
+      "e": "Old maps of Delhi",
+      "f": "Apollo 11 photos"
+    }
   },
   "Preview": {
     "handlers": {
@@ -161,7 +176,9 @@
     },
     "finishedMany": "{count, plural, one {Downloaded # file} other {Downloaded # files}}",
     "connect": "Connect your {site} account",
-    "details": "Details"
+    "details": "Details",
+    "removed": "Removed “{name}”",
+    "undo": "Undo"
   },
   "Errors": {
     "blocked_url": "This link points to a private or local network address, or isn't http(s), so it can't be downloaded.",
@@ -218,7 +235,8 @@
       "done": "No finished downloads yet.",
       "failed": "No failed downloads. Nice."
     },
-    "emptyAction": "Paste a link"
+    "emptyAction": "Paste a link",
+    "retryAll": "{count, plural, one {Retry # failed} other {Retry # failed}}"
   },
   "Command": {
     "title": "Quick menu",
@@ -315,7 +333,7 @@
     "save": "Save settings",
     "downloads": "Downloads",
     "folder": "Download folder",
-    "folderHint": "Set by ANYGET_DOWNLOADS_DIR (or the Docker volume).",
+    "folderHint": "Set on the server with ANYGET_DOWNLOADS_DIR (or the Docker volume).",
     "template": "Folder template",
     "templateHint": "Placeholders: '{type}', '{source}', '{year}', '{month}', '{title}'. Example:",
     "speed": "Speed and limits",
@@ -355,7 +373,12 @@
     "aiOn": "On: an OpenRouter key is set. It reads what you type and result titles, never your cookies, keys or files.",
     "aiOff": "Off: add an OpenRouter key in Connections to get smarter search and answers to questions. Everything works without it.",
     "aiFreeMode": "Free mode: use only free models",
-    "aiUsage": "Today: {calls} of {limit} calls, about ${cost}"
+    "aiUsage": "Today: {calls} of {limit} calls, about ${cost}",
+    "general": "General",
+    "connectionsGroup": "Connections",
+    "advanced": "Advanced",
+    "advancedHint": "Server and network details. Most people never need to change these.",
+    "groupsLabel": "Settings sections"
   },
   "Archive": {
     "title": "archive.org",
@@ -617,7 +640,7 @@
     "subtitle": "Everything you have downloaded, on this computer. Search, filter, tag and preview files without going online.",
     "scan": "Scan folder",
     "scanned": "Scan done: {added} added, {removed} removed",
-    "searchLabel": "Search titles and file names",
+    "searchLabel": "Search titles and text inside files",
     "search": "Search",
     "kind": "File type",
     "kinds": {
@@ -631,7 +654,7 @@
       "archive": "Archives",
       "other": "Other"
     },
-    "tags": "Tags:",
+    "tags": "Collections",
     "count": "{count, plural, =0 {No files} one {# file} other {# files}}",
     "empty": "No files yet. Downloads appear here when they finish; files you copy into the folder appear after a scan.",
     "noMatch": "No files match. Try another search or filter.",
@@ -653,7 +676,15 @@
     "removed": "Removed",
     "noPreview": "No preview for this file type.",
     "epubPreview": "Book preview",
-    "truncated": "Preview shortened."
+    "truncated": "Preview shortened.",
+    "filters": {
+      "section": "Section",
+      "sectionAny": "Any section",
+      "source": "Source",
+      "sourceAny": "Any source",
+      "licence": "Licence",
+      "licenceAny": "Any licence"
+    }
   },
   "Watch": {
     "title": "Watches",
@@ -739,7 +770,8 @@
         "text": "Close a preview or menu"
       }
     },
-    "legalLink": "Read the legal and fair use rules"
+    "legalLink": "Read the legal and fair use rules",
+    "statusTitle": "Server status"
   },
   "Legal": {
     "title": "Legal and fair use",

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { use } from "react";
+import { use, type CSSProperties } from "react";
 
 import { SectionView } from "@/components/sections/section-view";
+import { LineArt } from "@/components/art/line-art";
 import { SectionsGrid } from "@/components/sections/sections-grid";
 import { Link } from "@/i18n/navigation";
 import { locales, type Locale } from "@/i18n/routing";
@@ -42,12 +43,27 @@ export default function SectionPage({
   const tHome = useTranslations("Home");
   return (
     <div className="flex flex-col gap-6" data-section={id}>
-      <div className="flex flex-col gap-2">
-        <Link href="/sections" className="self-start text-sm text-muted-foreground hover:underline">
-          {t("back")}
-        </Link>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t(`${id}.title`)}</h1>
-        <p className="max-w-prose text-muted-foreground">{t(`${id}.hero`)}</p>
+      <div
+        className="flex items-start gap-5 border-s-4 border-(color:--tint) ps-4"
+        style={{ "--tint": `var(--tint-${id})` } as CSSProperties}
+      >
+        <div className="flex flex-1 flex-col gap-2">
+          <Link
+            href="/sections"
+            className="self-start text-sm text-muted-foreground hover:underline"
+          >
+            {t("back")}
+          </Link>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            {id === "declassified" ? (
+              <span className="stamp text-2xl sm:text-3xl">{t(`${id}.title`)}</span>
+            ) : (
+              t(`${id}.title`)
+            )}
+          </h1>
+          <p className="max-w-prose text-muted-foreground">{t(`${id}.hero`)}</p>
+        </div>
+        <LineArt name={id} className="hidden size-20 shrink-0 text-(color:--tint) sm:block" />
       </div>
       {id === "more" ? (
         <>
@@ -57,7 +73,7 @@ export default function SectionPage({
               <li key={page}>
                 <Link
                   href={`/${page}`}
-                  className="flex min-h-11 flex-col gap-1 rounded-lg border bg-card p-3 shadow-card hover:bg-accent"
+                  className="flex min-h-11 flex-col gap-1 rounded-md border bg-card p-3 shadow-card hover:bg-accent"
                 >
                   <span className="font-medium">{tHome(`source.${page}.title`)}</span>
                   <span className="text-sm text-muted-foreground">

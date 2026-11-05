@@ -4,36 +4,60 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * AnyGet design tokens. Light is the default; dark follows the system
- * (prefers-color-scheme) or an explicit .dark class (theme toggle, phase 3).
+ * "The Reading Room" design tokens: Paper (light, default) and Ink (dark).
+ * Dark follows the system (prefers-color-scheme) or an explicit .dark class.
+ * Text pairs meet WCAG AA: saffron is a fill (with ink text on it); saffron
+ * text uses --saffron-ink. Section tints are decoration only (never text).
  * Spacing uses Tailwind's 4px grid.
  */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.18 0.01 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.01 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.01 260);
-  --primary: oklch(0.45 0.18 260);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.005 260);
-  --secondary-foreground: oklch(0.22 0.01 260);
-  --muted: oklch(0.96 0.005 260);
-  --muted-foreground: oklch(0.45 0.01 260);
-  --accent: oklch(0.95 0.02 260);
-  --accent-foreground: oklch(0.22 0.01 260);
-  --destructive: oklch(0.5 0.2 27);
-  --success: oklch(0.45 0.13 150);
-  --border: oklch(0.9 0.005 260);
-  --input: oklch(0.88 0.005 260);
-  --ring: oklch(0.55 0.18 260);
+  --radius: 0.5rem;
+  --background: #f6f1e7;
+  --foreground: #1c1a17;
+  --card: #fffdf8;
+  --card-foreground: #1c1a17;
+  --popover: #fffdf8;
+  --popover-foreground: #1c1a17;
+  --primary: #2b3a67;
+  --primary-foreground: #fffdf8;
+  --secondary: #efe7d8;
+  --secondary-foreground: #1c1a17;
+  --muted: #efe7d8;
+  --muted-foreground: #6b645a;
+  --accent: #ede4d3;
+  --accent-foreground: #1c1a17;
+  --destructive: #b23a3a;
+  --success: #366f4d;
+  --border: #e3dacb;
+  --input: #9a8d78;
+  --ring: #2b3a67;
+  --saffron: #e8772e;
+  --saffron-foreground: #1c1a17;
+  --saffron-ink: #a84f12;
+  --rail: #efe7d8;
+  --rule: #c9d6e8;
+  --rule-red: #d9a49a;
+
+  /* Section tints (stripes, drawer labels, art), the same in both themes. */
+  --tint-movies: #c2412d;
+  --tint-books: #8a5a2b;
+  --tint-music: #6d3fa0;
+  --tint-video: #1f6f8b;
+  --tint-declassified: #3a3a3a;
+  --tint-more: #2b3a67;
+  --tint-maps: #4e7a3a;
+  --tint-newspapers: #5a5a5a;
+  --tint-photos: #b5832a;
+  --tint-manuscripts: #7a3e2b;
 
   --font-sans:
-    "Inter Variable", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans CJK SC",
-    "Noto Sans JP", system-ui, sans-serif;
-  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.06), 0 4px 12px oklch(0 0 0 / 0.04);
+    "Inter Variable", "Noto Sans", "Noto Sans Arabic", "Noto Naskh Arabic", "Noto Sans Devanagari",
+    "Noto Sans CJK SC", "Noto Sans JP", system-ui, sans-serif;
+  --font-serif:
+    "Fraunces Variable", "Noto Naskh Arabic", "Noto Sans Devanagari", Georgia, "Times New Roman",
+    serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --shadow-card: 0 1px 0 rgb(28 26 23 / 0.04), 0 2px 8px rgb(28 26 23 / 0.06);
   /* Motion */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --duration-fast: 120ms;
@@ -41,52 +65,73 @@
   --duration-slow: 320ms;
   /* Layout */
   --bottom-nav-height: 4rem;
+  --rail-width: 14rem;
 }
 
-/* Dark: an explicit choice (.dark, set by the theme script) or the system setting. */
+/* Ink: an explicit choice (.dark, set by the theme script) or the system setting. */
 :root.dark {
-  --background: oklch(0.16 0.01 260);
-  --foreground: oklch(0.96 0.005 260);
-  --card: oklch(0.2 0.01 260);
-  --card-foreground: oklch(0.96 0.005 260);
-  --popover: oklch(0.2 0.01 260);
-  --popover-foreground: oklch(0.96 0.005 260);
-  --primary: oklch(0.72 0.14 260);
-  --primary-foreground: oklch(0.16 0.01 260);
-  --secondary: oklch(0.26 0.01 260);
-  --secondary-foreground: oklch(0.96 0.005 260);
-  --muted: oklch(0.26 0.01 260);
-  --muted-foreground: oklch(0.75 0.01 260);
-  --accent: oklch(0.28 0.02 260);
-  --accent-foreground: oklch(0.96 0.005 260);
-  --destructive: oklch(0.7 0.17 25);
-  --success: oklch(0.75 0.14 150);
-  --border: oklch(0.3 0.01 260);
-  --input: oklch(0.34 0.01 260);
-  --ring: oklch(0.72 0.14 260);
+  --background: #16140f;
+  --foreground: #ede6d8;
+  --card: #1e1b16;
+  --card-foreground: #ede6d8;
+  --popover: #1e1b16;
+  --popover-foreground: #ede6d8;
+  --primary: #7c8cd6;
+  --primary-foreground: #16140f;
+  --secondary: #26221b;
+  --secondary-foreground: #ede6d8;
+  --muted: #26221b;
+  --muted-foreground: #a69c8c;
+  --accent: #2a261f;
+  --accent-foreground: #ede6d8;
+  --destructive: #e57373;
+  --success: #6fb98a;
+  --border: #2e2a23;
+  --input: #7a6f5f;
+  --ring: #7c8cd6;
+  --saffron: #f0883e;
+  --saffron-foreground: #16140f;
+  --saffron-ink: #f0883e;
+  --rail: #121212;
+  --rule: #2b3346;
+  --rule-red: #5a2f2a;
+  --tint-declassified: #9a9a9a;
+  --tint-newspapers: #a3a3a3;
+  --tint-more: #7c8cd6;
+  --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light):not(.dark) {
-    --background: oklch(0.16 0.01 260);
-    --foreground: oklch(0.96 0.005 260);
-    --card: oklch(0.2 0.01 260);
-    --card-foreground: oklch(0.96 0.005 260);
-    --popover: oklch(0.2 0.01 260);
-    --popover-foreground: oklch(0.96 0.005 260);
-    --primary: oklch(0.72 0.14 260);
-    --primary-foreground: oklch(0.16 0.01 260);
-    --secondary: oklch(0.26 0.01 260);
-    --secondary-foreground: oklch(0.96 0.005 260);
-    --muted: oklch(0.26 0.01 260);
-    --muted-foreground: oklch(0.75 0.01 260);
-    --accent: oklch(0.28 0.02 260);
-    --accent-foreground: oklch(0.96 0.005 260);
-    --destructive: oklch(0.7 0.17 25);
-    --success: oklch(0.75 0.14 150);
-    --border: oklch(0.3 0.01 260);
-    --input: oklch(0.34 0.01 260);
-    --ring: oklch(0.72 0.14 260);
+    --background: #16140f;
+    --foreground: #ede6d8;
+    --card: #1e1b16;
+    --card-foreground: #ede6d8;
+    --popover: #1e1b16;
+    --popover-foreground: #ede6d8;
+    --primary: #7c8cd6;
+    --primary-foreground: #16140f;
+    --secondary: #26221b;
+    --secondary-foreground: #ede6d8;
+    --muted: #26221b;
+    --muted-foreground: #a69c8c;
+    --accent: #2a261f;
+    --accent-foreground: #ede6d8;
+    --destructive: #e57373;
+    --success: #6fb98a;
+    --border: #2e2a23;
+    --input: #7a6f5f;
+    --ring: #7c8cd6;
+    --saffron: #f0883e;
+    --saffron-foreground: #16140f;
+    --saffron-ink: #f0883e;
+    --rail: #121212;
+    --rule: #2b3346;
+    --rule-red: #5a2f2a;
+    --tint-declassified: #9a9a9a;
+    --tint-newspapers: #a3a3a3;
+    --tint-more: #7c8cd6;
+    --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.25);
   }
 }
 
@@ -110,7 +155,13 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-saffron: var(--saffron);
+  --color-saffron-foreground: var(--saffron-foreground);
+  --color-saffron-ink: var(--saffron-ink);
+  --color-rail: var(--rail);
   --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
   --shadow-card: var(--shadow-card);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -144,6 +195,12 @@
   body {
     @apply bg-background font-sans text-foreground antialiased;
   }
+  /* Headings are set in the serif (Fraunces; Noto for Arabic and Devanagari). */
+  h1,
+  h2 {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+  }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
   }
@@ -156,5 +213,116 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+/* ----- Reading Room pieces (CSS only, so they cost no JavaScript) ------------ */
+@layer components {
+  /* A library index card: a red rule under the heading and a punched hole. */
+  .index-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background-color: var(--card);
+    color: var(--card-foreground);
+    box-shadow: var(--shadow-card);
+  }
+  .index-card-head {
+    border-bottom: 1px solid var(--rule-red);
+  }
+  .index-card::after {
+    content: "";
+    position: absolute;
+    bottom: 0.4rem;
+    left: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: -0.25rem;
+    border-radius: 9999px;
+    background: var(--background);
+    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.15);
+    pointer-events: none;
+  }
+  /* Call number / file facts. */
+  .call-number {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--muted-foreground);
+    letter-spacing: 0.01em;
+  }
+  /* The red "stamped" label (Declassified). */
+  .stamp {
+    display: inline-block;
+    border: 2px solid currentColor;
+    border-radius: 0.25rem;
+    padding: 0 0.4rem;
+    color: var(--destructive);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transform: rotate(-4deg);
+  }
+
+  /* Rotating search hints over the empty universal bar. The textarea keeps the
+     first hint as its real placeholder (read by screen readers) but hides it. */
+  .hint-rotator {
+    position: absolute;
+    inset-inline: 1rem;
+    top: 0.85rem;
+    pointer-events: none;
+    color: var(--muted-foreground);
+  }
+  .hint-host:not(:placeholder-shown) + .hint-rotator {
+    display: none;
+  }
+  .hint-rotator > span {
+    position: absolute;
+    inset-inline: 0;
+    overflow: hidden;
+    opacity: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    animation: hint-cycle 20s var(--ease-standard) infinite;
+  }
+  .hint-rotator > span:nth-child(2) {
+    animation-delay: 4s;
+  }
+  .hint-rotator > span:nth-child(3) {
+    animation-delay: 8s;
+  }
+  .hint-rotator > span:nth-child(4) {
+    animation-delay: 12s;
+  }
+  .hint-rotator > span:nth-child(5) {
+    animation-delay: 16s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hint-rotator > span {
+      animation: none !important;
+    }
+    .hint-rotator > span:first-child {
+      opacity: 1;
+    }
+  }
+}
+
+@keyframes hint-cycle {
+  0% {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+  2%,
+  18% {
+    opacity: 1;
+    transform: none;
+  }
+  20%,
+  100% {
+    opacity: 0;
   }
 }

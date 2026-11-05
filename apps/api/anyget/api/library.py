@@ -11,7 +11,7 @@ from anyget.core.filenames import UnsafePathError
 from anyget.core.jobs import JobOut
 from anyget.core.users import OWNER_ID
 from anyget.library.epub import EpubPreview, epub_preview
-from anyget.library.models import Kind, LibraryItem, LibraryItemOut, LibraryPage
+from anyget.library.models import Kind, LibraryItem, LibraryItemOut, LibraryPage, Licence
 from anyget.library.thumbs import forget, thumbnail_for
 
 router = APIRouter(tags=["library"])
@@ -51,8 +51,24 @@ async def list_library(
     duplicates: bool | None = None,
     offset: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=200)] = 60,
+    section: Annotated[str | None, Query(max_length=40)] = None,
+    source: Annotated[str | None, Query(max_length=253)] = None,
+    licence: Licence | None = None,
 ) -> LibraryPage:
-    return services.library.search(q, kind, tag, duplicates, offset, limit, user_id=user)
+    """Search titles and file text (OCR, PDF, EPUB, text files); filter by kind,
+    collection (tag), section, source site and licence."""
+    return services.library.search(
+        q,
+        kind,
+        tag,
+        duplicates,
+        offset,
+        limit,
+        user_id=user,
+        section=section,
+        source=source,
+        licence=licence,
+    )
 
 
 @router.post("/library/scan", operation_id="scanLibrary")

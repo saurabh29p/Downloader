@@ -417,7 +417,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Library */
+        /**
+         * List Library
+         * @description Search titles and file text (OCR, PDF, EPUB, text files); filter by kind,
+         *     collection (tag), section, source site and licence.
+         */
         get: operations["listLibrary"];
         put?: never;
         post?: never;
@@ -1199,16 +1203,28 @@ export interface components {
              */
             kind: "video" | "audio" | "image" | "pdf" | "epub" | "text" | "archive" | "other";
             /**
+             * Licence
+             * @default unknown
+             * @enum {string}
+             */
+            licence: "public_domain" | "cc" | "rights_reserved" | "streaming_only" | "unknown";
+            /**
              * Missing
              * @default false
              */
             missing: boolean;
             /** Rel Path */
             rel_path: string;
+            /** Section */
+            section?: string | null;
             /** Sha256 */
             sha256: string | null;
             /** Size */
             size: number;
+            /** Snippet */
+            snippet?: string | null;
+            /** Source */
+            source?: string | null;
             /** Source Id */
             source_id: string | null;
             /** Source Url */
@@ -1262,6 +1278,21 @@ export interface components {
         LibraryPage: {
             /** Items */
             items: components["schemas"]["LibraryItemOut"][];
+            /**
+             * Licences
+             * @default []
+             */
+            licences: ("public_domain" | "cc" | "rights_reserved" | "streaming_only" | "unknown")[];
+            /**
+             * Sections
+             * @default []
+             */
+            sections: string[];
+            /**
+             * Sources
+             * @default []
+             */
+            sources: string[];
             /** Tags */
             tags: string[];
             /** Total */
@@ -3156,6 +3187,9 @@ export interface operations {
                 duplicates?: boolean | null;
                 offset?: number;
                 limit?: number;
+                section?: string | null;
+                source?: string | null;
+                licence?: ("public_domain" | "cc" | "rights_reserved" | "streaming_only" | "unknown") | null;
             };
             header?: never;
             path?: never;

@@ -70,8 +70,8 @@ test("search: results stream in as cards, with licence and download", async ({ p
 
 test("home: typing words instead of a link searches everything", async ({ page }) => {
   await page.goto("/en");
-  await page.getByLabel("Links to download").fill("Fixture Compass");
-  await page.getByRole("button", { name: "Check link" }).click();
+  await page.getByLabel("Search or paste links").fill("Fixture Compass");
+  await page.getByRole("button", { name: "Search" }).click();
   await expect(page).toHaveURL(/\/en\/search\?q=Fixture/);
   await expect(page.getByTestId("result-card").first()).toContainText("Fixture Compass");
 });

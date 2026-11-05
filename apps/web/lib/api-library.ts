@@ -5,7 +5,15 @@ import { api, call } from "@/lib/api";
 
 export type LibraryKind =
   "video" | "audio" | "image" | "pdf" | "epub" | "text" | "archive" | "other";
-export type LibraryQuery = { q?: string; kind?: LibraryKind; tag?: string; duplicates?: boolean };
+export type LibraryQuery = {
+  q?: string;
+  kind?: LibraryKind;
+  tag?: string;
+  duplicates?: boolean;
+  section?: string;
+  source?: string;
+  licence?: "public_domain" | "cc" | "rights_reserved" | "streaming_only" | "unknown";
+};
 
 export const listLibrary = (query: LibraryQuery) =>
   call(api.GET("/api/library", { params: { query: { ...query, limit: 200 } } }));

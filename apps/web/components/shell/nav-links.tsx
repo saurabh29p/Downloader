@@ -1,6 +1,14 @@
 "use client";
 
-import { DownloadIcon, HomeIcon, PlugIcon } from "lucide-react";
+import {
+  BookMarkedIcon,
+  DownloadIcon,
+  EyeIcon,
+  HomeIcon,
+  LayoutGridIcon,
+  PlugIcon,
+  SettingsIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Link, usePathname } from "@/i18n/navigation";
@@ -8,89 +16,86 @@ import { isActive } from "@/lib/jobs";
 import { useJobs } from "@/lib/use-jobs";
 import { cn } from "@/lib/utils";
 
+// `phone`: also in the bottom bar (five fit at 360 px); the rest are in Settings and Ctrl+K.
 const items = [
-  { href: "/", key: "home", icon: HomeIcon },
-  { href: "/downloads", key: "downloads", icon: DownloadIcon },
-  { href: "/connections", key: "connections", icon: PlugIcon },
+  { href: "/", key: "home", icon: HomeIcon, phone: true },
+  { href: "/sections", key: "sections", icon: LayoutGridIcon, phone: true },
+  { href: "/downloads", key: "downloads", icon: DownloadIcon, phone: true },
+  { href: "/library", key: "library", icon: BookMarkedIcon, phone: true },
+  { href: "/watch", key: "watch", icon: EyeIcon, phone: false },
+  { href: "/connections", key: "connections", icon: PlugIcon, phone: false },
+  { href: "/settings", key: "settings", icon: SettingsIcon, phone: true },
 ] as const;
 
-function useActiveCount() {
+/** Opens the Ctrl+K menu (CommandPalette listens for this event). */
+export const PALETTE_EVENT = "anyget:palette";
+
+/** Desktop: the left rail. Phone: the fixed bottom bar. */
+export function MainNav({ variant }: { variant: "rail" | "bar" }) {
+  const t = useTranslations("Shell.nav");
+  const pathname = usePathname();
   const { data } = useJobs();
-  return data?.filter((job) => isActive(job)).length ?? 0;
-}
+  const active = data?.filter((job) => isActive(job)).length ?? 0;
+  const rail = variant === "rail";
 
-/** Desktop: inline links in the header. */
-export function HeaderNav() {
-  const t = useTranslations("Shell.nav");
-  const pathname = usePathname();
-  const active = useActiveCount();
-  return (
-    <nav aria-label={t("label")} className="hidden sm:block">
-      <ul className="flex gap-1">
-        {items.map(({ href, key, icon: Icon }) => {
-          const current = pathname === href;
-          return (
-            <li key={href}>
-              <Link
-                href={href}
-                aria-current={current ? "page" : undefined}
-                className={cn(
-                  "inline-flex h-11 items-center gap-2 rounded-md px-3 text-sm hover:bg-accent",
-                  current && "bg-secondary font-medium",
-                )}
-              >
-                <Icon className="size-4" aria-hidden="true" />
-                {t(key)}
-                {key === "downloads" && active > 0 && (
-                  <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground tabular-nums">
-                    <span className="sr-only">{t("activeCount", { count: active })}</span>
-                    <span aria-hidden="true">{active}</span>
-                  </span>
-                )}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  );
-}
-
-/** Phone: fixed bottom bar. */
-export function BottomNav() {
-  const t = useTranslations("Shell.nav");
-  const pathname = usePathname();
-  const active = useActiveCount();
   return (
     <nav
       aria-label={t("label")}
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+      className={
+        rail
+          ? "flex flex-col gap-4"
+          : "fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      }
     >
-      <ul className="grid h-(--bottom-nav-height) grid-cols-3">
-        {items.map(({ href, key, icon: Icon }) => {
-          const current = pathname === href;
-          return (
-            <li key={href} className="flex">
-              <Link
-                href={href}
-                aria-current={current ? "page" : undefined}
-                className={cn(
-                  "relative flex flex-1 flex-col items-center justify-center gap-1 text-xs text-muted-foreground",
-                  current && "font-medium text-foreground",
-                )}
-              >
-                <Icon className="size-5" aria-hidden="true" />
-                {t(key)}
-                {key === "downloads" && active > 0 && (
-                  <span className="absolute start-[calc(50%+0.5rem)] top-2 min-w-5 rounded-full bg-primary px-1 text-center text-[0.7rem] leading-5 text-primary-foreground tabular-nums">
-                    <span className="sr-only">{t("activeCount", { count: active })}</span>
-                    <span aria-hidden="true">{active}</span>
-                  </span>
-                )}
-              </Link>
-            </li>
-          );
-        })}
+      {rail && (
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event(PALETTE_EVENT))}
+          className="flex h-10 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground hover:bg-accent"
+        >
+          <span className="me-auto">{t("quick")}</span>
+          <kbd className="font-mono text-xs" dir="ltr">
+            Ctrl K
+          </kbd>
+        </button>
+      )}
+      <ul className={rail ? "flex flex-col gap-0.5" : "grid h-(--bottom-nav-height) grid-cols-5"}>
+        {items
+          .filter((item) => rail || item.phone)
+          .map(({ href, key, icon: Icon }) => {
+            const current = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <li key={href} className={rail ? undefined : "flex"}>
+                <Link
+                  href={href}
+                  aria-current={current ? "page" : undefined}
+                  className={cn(
+                    rail
+                      ? "relative flex h-10 items-center gap-3 rounded-md px-3 text-sm hover:bg-accent"
+                      : "relative flex flex-1 flex-col items-center justify-center gap-1 text-xs text-muted-foreground",
+                    current &&
+                      (rail
+                        ? "bg-card font-medium shadow-card before:absolute before:inset-y-2 before:start-0 before:w-1 before:rounded-full before:bg-saffron"
+                        : "font-medium text-foreground"),
+                  )}
+                >
+                  <Icon className={rail ? "size-4" : "size-5"} aria-hidden="true" />
+                  {t(key)}
+                  {key === "downloads" && active > 0 && (
+                    <span
+                      className={cn(
+                        "min-w-5 rounded-full bg-saffron px-1 text-center text-xs leading-5 text-saffron-foreground tabular-nums",
+                        rail ? "ms-auto" : "absolute start-[calc(50%+0.5rem)] top-1.5",
+                      )}
+                    >
+                      <span className="sr-only">{t("activeCount", { count: active })}</span>
+                      <span aria-hidden="true">{active}</span>
+                    </span>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
       </ul>
     </nav>
   );
