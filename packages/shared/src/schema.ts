@@ -41,6 +41,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/books/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Books Search */
+        get: operations["searchBooks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Convert */
+        post: operations["convertJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -213,6 +247,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/libraries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Libraries */
+        get: operations["listLibraries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/probe": {
         parameters: {
             query?: never;
@@ -224,6 +275,23 @@ export interface paths {
         put?: never;
         /** Probe */
         post: operations["probeUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Universal Search */
+        get: operations["universalSearch"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -244,6 +312,26 @@ export interface paths {
         post?: never;
         /** Delete Cookies */
         delete: operations["deleteCookies"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Key Status
+         * @description Which optional API keys are set. Values are never returned.
+         */
+        get: operations["getKeyStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -287,6 +375,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * Access
+         * @enum {string}
+         */
+        Access: "full_view" | "view_online" | "borrow_only" | "in_copyright";
         /** ApiError */
         ApiError: {
             /** Code */
@@ -311,6 +404,19 @@ export interface components {
             size?: number | null;
             /** Source */
             source?: string | null;
+        };
+        /** ArchiveGroup */
+        ArchiveGroup: {
+            /** Items */
+            items?: components["schemas"]["SearchHit"][];
+            /** Message */
+            message?: string | null;
+            /**
+             * Status
+             * @default ok
+             * @enum {string}
+             */
+            status: "ok" | "error" | "timeout";
         };
         /** ArchiveItemOut */
         ArchiveItemOut: {
@@ -349,6 +455,65 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** BookFormat */
+        BookFormat: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "epub" | "pdf_text" | "pdf_scan" | "images" | "txt" | "html";
+            /** Label */
+            label?: string | null;
+            /** Size */
+            size?: number | null;
+            /** Url */
+            url: string;
+        };
+        /** BookHit */
+        BookHit: {
+            access: components["schemas"]["Access"];
+            /** Authors */
+            authors?: string[];
+            /** Buy Links */
+            buy_links?: components["schemas"]["Link"][];
+            /** Details Url */
+            details_url: string;
+            /** Formats */
+            formats?: components["schemas"]["BookFormat"][];
+            /** Id */
+            id: string;
+            /** Isbn */
+            isbn?: string[];
+            /** Language */
+            language?: string | null;
+            /** Library Links */
+            library_links?: components["schemas"]["Link"][];
+            /**
+             * Partial
+             * @default false
+             */
+            partial: boolean;
+            /** Source */
+            source: string;
+            /** Source Label */
+            source_label?: string | null;
+            /** Thumbnail */
+            thumbnail?: string | null;
+            /** Title */
+            title: string;
+            /** Year */
+            year?: string | null;
+        };
+        /** BookSearch */
+        BookSearch: {
+            best?: components["schemas"]["BookHit"] | null;
+            /** Query */
+            query: string;
+            /** Results */
+            results?: components["schemas"]["BookHit"][];
+            /** Sources */
+            sources?: components["schemas"]["SourceStatus"][];
+        };
         /**
          * Choice
          * @description One thing the user can pick after a probe: a format, a file or a playlist item.
@@ -372,6 +537,18 @@ export interface components {
             label: string;
             /** Size */
             size?: number | null;
+        };
+        /** ConvertRequest */
+        ConvertRequest: {
+            /** Job Id */
+            job_id: string;
+            /** Lang */
+            lang?: string | null;
+            /**
+             * To
+             * @enum {string}
+             */
+            to: "pdf" | "ocr" | "mp3" | "m4a" | "opus" | "flac" | "wav" | "mp4" | "mkv" | "webm";
         };
         /** CookiesStatus */
         CookiesStatus: {
@@ -492,6 +669,60 @@ export interface components {
          * @enum {string}
          */
         JobState: "queued" | "probing" | "downloading" | "paused" | "done" | "failed" | "canceled";
+        /** KeyStatus */
+        KeyStatus: {
+            /** Configured */
+            configured: boolean;
+            /** Env */
+            env: string;
+            /** Name */
+            name: string;
+        };
+        /** LibraryList */
+        LibraryList: {
+            /** Libraries */
+            libraries: components["schemas"]["LibraryOut"][];
+            /** Regions */
+            regions: string[];
+        };
+        /** LibraryOut */
+        LibraryOut: {
+            /** Access */
+            access: ("iiif" | "search" | "pdf" | "page" | "link")[];
+            /** Adapter */
+            adapter?: string | null;
+            /** Country */
+            country: string;
+            /** Homepage */
+            homepage: string;
+            /**
+             * Hosts
+             * @default []
+             */
+            hosts: string[];
+            /** Id */
+            id: string;
+            /** Key Configured */
+            key_configured?: boolean | null;
+            /** Key Setting */
+            key_setting?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Region
+             * @enum {string}
+             */
+            region: "global" | "europe" | "asia" | "oceania" | "middle_east_africa" | "americas";
+            /** Searchable */
+            searchable: boolean;
+        };
+        /** Link */
+        Link: {
+            /** Label */
+            label: string;
+            /** Url */
+            url: string;
+        };
         /** ProbeRequest */
         ProbeRequest: {
             /** Options */
@@ -589,16 +820,61 @@ export interface components {
                 [key: string]: number;
             };
         };
+        /** SourceStatus */
+        SourceStatus: {
+            /**
+             * Count
+             * @default 0
+             */
+            count: number;
+            /** Label */
+            label: string;
+            /** Message */
+            message?: string | null;
+            /** Name */
+            name: string;
+            /** Region */
+            region: string;
+            /** Search Url */
+            search_url?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "needs_key" | "timeout" | "error" | "link_only" | "skipped";
+        };
         /** ToolVersions */
         ToolVersions: {
+            /** Calibre */
+            calibre?: string | null;
             /** Deno */
             deno: string | null;
             /** Ffmpeg */
             ffmpeg: string | null;
+            /** Img2Pdf */
+            img2pdf?: string | null;
+            /** Ocrmypdf */
+            ocrmypdf?: string | null;
+            /** Tesseract */
+            tesseract?: string | null;
+            /**
+             * Tesseract Langs
+             * @default []
+             */
+            tesseract_langs: string[];
             /** Yt Dlp */
             yt_dlp: string | null;
             /** Yt Dlp Ejs */
             yt_dlp_ejs: string | null;
+        };
+        /** UniversalSearch */
+        UniversalSearch: {
+            archive?: components["schemas"]["ArchiveGroup"] | null;
+            books?: components["schemas"]["BookSearch"] | null;
+            libraries?: components["schemas"]["BookSearch"] | null;
+            /** Query */
+            query: string;
+            videos?: components["schemas"]["VideoGroup"] | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -621,6 +897,34 @@ export interface components {
             python: string;
             /** Version */
             version: string;
+        };
+        /** VideoGroup */
+        VideoGroup: {
+            /** Items */
+            items?: components["schemas"]["VideoHit"][];
+            /** Message */
+            message?: string | null;
+            /**
+             * Status
+             * @default ok
+             * @enum {string}
+             */
+            status: "ok" | "error" | "timeout";
+        };
+        /** VideoHit */
+        VideoHit: {
+            /** Channel */
+            channel?: string | null;
+            /** Duration */
+            duration?: number | null;
+            /** Id */
+            id: string;
+            /** Thumbnail */
+            thumbnail?: string | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
         };
     };
     responses: never;
@@ -726,6 +1030,144 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchPage"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    searchBooks: {
+        parameters: {
+            query: {
+                q: string;
+                lang?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookSearch"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    convertJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConvertRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
                 };
             };
             /** @description Blocked or invalid link */
@@ -1414,6 +1856,26 @@ export interface operations {
             };
         };
     };
+    listLibraries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryList"];
+                };
+            };
+        };
+    };
     probeUrl: {
         parameters: {
             query?: never;
@@ -1434,6 +1896,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProbeResult"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    universalSearch: {
+        parameters: {
+            query: {
+                q: string;
+                types?: ("archive" | "books" | "videos" | "libraries")[] | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UniversalSearch"];
                 };
             };
             /** @description Blocked or invalid link */
@@ -1587,6 +2118,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getKeyStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyStatus"][];
+                };
             };
         };
     };

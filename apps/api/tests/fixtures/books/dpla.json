@@ -1,0 +1,25 @@
+{
+ "docs": [
+  {
+   "id": "abc123",
+   "isShownAt": "https://example-library.org/item/1",
+   "object": "https://example-library.org/thumb.jpg",
+   "sourceResource": {
+    "title": [
+     "Pride and prejudice"
+    ],
+    "creator": [
+     "Austen, Jane"
+    ],
+    "date": {
+     "displayDate": "1894"
+    },
+    "language": [
+     {
+      "name": "English"
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+{
+ "count": 2,
+ "results": [
+  {
+   "id": 1342,
+   "title": "Pride and Prejudice",
+   "authors": [
+    {
+     "name": "Austen, Jane"
+    }
+   ],
+   "languages": [
+    "en"
+   ],
+   "copyright": false,
+   "formats": {
+    "application/epub+zip": "https://www.gutenberg.org/ebooks/1342.epub3.images",
+    "text/plain; charset=utf-8": "https://www.gutenberg.org/ebooks/1342.txt.utf-8",
+    "text/html": "https://www.gutenberg.org/ebooks/1342.html.images",
+    "image/jpeg": "https://www.gutenberg.org/cache/epub/1342/pg1342.cover.medium.jpg"
+   }
+  },
+  {
+   "id": 99999,
+   "title": "Pride and Prejudice: a modern commentary",
+   "authors": [
+    {
+     "name": "Someone, Living"
+    }
+   ],
+   "languages": [
+    "en"
+   ],
+   "copyright": true,
+   "formats": {
+    "application/epub+zip": "https://www.gutenberg.org/ebooks/99999.epub3.images"
+   }
+  }
+ ]
+}

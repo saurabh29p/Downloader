@@ -1,0 +1,46 @@
+{
+ "docs": [
+  {
+   "key": "/works/OL66554W",
+   "title": "Pride and Prejudice",
+   "author_name": [
+    "Jane Austen"
+   ],
+   "first_publish_year": 1813,
+   "language": [
+    "eng"
+   ],
+   "ia": [
+    "prideprejudice00aust"
+   ],
+   "ebook_access": "public",
+   "isbn": [
+    "9780141439518"
+   ],
+   "cover_i": 14348537
+  },
+  {
+   "key": "/works/OL1W",
+   "title": "A Recent Novel",
+   "author_name": [
+    "Living Author"
+   ],
+   "first_publish_year": 2019,
+   "ebook_access": "no_ebook",
+   "isbn": [
+    "9780000000002"
+   ]
+  },
+  {
+   "key": "/works/OL2W",
+   "title": "A Lendable Book",
+   "author_name": [
+    "Some Author"
+   ],
+   "ebook_access": "borrowable",
+   "ia": [
+    "lendable00"
+   ]
+  }
+ ]
+}

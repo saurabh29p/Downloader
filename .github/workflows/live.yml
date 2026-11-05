@@ -37,4 +37,5 @@ jobs:
           # Optional: a public Drive file you shared yourself; another Flickr album.
           ANYGET_LIVE_DRIVE_URL: ${{ vars.ANYGET_LIVE_DRIVE_URL }}
           ANYGET_LIVE_FLICKR_ALBUM: ${{ vars.ANYGET_LIVE_FLICKR_ALBUM }}
+          ANYGET_LIVE_QDL_ITEM: ${{ vars.ANYGET_LIVE_QDL_ITEM }}
         run: docker compose --profile test run --rm api-test

@@ -1,0 +1,11 @@
+{
+ "@context": "http://iiif.io/api/presentation/3/context.json",
+ "type": "Manifest",
+ "label": {
+  "en": [
+   "Modern map"
+  ]
+ },
+ "rights": "http://rightsstatements.org/vocab/InC/1.0/",
+ "items": []
+}

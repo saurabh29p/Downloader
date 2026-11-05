@@ -126,9 +126,9 @@ const KINDS = ["page", "document", "image", "video", "audio", "archive", "file"]
 const kindKey = (kind: string) =>
   (KINDS as readonly string[]).includes(kind) ? (kind as (typeof KINDS)[number]) : "file";
 
-/** Image URLs a gallery probe carries in `extra.items`. */
+/** Image URLs a gallery or IIIF probe carries in `extra.items`. */
 export function galleryImages(probe: ProbeResult): Map<string, string> | undefined {
   const items = (probe.extra as { items?: { index: number; url: string }[] }).items;
-  if (probe.handler !== "gallery" || !items) return undefined;
+  if ((probe.handler !== "gallery" && probe.handler !== "iiif_library") || !items) return undefined;
   return new Map(items.map((i) => [String(i.index), i.url]));
 }

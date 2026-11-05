@@ -1,0 +1,18 @@
+{
+ "Status": "ok",
+ "Result": [
+  {
+   "BHLType": "Item",
+   "ItemID": 27850,
+   "TitleID": 2734,
+   "Title": "On the origin of species",
+   "Authors": [
+    {
+     "Name": "Darwin, Charles"
+    }
+   ],
+   "PublicationDate": "1859",
+   "ItemUrl": "https://www.biodiversitylibrary.org/item/27850"
+  }
+ ]
+}

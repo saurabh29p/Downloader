@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { defaultFiles, FilePicker, galleryImages } from "@/components/files/file-picker";
+import { CheckRow } from "@/components/media/choice";
 import { Button } from "@/components/ui/button";
 import { SheetClose, SheetFooter } from "@/components/ui/sheet";
 
@@ -22,6 +23,8 @@ export function FilesPreview({
   const t = useTranslations("Files");
   const tPreview = useTranslations("Preview");
   const [selected, setSelected] = useState(() => defaultFiles(probe.choices));
+  const [pdf, setPdf] = useState(true);
+  const iiif = probe.handler === "iiif_library";
 
   return (
     <>
@@ -32,12 +35,17 @@ export function FilesPreview({
         onChange={setSelected}
         images={galleryImages(probe)}
       />
+      {iiif && (
+        <CheckRow checked={pdf} onChange={setPdf}>
+          {t("mergePdf")}
+        </CheckRow>
+      )}
       <SheetFooter>
         <SheetClose asChild>
           <Button variant="outline">{tPreview("cancel")}</Button>
         </SheetClose>
         <Button
-          onClick={() => onDownload({ files: [...selected] })}
+          onClick={() => onDownload({ files: [...selected], ...(iiif ? { pdf } : {}) })}
           disabled={pending || selected.size === 0}
         >
           {pending ? (

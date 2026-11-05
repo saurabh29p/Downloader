@@ -26,6 +26,9 @@ const KNOWN = new Set([
   "restricted",
   "borrow_only",
   "rate_limited",
+  "in_copyright",
+  "needs_key",
+  "tool_missing",
 ]);
 
 type ErrorsT = ReturnType<typeof useTranslations<"Errors">>;

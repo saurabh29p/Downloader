@@ -43,6 +43,9 @@ export default defineConfig({
         ANYGET_DATA_DIR: ".e2e/data",
         ANYGET_DOWNLOADS_DIR: ".e2e/downloads",
         ANYGET_NET_ALLOWLIST: `127.0.0.1:${fixturePort}`,
+        // Books come from a Gutendex stand-in on the fixture server; no other source is asked.
+        ANYGET_GUTENDEX_URL: `http://127.0.0.1:${fixturePort}/gutendex`,
+        ANYGET_BOOK_SOURCES: "gutendex",
       },
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,

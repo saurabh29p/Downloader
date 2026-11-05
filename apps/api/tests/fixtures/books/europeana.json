@@ -1,0 +1,23 @@
+{
+ "items": [
+  {
+   "id": "/9200365/BibliographicResource_3000",
+   "title": [
+    "Les Misérables"
+   ],
+   "dcCreator": [
+    "Hugo, Victor"
+   ],
+   "year": [
+    "1862"
+   ],
+   "language": [
+    "fr"
+   ],
+   "guid": "https://www.europeana.eu/item/9200365/BibliographicResource_3000",
+   "edmPreview": [
+    "https://api.europeana.eu/thumbnail/x"
+   ]
+  }
+ ]
+}

@@ -5,6 +5,38 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (Phase 7 — books, libraries, search, OCR, conversion)
+- Books: one search asks many free sources at once and ranks the best legal copy first: downloadable full view, then the closest match, then EPUB > text PDF > scanned PDF > page images > text, whole works before chapters.
+  - Sources: Standard Ebooks, Project Gutenberg (Gutendex, self-hostable via `ANYGET_GUTENDEX_URL`), Internet Archive, Open Library, Wikisource (any language, EPUB export), Google Books free ebooks, HathiTrust (by ISBN/OCLC), Library of Congress, Gallica, NDL Japan, Europeana, DPLA, BHL, Trove, DigitalNZ, DDB, and the Wayback Machine for dead ebook links.
+  - The National Digital Library of India has no open API, so it is a search link.
+  - Borrow-only and in-copyright books are never downloaded. They are shown as "not legally downloadable", with library (Open Library, WorldCat) and buy links.
+- Book page links (Gutenberg, Standard Ebooks, Open Library, Wikisource) list their formats to pick from.
+- IIIF libraries: Presentation v2 and v3 manifests, and item links from Gallica, Library of Congress, NDL, Europeana and the Qatar Digital Library. Every page is saved at full size, with an optional PDF merge (img2pdf). Items marked "In Copyright" and closed items are refused.
+- A registry of about 40 libraries and archives across six regions (`GET /api/libraries`).
+- Universal search (`GET /api/search`) over books, libraries, archive.org and videos (yt-dlp `ytsearch`), with a time limit and a status for each source.
+- Conversions as jobs (`POST /api/convert`, `anyget convert JOB --to …`):
+  - page images to PDF
+  - OCR to a searchable PDF with a text sidecar (OCRmyPDF/Tesseract, many languages)
+  - audio/video formats with ffmpeg (local files only)
+  - EPUB to PDF when Calibre is installed
+
+  `/api/health` lists the tools that are available.
+- API keys for Europeana, DPLA, Trove, DigitalNZ, BHL and DDB live in settings and are never returned. `GET /api/settings/keys` shows only which keys are set. `.env.example` lists every optional key.
+- Docker:
+  - `ANYGET_WITH_OCR=1` builds the API image with OCR.
+  - The live test image always has OCR.
+- CLI: `anyget search "title"` (`--type libraries`, `--lang`), `anyget convert`.
+- Web:
+  - A Books page (best-copy card, format downloads, source status).
+  - A Libraries page (regions, library cards, paste an item link, page grid, "merge into PDF").
+  - A Search page with tabs.
+  - "Convert…" on finished PDFs, images and media in Downloads (shown only when the tool exists).
+  - Home and Ctrl+K entries; en/hi/ar.
+- Live tests:
+  - the best copy of "Pride and Prejudice"
+  - Gutenberg EPUB (global), Gallica (Europe), NDL (Asia), Library of Congress (Americas), plus QDL when `ANYGET_LIVE_QDL_ITEM` is set
+  - OCR on a rendered page in the test image
+
 ### Added (Phase 6 — code, cloud, images, AI, web pages)
 - Code hosts (GitHub, GitLab, Codeberg, Bitbucket, gists): whole repo as a zip, folders (GitHub tree API, other hosts a zip), single files via raw URLs, release assets, releases with every asset plus the source zip. No `git` process; optional `ANYGET_GITHUB_TOKEN` for API limits.
 - Cloud links: Google Drive files (large-file confirm, Docs/Sheets/Slides exported as PDF/XLSX), Dropbox (`dl=1`), OneDrive/SharePoint shares. MEGA through `megatools` when installed (now in the API image); a sign-in page is never saved as the file.

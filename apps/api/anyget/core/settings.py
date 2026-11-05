@@ -21,7 +21,15 @@ class Settings(BaseSettings):
     # Queue
     max_concurrent_downloads: int = Field(default=3, ge=1, le=16)
     max_per_host: int = Field(default=4, ge=1, le=16)
-    host_limits: dict[str, int] = Field(default_factory=lambda: {"archive.org": 2})
+    host_limits: dict[str, int] = Field(
+        default_factory=lambda: {
+            "archive.org": 2,
+            "gallica.bnf.fr": 2,
+            "dl.ndl.go.jp": 2,
+            "loc.gov": 2,
+            "qdl.qa": 2,
+        }
+    )
 
     # Outgoing HTTP
     contact_email: str = ""
@@ -41,8 +49,20 @@ class Settings(BaseSettings):
     civitai_token: str = Field(default="", repr=False)
     kaggle_username: str = Field(default="", repr=False)
     kaggle_key: str = Field(default="", repr=False)
+    # Free keys for library and book APIs.
+    europeana_key: str = Field(default="", repr=False)
+    dpla_key: str = Field(default="", repr=False)
+    trove_key: str = Field(default="", repr=False)
+    digitalnz_key: str = Field(default="", repr=False)
+    bhl_key: str = Field(default="", repr=False)
+    ddb_key: str = Field(default="", repr=False)
 
-    @field_validator("net_allowlist", mode="before")
+    # Books: limit which sources are asked (empty = all), and Gutendex's address
+    # (it is open source and can be self-hosted).
+    book_sources: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    gutendex_url: str = "https://gutendex.com"
+
+    @field_validator("net_allowlist", "book_sources", mode="before")
     @classmethod
     def _split_csv(cls, value: Any) -> Any:
         if isinstance(value, str):

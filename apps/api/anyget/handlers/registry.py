@@ -5,11 +5,13 @@ from dataclasses import dataclass, field
 from anyget.handlers.base import Handler
 
 # Priorities follow the routing steps in CLAUDE.md; lower runs first.
+PRIORITY_CONVERT = 10  # internal anyget: links only
 PRIORITY_TORRENT = 20
 PRIORITY_ARCHIVE = 30
 PRIORITY_GIT = 40
 PRIORITY_CLOUD = 50
 PRIORITY_IIIF = 60
+PRIORITY_BOOKS = 65
 PRIORITY_AI = 70
 PRIORITY_YTDLP = 80
 PRIORITY_GALLERY = 90

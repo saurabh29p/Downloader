@@ -1,0 +1,12 @@
+{
+ "query": {
+  "search": [
+   {
+    "title": "Pride and Prejudice"
+   },
+   {
+    "title": "Pride and Prejudice/Chapter 1"
+   }
+  ]
+ }
+}
