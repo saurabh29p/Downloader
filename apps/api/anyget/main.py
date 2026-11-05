@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from anyget import __version__
 from anyget.api import archive, books, jobs, library, probe, system, watches
 from anyget.api import settings as settings_api
+from anyget.core.auth import SecurityMiddleware
 from anyget.core.filenames import UnsafePathError
 from anyget.core.net import BlockedURLError
 from anyget.core.queue import InvalidStateError, JobNotFoundError
@@ -76,6 +77,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     for module in (system, probe, jobs, settings_api, archive, books, library, watches):
         app.include_router(module.router, prefix="/api")
+    # Outermost: access control, rate limits and security headers (core/auth.py).
+    app.add_middleware(SecurityMiddleware)
     return app
 
 

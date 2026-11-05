@@ -486,5 +486,53 @@ def watch_clipboard(
         console.print("Stopped.")
 
 
+backup_app = typer.Typer(help="Back up or restore AnyGet's data (database, settings, cookies).")
+app.add_typer(backup_app, name="backup")
+
+
+@backup_app.command("create")
+def backup_create(
+    out: Annotated[Path, typer.Option(help="Folder for the backup file")] = Path("backups"),
+    with_env: Annotated[
+        Path | None, typer.Option(help="Also include this .env file (it holds secrets)")
+    ] = None,
+) -> None:
+    """Write data/ (database, cookies.txt, archives) to a .tar.gz. Safe while running."""
+    from anyget.backup import BackupError, create
+
+    settings = get_settings()
+    try:
+        path = create(settings.data_dir, out, include_env=with_env)
+    except BackupError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from exc
+    console.print(f"Backup written: {path}")
+    console.print("[dim]It can contain cookies and API keys: keep it private.[/dim]")
+
+
+@backup_app.command("restore")
+def backup_restore(
+    archive: Annotated[Path, typer.Argument(help="A backup made by `anyget backup create`")],
+    env_to: Annotated[
+        Path | None, typer.Option(help="Where to put the backup's .env, if it has one")
+    ] = None,
+    yes: Annotated[bool, typer.Option("--yes", help="Do not ask")] = False,
+) -> None:
+    """Replace data/ with a backup. Stop AnyGet first (make down)."""
+    from anyget.backup import BackupError, restore
+
+    settings = get_settings()
+    if not yes and not typer.confirm(
+        f"Replace the database and cookies in {settings.data_dir} with {archive.name}?"
+    ):
+        raise typer.Exit(code=1)
+    try:
+        restored = restore(archive, settings.data_dir, env_target=env_to)
+    except (BackupError, OSError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from exc
+    console.print(f"Restored: {', '.join(restored)}")
+
+
 if __name__ == "__main__":
     app()

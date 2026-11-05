@@ -41,3 +41,6 @@ Thumbs.db
 
 # E2E scratch data
 .e2e/
+
+# Backups (they can contain cookies and API keys)
+/backups/

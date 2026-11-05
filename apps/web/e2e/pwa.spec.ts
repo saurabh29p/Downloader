@@ -47,3 +47,27 @@ test("the service worker installs and never caches API answers", async ({ page }
   expect(cached.some((p) => p.startsWith("/_next/static/"))).toBeTruthy();
   expect(cached.some((p) => p.startsWith("/api/"))).toBeFalsy();
 });
+
+test("pages and the API send security headers", async ({ request }) => {
+  const page = await request.get("/en");
+  const csp = page.headers()["content-security-policy"];
+  expect(csp).toContain("default-src 'self'");
+  expect(csp).toContain("frame-ancestors 'none'");
+  expect(csp).not.toContain("unsafe-eval");
+  expect(page.headers()["x-content-type-options"]).toBe("nosniff");
+  const api = await request.get("/api/health");
+  expect(api.headers()["content-security-policy"]).toContain("default-src 'none'");
+  expect(api.headers()["x-frame-options"]).toBe("DENY");
+});
+
+test("requests that came through Cloudflare need Access, even via the website", async ({
+  request,
+}) => {
+  // cloudflared adds Cf-Ray / Cf-Connecting-Ip; the website must pass them on to the API.
+  const viaTunnel = await request.get("/api/jobs", {
+    headers: { "Cf-Ray": "8abc-LHR", "Cf-Connecting-Ip": "203.0.113.7" },
+  });
+  expect(viaTunnel.status()).toBe(401);
+  expect((await viaTunnel.json()).code).toBe("auth_required");
+  expect((await request.get("/api/jobs")).status()).toBe(200); // this computer
+});
