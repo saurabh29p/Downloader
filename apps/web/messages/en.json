@@ -87,7 +87,8 @@
         "title": "Watch",
         "text": "New videos and items, fetched on a schedule"
       }
-    }
+    },
+    "searchHint": "Type a title, a question, or paste links (one per line)"
   },
   "Preview": {
     "handlers": {
@@ -241,7 +242,8 @@
     "goLibrary": "Library",
     "goWatch": "Watches",
     "goHelp": "Help",
-    "goConnections": "Connections"
+    "goConnections": "Connections",
+    "searchFor": "Search for “{query}”"
   },
   "Status": {
     "checking": "Checking the server…",
@@ -531,29 +533,50 @@
   },
   "Search": {
     "title": "Search everything",
-    "subtitle": "One search across free books, worldwide libraries, archive.org and videos.",
-    "label": "What are you looking for?",
-    "placeholder": "Title, author, subject…",
+    "subtitle": "One box for everything: a link to download, a title or a question. Results come in from archive.org, free books, worldwide libraries and YouTube as each answers.",
+    "label": "Search or paste a link",
+    "placeholder": "Taj Mahal, old maps of Delhi, Pride and Prejudice…",
     "search": "Search",
     "needQuery": "Type something to search for first.",
     "tabs": "Result type",
-    "tab": {
-      "books": "Books",
-      "libraries": "Libraries",
-      "archive": "archive.org",
-      "videos": "Videos"
-    },
-    "empty": "Results appear here, one tab at a time.",
+    "empty": "Results appear here as each source answers.",
     "retry": "Try again",
-    "none": "Nothing found.",
     "count": "{count, plural, =0 {Nothing found} one {# result} other {# results}}",
-    "groupStatus": {
-      "error": "This source did not answer. Try again later.",
-      "timeout": "This source took too long. Try again later."
+    "download": "Download",
+    "results": "Results",
+    "all": "All",
+    "streaming": "{count, plural, =0 {Searching…} one {# source answered so far…} other {# sources answered so far…}}",
+    "questionNote": "Questions get a written answer once the optional AI helper is set up. For now, here is what the sources found.",
+    "someFailed": "Didn't answer in time: {sources}.",
+    "streamFailed": "The search stopped before it finished.",
+    "preview": "Preview",
+    "save": "Save to Library",
+    "openSource": "Open source",
+    "source": {
+      "archive": "Internet Archive",
+      "books": "Books",
+      "videos": "YouTube",
+      "libraries": "Libraries"
     },
-    "openItem": "Open",
-    "chooseFormat": "Choose format",
-    "download": "Download"
+    "media": {
+      "movie": "Movie",
+      "video": "Video",
+      "music": "Music",
+      "book": "Book",
+      "photo": "Photo",
+      "map": "Map",
+      "newspaper": "Newspaper",
+      "manuscript": "Manuscript",
+      "declassified": "Declassified",
+      "other": "Other"
+    },
+    "licence": {
+      "public_domain": "Public domain",
+      "cc": "Creative Commons",
+      "rights_reserved": "Rights reserved",
+      "streaming_only": "Streaming only",
+      "unknown": "Check the licence"
+    }
   },
   "Convert": {
     "label": "Convert…",

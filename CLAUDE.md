@@ -21,7 +21,7 @@ Read this file at the start of every session. The full research doc lives in `do
 v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-universal-search`):
 - [x] v2 Phase 1 — owner sign-in, per-user rows, bug fixes
 - [x] v2 Phase 2 — Connections (encrypted cookies/keys per site)
-- [ ] v2 Phase 3 — universal search engine
+- [x] v2 Phase 3 — universal search engine
 - [ ] v2 Phase 4 — Sections (Movies, Books, Music, Video, Declassified, More)
 - [ ] v2 Phase 5 — OpenRouter brain (optional)
 - [ ] v2 Phase 6 — "The Reading Room" UI
@@ -246,6 +246,12 @@ Personal use only. Download only what the user owns, what is public domain or op
 - gallery-dl is GPL: run only as `python -m gallery_dl` subprocess, for listing (`-J`). It never downloads; images come through `Net`. `gallery_hosts()` reads `--list-extractors` once (cached) for `can_handle`. Its own requests during listing are outside `net_guard` (separate process) — the URL is pre-checked and only sites with a gallery-dl extractor reach it.
 - Downloads send `Accept-Encoding: identity`; with a `Content-Encoding` response the length is unknown (no size check).
 - Live tests: GitHub works from the sandbox; Flickr and Hugging Face need CI. `ANYGET_LIVE_DRIVE_URL` / `ANYGET_LIVE_FLICKR_ALBUM` are optional repo variables for the Live tests workflow.
+
+### Universal search gotchas
+- `anyget/universal/`: `classify.py` (links/search/question + language), `keyword_router.plan` (RouterPlan; media/intent words in en/hi/hinglish/ar are removed from the query; `section` narrows media), `engine.Engine.stream` (one `SourceDone` per source with `TIME_LIMIT`, then `UniversalDone`), `relevance.py` (archive.org scoring), `models.py`. `api/universal.py` serves GET (EventSource) and POST with the same stream; links end after `plan` and the web hands the first link to Home's paste box (`/?url=`).
+- The SSE event shapes are not in OpenAPI: `apps/web/lib/api-universal.ts` mirrors `universal/models.py` by hand; update both together.
+- Media words are stripped from queries ("atlas" is a map word, "novel" a book word): e2e queries must avoid them or they change the sources asked. `ANYGET_UNIVERSAL_SOURCES=books` in e2e keeps search off real sites.
+- Ctrl+K's "Search for …" item is last so Enter still picks a matching page first.
 
 ### Books / libraries / convert gotchas
 - Standard Ebooks download links need `?source=download` (without it: an HTML "Your Download Has Started" page). `HttpGenericHandler` refuses HTML for links ending in a file suffix (`is_file_link`) and whenever the probe expected a non-HTML file but the GET answers HTML (`not_a_file`).

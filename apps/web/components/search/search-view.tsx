@@ -1,58 +1,147 @@
 "use client";
 
-import type { ArchiveHit, BookSearch, VideoHit } from "@anyget/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DownloadIcon, Loader2Icon, SearchIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useId, useState, type FormEvent } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ExternalLinkIcon, Loader2Icon, SearchIcon } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 
-import { BookCard } from "@/components/books/book-card";
-import { SourceStatusList } from "@/components/books/source-status";
-import { ChoicePill } from "@/components/media/choice";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "@/i18n/navigation";
 import { createJobs } from "@/lib/api";
-import { universalSearch, type SearchTab } from "@/lib/api-books";
+import {
+  universalUrl,
+  type Media,
+  type ResultCard,
+  type RouterPlan,
+  type SourceDone,
+} from "@/lib/api-universal";
 import { errorMessage } from "@/lib/errors";
-import { formatDuration, isolate } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { JOBS_KEY } from "@/lib/use-jobs";
+import { cn } from "@/lib/utils";
 
-const TABS: SearchTab[] = ["books", "libraries", "archive", "videos"];
+type Card = ResultCard;
+type Plan = RouterPlan;
 
-/** One search box across books, libraries, archive.org and videos; one tab is fetched at a time. */
-export function SearchView() {
+const MEDIA_ORDER: Media[] = [
+  "movie",
+  "video",
+  "music",
+  "book",
+  "photo",
+  "map",
+  "newspaper",
+  "manuscript",
+  "declassified",
+  "other",
+];
+const LICENCE_VARIANT = {
+  public_domain: "success",
+  cc: "success",
+  rights_reserved: "outline",
+  streaming_only: "secondary",
+  unknown: "outline",
+} as const;
+
+type State = {
+  running: boolean;
+  plan: Plan | null;
+  sources: SourceDone[];
+  cards: Card[];
+  failed: boolean;
+};
+const EMPTY: State = { running: false, plan: null, sources: [], cards: [], failed: false };
+
+/** One box for everything: results stream in per source, grouped by kind of media. */
+export function SearchView({
+  initialQuery = "",
+  section,
+}: {
+  initialQuery?: string;
+  section?: string;
+}) {
   const t = useTranslations("Search");
-  const tErrors = useTranslations("Errors");
+  const locale = useLocale();
   const id = useId();
-  const [text, setText] = useState("");
-  const [q, setQ] = useState("");
-  const [tab, setTab] = useState<SearchTab>("books");
-  const [error, setError] = useState<string | null>(null);
-  const result = useQuery({
-    queryKey: ["search", q, tab],
-    queryFn: () => universalSearch(q, [tab]),
-    enabled: q !== "",
-    staleTime: 5 * 60_000,
-  });
+  const [text, setText] = useState(initialQuery);
+  const [inputError, setInputError] = useState<string | null>(null);
+  const [state, setState] = useState<State>(EMPTY);
+  const [tab, setTab] = useState<Media | "all">("all");
+  const stream = useRef<EventSource | null>(null);
+
+  const start = (q: string) => {
+    stream.current?.close();
+    setTab("all");
+    setState({ ...EMPTY, running: true });
+    const url = new URL(window.location.href);
+    url.searchParams.set("q", q);
+    window.history.replaceState(null, "", url);
+    const source = new EventSource(universalUrl(q, section));
+    stream.current = source;
+    let finished = false;
+    source.addEventListener("plan", (event) => {
+      const plan = JSON.parse((event as MessageEvent<string>).data) as Plan;
+      if (plan.kind === "url" && plan.urls?.[0]) {
+        // Links: the paste box on Home probes them and opens the preview.
+        finished = true;
+        source.close();
+        // A full load: the target page starts from its address.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.assign(
+          `${window.location.origin}/${locale}?url=${encodeURIComponent(plan.urls[0])}`,
+        );
+        return;
+      }
+      setState((s) => ({ ...s, plan }));
+    });
+    source.addEventListener("source", (event) => {
+      const done = JSON.parse((event as MessageEvent<string>).data) as SourceDone;
+      setState((s) => ({
+        ...s,
+        sources: [...s.sources, done],
+        cards: [...s.cards, ...(done.results ?? [])].sort(
+          (a, b) => (b.score ?? 0) - (a.score ?? 0),
+        ),
+      }));
+    });
+    source.addEventListener("done", () => {
+      finished = true;
+      source.close();
+      setState((s) => ({ ...s, running: false }));
+    });
+    source.onerror = () => {
+      source.close();
+      if (!finished) setState((s) => ({ ...s, running: false, failed: true }));
+    };
+  };
+
+  useEffect(() => {
+    // A search handed over in the address (/search?q=…, from Home or Ctrl+K).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time start from the URL
+    if (initialQuery.trim()) start(initialQuery.trim());
+    return () => stream.current?.close();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on first render
+  }, []);
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    setError(null);
+    setInputError(null);
     if (!text.trim()) {
-      setError(t("needQuery"));
+      setInputError(t("needQuery"));
       return;
     }
-    setQ(text.trim());
+    start(text.trim());
   };
-  const data = result.data;
+
+  const counts = new Map<Media, number>();
+  for (const card of state.cards) counts.set(card.media, (counts.get(card.media) ?? 0) + 1);
+  const tabs = MEDIA_ORDER.filter((m) => counts.has(m));
+  const shown = tab === "all" ? state.cards : state.cards.filter((c) => c.media === tab);
+  const failedSources = state.sources.filter((s) => s.status !== "ok");
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t("title")}</h1>
-        <p className="max-w-prose text-muted-foreground">{t("subtitle")}</p>
-      </div>
       <form onSubmit={submit} className="flex flex-col gap-2" noValidate role="search">
         <label htmlFor={`${id}-q`} className="text-sm font-medium">
           {t("label")}
@@ -65,12 +154,12 @@ export function SearchView() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={t("placeholder")}
-            aria-invalid={error ? true : undefined}
+            aria-invalid={inputError ? true : undefined}
             className="h-11 w-full min-w-0 rounded-md border border-input bg-card px-3 text-base shadow-xs placeholder:text-muted-foreground"
             data-testid="search-query"
           />
-          <Button type="submit" disabled={result.isFetching}>
-            {result.isFetching ? (
+          <Button type="submit" disabled={state.running}>
+            {state.running ? (
               <Loader2Icon className="animate-spin" aria-hidden="true" />
             ) : (
               <SearchIcon aria-hidden="true" />
@@ -78,178 +167,180 @@ export function SearchView() {
             {t("search")}
           </Button>
         </div>
-        {error && (
+        {inputError && (
           <p role="alert" className="text-sm font-medium text-destructive">
-            {error}
+            {inputError}
           </p>
         )}
       </form>
 
-      <div role="radiogroup" aria-label={t("tabs")} className="flex flex-wrap gap-2">
-        {TABS.map((name) => (
-          <ChoicePill
-            key={name}
-            name={`${id}-tab`}
-            value={name}
-            checked={tab === name}
-            onChange={() => setTab(name)}
-          >
-            {t(`tab.${name}`)}
-          </ChoicePill>
-        ))}
-      </div>
+      {state.plan?.kind === "question" && (
+        <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+          {t("questionNote")}
+        </p>
+      )}
 
-      {q === "" && <p className="text-muted-foreground">{t("empty")}</p>}
-      {result.isFetching && <Skeleton className="h-48" aria-busy="true" />}
-      {result.isError && !result.isFetching && (
-        <div className="flex flex-col gap-2">
-          <p role="alert">{errorMessage(tErrors, result.error)}</p>
-          <Button variant="outline" className="self-start" onClick={() => result.refetch()}>
-            {t("retry")}
-          </Button>
+      {tabs.length > 1 && (
+        <div role="radiogroup" aria-label={t("tabs")} className="flex flex-wrap gap-2">
+          {(["all", ...tabs] as const).map((m) => (
+            <label
+              key={m}
+              className={cn(
+                "inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50",
+                tab === m && "border-primary bg-primary text-primary-foreground",
+              )}
+            >
+              <input
+                type="radio"
+                name={`${id}-tab`}
+                className="sr-only"
+                checked={tab === m}
+                onChange={() => setTab(m)}
+              />
+              {m === "all" ? t("all") : t(`media.${m}`)}
+              <span className="tabular-nums opacity-80">
+                {m === "all" ? state.cards.length : counts.get(m)}
+              </span>
+            </label>
+          ))}
         </div>
       )}
-      {data && !result.isFetching && (
-        <section
-          aria-labelledby={`${id}-results`}
-          className="flex flex-col gap-3"
-          data-testid="search-results"
-        >
-          <h2 id={`${id}-results`} className="sr-only">
-            {t(`tab.${tab}`)}
-          </h2>
-          {(tab === "books" || tab === "libraries") && data[tab] && (
-            <BookResults search={data[tab]} />
-          )}
-          {tab === "archive" && data.archive && (
-            <GroupState status={data.archive.status}>
-              <ArchiveResults items={data.archive.items ?? []} />
-            </GroupState>
-          )}
-          {tab === "videos" && data.videos && (
-            <GroupState status={data.videos.status}>
-              <VideoResults items={data.videos.items ?? []} />
-            </GroupState>
-          )}
-        </section>
-      )}
+
+      <section
+        aria-labelledby={`${id}-results`}
+        className="flex flex-col gap-3"
+        data-testid="search-results"
+      >
+        <h2 id={`${id}-results`} className="sr-only">
+          {t("results")}
+        </h2>
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          {state.running
+            ? t("streaming", { count: state.sources.length })
+            : state.plan
+              ? t("count", { count: state.cards.length })
+              : t("empty")}
+        </p>
+        <ul className="flex flex-col gap-3">
+          {shown.map((card) => (
+            <ResultItem key={card.id} card={card} />
+          ))}
+        </ul>
+        {state.running && <Skeleton className="h-28" aria-hidden="true" />}
+        {(state.failed || failedSources.length > 0) && !state.running && (
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span role="status">
+              {failedSources.length
+                ? t("someFailed", {
+                    sources: failedSources.map((s) => t(`source.${s.source}`)).join(", "),
+                  })
+                : t("streamFailed")}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => start(text.trim())}>
+              {t("retry")}
+            </Button>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
 
-function GroupState({ status, children }: { status?: string; children: React.ReactNode }) {
+function ResultItem({ card }: { card: Card }) {
   const t = useTranslations("Search");
-  if (status && status !== "ok") return <p role="alert">{t(`groupStatus.${status as "error"}`)}</p>;
-  return <>{children}</>;
-}
-
-function BookResults({ search }: { search: BookSearch }) {
-  const t = useTranslations("Search");
-  const results = search.results ?? [];
-  return (
-    <>
-      <p className="text-sm text-muted-foreground" aria-live="polite">
-        {t("count", { count: results.length })}
-      </p>
-      {results.map((hit, i) => (
-        <BookCard key={`${hit.source}:${hit.id}`} hit={hit} best={i === 0 && !!search.best} />
-      ))}
-      <SourceStatusList sources={search.sources ?? []} />
-    </>
-  );
-}
-
-function useQueue() {
   const tJobs = useTranslations("Jobs");
   const tErrors = useTranslations("Errors");
+  const locale = useLocale();
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (url: string) => createJobs([url]),
-    onSuccess: (result) => {
+  const [busy, setBusy] = useState<"download" | "save" | null>(null);
+  const queue = async (kind: "download" | "save") => {
+    if (!card.download) return;
+    setBusy(kind);
+    try {
+      const result = await createJobs([card.download], kind === "save" ? { tags: ["saved"] } : {});
       void queryClient.invalidateQueries({ queryKey: JOBS_KEY });
       if (result.jobs.length) toast.success(tJobs("added", { count: result.jobs.length }));
-    },
-    onError: (err) => toast.error(errorMessage(tErrors, err)),
-  });
-}
+    } catch (err) {
+      toast.error(errorMessage(tErrors, err));
+    }
+    setBusy(null);
+  };
+  const meta = [card.source_label, card.year, card.creator].filter(Boolean).join(" · ");
 
-function ArchiveResults({ items }: { items: ArchiveHit[] }) {
-  const t = useTranslations("Search");
-  if (!items.length) return <p>{t("none")}</p>;
   return (
-    <ul className="flex flex-col divide-y rounded-md border">
-      {items.map((item) => (
-        <li key={item.identifier} className="flex items-center gap-3 p-3">
-          <div className="min-w-0 flex-1">
-            <p className="font-medium break-words" dir="auto">
-              {item.title}
-            </p>
-            <p className="text-sm text-muted-foreground" dir="auto">
-              {[item.creator, item.year ? isolate(item.year) : null].filter(Boolean).join(" · ")}
-            </p>
-          </div>
-          <Link
-            href={{ pathname: "/archive", query: { id: item.identifier } }}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            {t("openItem")}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function VideoResults({ items }: { items: VideoHit[] }) {
-  const t = useTranslations("Search");
-  const queue = useQueue();
-  if (!items.length) return <p>{t("none")}</p>;
-  return (
-    <ul className="grid gap-3 sm:grid-cols-2">
-      {items.map((video) => (
-        <li key={video.id} className="flex gap-3 rounded-md border p-2">
-          {video.thumbnail && (
-            // eslint-disable-next-line @next/next/no-img-element -- remote thumbnails
-            <img
-              src={video.thumbnail}
-              alt=""
-              width={120}
-              height={68}
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              className="aspect-video w-30 shrink-0 rounded bg-muted object-cover"
-            />
-          )}
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <p className="line-clamp-2 text-sm font-medium" dir="auto">
-              {video.title}
-            </p>
-            <p className="text-xs text-muted-foreground" dir="auto">
-              {[video.channel, video.duration ? isolate(formatDuration(video.duration)) : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-            <div className="flex gap-2">
-              <Link
-                href={{ pathname: "/youtube", query: { url: video.url } }}
-                className={buttonVariants({ variant: "outline", size: "sm" })}
+    <li
+      className="flex gap-4 rounded-lg border bg-card p-4 shadow-card"
+      data-testid="result-card"
+      data-media={card.media}
+    >
+      {card.thumbnail ? (
+        // eslint-disable-next-line @next/next/no-img-element -- remote thumbnails
+        <img
+          src={card.thumbnail}
+          alt=""
+          width={96}
+          height={72}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="h-18 w-24 shrink-0 rounded bg-muted object-cover"
+        />
+      ) : null}
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <h3 className="font-medium break-words" dir="auto">
+            {card.title}
+          </h3>
+          <Badge variant={LICENCE_VARIANT[card.licence ?? "unknown"]}>
+            {t(`licence.${card.licence ?? "unknown"}`)}
+          </Badge>
+        </div>
+        <p className="text-sm text-muted-foreground" dir="auto">
+          {t(`media.${card.media}`)} · {meta}
+        </p>
+        {card.formats && card.formats.length > 0 && (
+          <p className="flex flex-wrap gap-1">
+            {card.formats.map((f) => (
+              <Badge key={f} variant="secondary">
+                {f.replace("_", " ").toUpperCase()}
+              </Badge>
+            ))}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {card.download && (
+            <>
+              <a
+                href={`/${locale}?url=${encodeURIComponent(card.download)}`}
+                className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-accent"
               >
-                {t("chooseFormat")}
-              </Link>
-              <Button
-                size="sm"
-                disabled={queue.isPending}
-                onClick={() => queue.mutate(video.url)}
-                aria-label={`${t("download")}: ${video.title}`}
-              >
-                <DownloadIcon aria-hidden="true" />
+                {t("preview")}
+              </a>
+              <Button size="sm" onClick={() => void queue("download")} disabled={busy !== null}>
+                {busy === "download" && <Loader2Icon className="animate-spin" aria-hidden="true" />}
                 {t("download")}
               </Button>
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void queue("save")}
+                disabled={busy !== null}
+              >
+                {t("save")}
+              </Button>
+            </>
+          )}
+          <a
+            href={card.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-9 items-center gap-1 text-sm font-medium text-primary"
+          >
+            {t("openSource")}
+            <ExternalLinkIcon className="size-4" aria-hidden="true" />
+          </a>
+        </div>
+      </div>
+    </li>
   );
 }
 

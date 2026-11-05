@@ -53,15 +53,25 @@ test("libraries: regions, then a IIIF item's pages", async ({ page }, testInfo) 
   await expect(page.getByText("Added 1 download")).toBeVisible();
 });
 
-test("search: tabs fetch one source group at a time", async ({ page }) => {
+test("search: results stream in as cards, with licence and download", async ({ page }) => {
   await page.goto("/en/search");
   await expect(page.getByText("Results appear here")).toBeVisible();
-  await page.getByTestId("search-query").fill("Fixture Atlas");
+  await page.getByTestId("search-query").fill("Fixture Compass");
   await page.getByRole("button", { name: "Search", exact: true }).click();
-  const results = page.getByTestId("search-results");
-  await expect(results.getByTestId("best-copy")).toContainText("Fixture Atlas");
-  await page.locator("label", { hasText: "Libraries" }).click();
-  await expect(results).toBeVisible();
+  const card = page.getByTestId("result-card").first();
+  await expect(card).toContainText("Fixture Compass");
+  await expect(card).toContainText("Public domain");
+  await expect(page).toHaveURL(/q=Fixture\+Compass/);
   const axe = await new AxeBuilder({ page }).analyze();
   expect(axe.violations).toEqual([]);
+  await card.getByRole("button", { name: "Download" }).click();
+  await expect(page.getByText("Added 1 download")).toBeVisible();
+});
+
+test("home: typing words instead of a link searches everything", async ({ page }) => {
+  await page.goto("/en");
+  await page.getByLabel("Links to download").fill("Fixture Compass");
+  await page.getByRole("button", { name: "Check link" }).click();
+  await expect(page).toHaveURL(/\/en\/search\?q=Fixture/);
+  await expect(page.getByTestId("result-card").first()).toContainText("Fixture Compass");
 });

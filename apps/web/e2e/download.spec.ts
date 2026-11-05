@@ -90,10 +90,6 @@ test("blocked links get clear messages", async ({ page }) => {
   await input.fill("http://10.0.0.1/router.cfg");
   await page.getByRole("button", { name: "Check link" }).click();
   await expect(page.getByRole("main").getByRole("alert")).toContainText("private or local network");
-
-  await input.fill("hello there");
-  await page.getByRole("button", { name: "Check link" }).click();
-  await expect(page.getByRole("main").getByRole("alert")).toContainText("doesn't look like a link");
 });
 
 test("keyboard only: paste, Enter, Enter", async ({ page }, testInfo) => {

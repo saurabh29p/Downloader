@@ -5,6 +5,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (v2 Phase 3 — universal search)
+- **One box for everything.** `GET/POST /api/universal` streams Server-Sent Events: `plan`, then one `source` event per source as it answers, then `done`.
+  - The input is classified as links, a search or a question (English, Hindi, Hinglish, Arabic) and its language detected.
+  - A keyword router builds the v2 router plan (kind, intent, media, language, queries, answer_needed) and needs no AI. Phase 5's optional AI router uses the same shape and falls back to it.
+- **Sources at once, each with a time limit:** archive.org, free books, worldwide libraries and YouTube search.
+  - Results become cards with media type, licence (Public domain, Creative Commons, Rights reserved, Streaming only, or "check the licence"), year, creator, formats, a download link when one is legal, and a relevance score that works across sources.
+  - Media words narrow the sources. For example, "taj mahal film" asks archive.org (movies only) and YouTube, for "taj mahal".
+- **Search page** (`/search?q=`): results arrive as cards, with tabs per media type and live counts. Each card has Preview, Download, Save to Library (tagged "saved") and Open source; a Retry appears when a source doesn't answer in time.
+- **Home:** words that aren't a link open the search. Ctrl+K has "Search for …" for whatever you type.
+- `ANYGET_UNIVERSAL_SOURCES` limits which sources are asked (e2e asks only the books stand-in). Jobs accept `tags`, which the Library applies to their files.
+
 ### Added (v2 Phase 2 — Connections)
 - **Connections page** (in the main nav, replacing the YouTube tab; YouTube stays in Ctrl+K and Home):
   - Sign-in sites by cookies.txt: YouTube, Instagram, X, Facebook, Reddit, Vimeo, Patreon, archive.org.

@@ -83,6 +83,7 @@ class LibraryIndex:
         source_id: str | None = None,
         job_id: str | None = None,
         user_id: str = OWNER_ID,
+        tags: list[str] | None = None,
     ) -> LibraryItem | None:
         rel = self._rel(path)
         if rel is None or not path.is_file():
@@ -99,6 +100,8 @@ class LibraryIndex:
             item.job_id = job_id or item.job_id
             item.duplicate_of = None
             item.user_id = item.user_id or user_id
+            if tags:
+                item.tags = sorted({*(item.tags or []), *tags})
             candidates = session.exec(
                 select(LibraryItem)
                 .where(LibraryItem.rel_path != rel)
@@ -126,6 +129,12 @@ class LibraryIndex:
             return []
         added = []
         source_id = _source_id(job)
+        raw = (job.options or {}).get("tags")
+        tags = (
+            [str(t).strip()[:40] for t in raw if str(t).strip()][:10]
+            if isinstance(raw, list)
+            else []
+        )
         for index, rel in enumerate([job.rel_path, *(job.files or [])]):
             item = self._add(
                 self.root / rel,
@@ -134,6 +143,7 @@ class LibraryIndex:
                 source_id=source_id if index == 0 else None,
                 job_id=job.id,
                 user_id=job.user_id or OWNER_ID,
+                tags=tags,
             )
             if item is not None:
                 added.append(item)
