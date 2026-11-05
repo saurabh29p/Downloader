@@ -2,13 +2,15 @@
 
 from dataclasses import dataclass
 
-from anyget.core.auth import AccessVerifier
+from anyget.core.auth import AccessVerifier, RateLimiter
 from anyget.core.db import Database
 from anyget.core.events import EventBus
 from anyget.core.jobs import JobStore
 from anyget.core.net import Net
+from anyget.core.ownership import adopt_rows
 from anyget.core.queue import DownloadQueue
 from anyget.core.router import Router
+from anyget.core.session import Sessions
 from anyget.core.settings import Settings
 from anyget.core.settings_store import SettingsStore
 from anyget.handlers.ai_resources import AiResourcesHandler
@@ -77,6 +79,8 @@ class Services:
     scheduler: WatchScheduler
     plugins: list[PluginInfo]
     access: AccessVerifier
+    sessions: Sessions
+    login_limiter: RateLimiter
 
     @classmethod
     def build(cls, settings: Settings, net: Net | None = None) -> "Services":
@@ -85,6 +89,7 @@ class Services:
         db.create_all()
         settings_store = SettingsStore(db, settings)
         settings_store.load()  # saved settings override .env
+        adopt_rows(db, settings)  # v2: rows from before sign-in get an owner
         store = JobStore(db)
         bus = EventBus()
         net = net or Net(settings)
@@ -110,6 +115,8 @@ class Services:
             WatchScheduler(watches),
             plugins,
             AccessVerifier(net, settings),
+            Sessions(settings),
+            RateLimiter(),
         )
 
     async def start(self, recover: bool = True, watch: bool | None = None) -> None:

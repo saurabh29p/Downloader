@@ -6,6 +6,7 @@ from fastapi import Depends, Request
 from pydantic import BaseModel
 
 from anyget.core.services import Services
+from anyget.core.users import OWNER_ID
 
 
 class ApiError(BaseModel):
@@ -19,6 +20,15 @@ def get_services(request: Request) -> Services:
 
 
 ServicesDep = Annotated[Services, Depends(get_services)]
+
+
+def current_user(request: Request) -> str:
+    """The signed-in user (set by core/auth.SecurityMiddleware)."""
+    user = getattr(request.state, "user", None)
+    return user if isinstance(user, str) and user else OWNER_ID
+
+
+UserDep = Annotated[str, Depends(current_user)]
 
 ERROR_RESPONSES: dict[int | str, dict[str, object]] = {
     400: {"model": ApiError, "description": "Blocked or invalid link"},

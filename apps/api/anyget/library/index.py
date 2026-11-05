@@ -18,6 +18,7 @@ from sqlmodel import col, func, or_, select
 from anyget.core.db import Database
 from anyget.core.filenames import UnsafePathError, ensure_inside
 from anyget.core.jobs import Job
+from anyget.core.users import OWNER_ID
 from anyget.library.kinds import kind_of
 from anyget.library.models import LibraryItem, LibraryItemOut, LibraryPage
 
@@ -69,6 +70,7 @@ class LibraryIndex:
         source_url: str | None = None,
         source_id: str | None = None,
         job_id: str | None = None,
+        user_id: str = OWNER_ID,
     ) -> LibraryItem | None:
         rel = self._rel(path)
         if rel is None or not path.is_file():
@@ -84,9 +86,11 @@ class LibraryIndex:
             item.source_id = source_id or item.source_id
             item.job_id = job_id or item.job_id
             item.duplicate_of = None
+            item.user_id = item.user_id or user_id
             candidates = session.exec(
                 select(LibraryItem)
                 .where(LibraryItem.rel_path != rel)
+                .where(LibraryItem.user_id == item.user_id)
                 .where(col(LibraryItem.duplicate_of).is_(None))
                 .where(
                     or_(LibraryItem.sha256 == digest, LibraryItem.source_id == item.source_id)
@@ -117,6 +121,7 @@ class LibraryIndex:
                 source_url=job.url if not job.url.startswith("anyget:") else None,
                 source_id=source_id if index == 0 else None,
                 job_id=job.id,
+                user_id=job.user_id or OWNER_ID,
             )
             if item is not None:
                 added.append(item)
@@ -183,9 +188,14 @@ class LibraryIndex:
         duplicates: bool | None = None,
         offset: int = 0,
         limit: int = 60,
+        user_id: str | None = None,
     ) -> LibraryPage:
         with self.db.session() as session:
             query = select(LibraryItem)
+            owned = select(LibraryItem.tags)
+            if user_id is not None:
+                query = query.where(LibraryItem.user_id == user_id)
+                owned = owned.where(LibraryItem.user_id == user_id)
             if q:
                 like = f"%{q.strip()}%"
                 query = query.where(
@@ -196,9 +206,7 @@ class LibraryIndex:
             if duplicates is True:
                 query = query.where(col(LibraryItem.duplicate_of).is_not(None))
             rows = list(session.exec(query.order_by(col(LibraryItem.added_at).desc())).all())
-            all_tags = sorted(
-                {t for tags in session.exec(select(LibraryItem.tags)).all() for t in tags or []}
-            )
+            all_tags = sorted({t for tags in session.exec(owned).all() for t in tags or []})
         if tag:  # JSON column: filter in Python (libraries are thousands of rows, not millions)
             rows = [r for r in rows if tag in (r.tags or [])]
         return LibraryPage(

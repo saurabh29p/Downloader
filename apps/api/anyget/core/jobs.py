@@ -10,6 +10,7 @@ from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel, col, select
 
 from anyget.core.db import Database
+from anyget.core.users import OWNER_ID
 
 
 class JobState(StrEnum):
@@ -57,6 +58,8 @@ class Job(SQLModel, table=True):
     created_at: datetime = Field(default_factory=_now, index=True)
     updated_at: datetime = Field(default_factory=_now)
     finished_at: datetime | None = None
+    # Who asked for it (core/users.py). Old rows get it from the v2 migration.
+    user_id: str | None = Field(default=None, index=True)
 
 
 class JobStore:
@@ -65,8 +68,10 @@ class JobStore:
     def __init__(self, db: Database) -> None:
         self.db = db
 
-    def create(self, url: str, options: dict[str, Any] | None = None) -> Job:
-        job = Job(url=url, options=options or {})
+    def create(
+        self, url: str, options: dict[str, Any] | None = None, user_id: str = OWNER_ID
+    ) -> Job:
+        job = Job(url=url, options=options or {}, user_id=user_id)
         with self.db.session() as session:
             session.add(job)
             session.commit()
@@ -77,9 +82,13 @@ class JobStore:
         with self.db.session() as session:
             return session.get(Job, job_id)
 
-    def list_jobs(self, states: set[JobState] | None = None, limit: int = 100) -> list[Job]:
+    def list_jobs(
+        self, states: set[JobState] | None = None, limit: int = 100, user_id: str | None = None
+    ) -> list[Job]:
         with self.db.session() as session:
             query = select(Job).order_by(col(Job.created_at).desc()).limit(limit)
+            if user_id is not None:
+                query = query.where(Job.user_id == user_id)
             if states:
                 query = query.where(col(Job.state).in_(states))
             return list(session.exec(query).all())

@@ -7,10 +7,11 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
-from anyget.api.deps import ERROR_RESPONSES, ServicesDep
+from anyget.api.deps import ERROR_RESPONSES, ServicesDep, UserDep
 from anyget.books.search import BookSearch, search_books
 from anyget.books.sources import BY_NAME
 from anyget.core.jobs import JobOut
+from anyget.core.users import OWNER_ID
 from anyget.handlers.archive_org import SearchHit, build_query
 from anyget.handlers.archive_org import search as archive_search
 from anyget.handlers.base import HandlerError
@@ -154,13 +155,13 @@ async def universal_search(
     status_code=status.HTTP_201_CREATED,
     responses=ERROR_RESPONSES,
 )
-async def convert(body: ConvertRequest, services: ServicesDep) -> JobOut:
+async def convert(body: ConvertRequest, services: ServicesDep, user: UserDep) -> JobOut:
     if body.to not in TARGETS:  # pragma: no cover - Literal already checks
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown target")
     source = services.store.get(body.job_id)
-    if source is None:
+    if source is None or (source.user_id or OWNER_ID) != user:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, {"code": "not_found", "message": "no such job"}
         )
-    job = services.queue.submit(convert_url(body.job_id, body.to, body.lang), {})
+    job = services.queue.submit(convert_url(body.job_id, body.to, body.lang), {}, user)
     return JobOut.model_validate(job)

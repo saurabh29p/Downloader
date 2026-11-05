@@ -7,12 +7,13 @@ from fastapi import APIRouter, HTTPException, Query, Response, status
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field, model_validator
 
-from anyget.api.deps import ERROR_RESPONSES, ServicesDep
+from anyget.api.deps import ERROR_RESPONSES, ServicesDep, UserDep
 from anyget.core.events import sse_stream
 from anyget.core.filenames import UnsafePathError, ensure_inside
 from anyget.core.jobs import JobOut, JobState
 from anyget.core.net import BlockedURLError
 from anyget.core.router import normalize
+from anyget.core.users import OWNER_ID
 from anyget.handlers.ytdlp_support.archive import archive_path, contains
 
 router = APIRouter(tags=["jobs"])
@@ -58,13 +59,21 @@ def _not_found() -> HTTPException:
     return HTTPException(status.HTTP_404_NOT_FOUND, {"code": "not_found", "message": "no such job"})
 
 
+def _owned(services: Any, job_id: str, user: str) -> Any:
+    """The job if it belongs to this user; someone else's job is "not found"."""
+    job = services.store.get(job_id)
+    if job is None or (job.user_id or OWNER_ID) != user:
+        raise _not_found()
+    return job
+
+
 @router.post(
     "/jobs",
     operation_id="createJobs",
     status_code=status.HTTP_201_CREATED,
     responses=ERROR_RESPONSES,
 )
-async def create_jobs(body: CreateJobs, services: ServicesDep) -> CreateJobsResult:
+async def create_jobs(body: CreateJobs, services: ServicesDep, user: UserDep) -> CreateJobsResult:
     jobs: list[JobOut] = []
     rejected: list[RejectedUrl] = []
     skipped: list[RejectedUrl] = []
@@ -90,7 +99,7 @@ async def create_jobs(body: CreateJobs, services: ServicesDep) -> CreateJobsResu
                 RejectedUrl(url=raw, code="already_downloaded", message="saved before; skipped")
             )
             continue
-        job = services.queue.submit(url, options)
+        job = services.queue.submit(url, options, user)
         jobs.append(JobOut.model_validate(job))
     return CreateJobsResult(jobs=jobs, rejected=rejected, skipped=skipped)
 
@@ -113,38 +122,40 @@ def _already_saved(services: Any, options: dict[str, Any]) -> bool:
 @router.get("/jobs", operation_id="listJobs")
 async def list_jobs(
     services: ServicesDep,
+    user: UserDep,
     state: Annotated[list[JobState] | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=1000)] = 200,
 ) -> list[JobOut]:
-    jobs = services.store.list_jobs(set(state) if state else None, limit=limit)
+    jobs = services.store.list_jobs(set(state) if state else None, limit=limit, user_id=user)
     return [JobOut.model_validate(job) for job in jobs]
 
 
 @router.get("/jobs/{job_id}", operation_id="getJob", responses=ERROR_RESPONSES)
-async def get_job(job_id: str, services: ServicesDep) -> JobOut:
-    job = services.store.get(job_id)
-    if job is None:
-        raise _not_found()
-    return JobOut.model_validate(job)
+async def get_job(job_id: str, services: ServicesDep, user: UserDep) -> JobOut:
+    return JobOut.model_validate(_owned(services, job_id, user))
 
 
 @router.post("/jobs/{job_id}/pause", operation_id="pauseJob", responses=ERROR_RESPONSES)
-async def pause_job(job_id: str, services: ServicesDep) -> JobOut:
+async def pause_job(job_id: str, services: ServicesDep, user: UserDep) -> JobOut:
+    _owned(services, job_id, user)
     return JobOut.model_validate(await services.queue.pause(job_id))
 
 
 @router.post("/jobs/{job_id}/resume", operation_id="resumeJob", responses=ERROR_RESPONSES)
-async def resume_job(job_id: str, services: ServicesDep) -> JobOut:
+async def resume_job(job_id: str, services: ServicesDep, user: UserDep) -> JobOut:
+    _owned(services, job_id, user)
     return JobOut.model_validate(services.queue.resume(job_id))
 
 
 @router.post("/jobs/{job_id}/retry", operation_id="retryJob", responses=ERROR_RESPONSES)
-async def retry_job(job_id: str, services: ServicesDep) -> JobOut:
+async def retry_job(job_id: str, services: ServicesDep, user: UserDep) -> JobOut:
+    _owned(services, job_id, user)
     return JobOut.model_validate(services.queue.retry(job_id))
 
 
 @router.post("/jobs/{job_id}/cancel", operation_id="cancelJob", responses=ERROR_RESPONSES)
-async def cancel_job(job_id: str, services: ServicesDep) -> JobOut:
+async def cancel_job(job_id: str, services: ServicesDep, user: UserDep) -> JobOut:
+    _owned(services, job_id, user)
     return JobOut.model_validate(await services.queue.cancel(job_id))
 
 
@@ -154,7 +165,10 @@ async def cancel_job(job_id: str, services: ServicesDep) -> JobOut:
     status_code=status.HTTP_204_NO_CONTENT,
     responses=ERROR_RESPONSES,
 )
-async def delete_job(job_id: str, services: ServicesDep, delete_file: bool = False) -> Response:
+async def delete_job(
+    job_id: str, services: ServicesDep, user: UserDep, delete_file: bool = False
+) -> Response:
+    _owned(services, job_id, user)
     await services.queue.delete(job_id, delete_file=delete_file)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -165,9 +179,9 @@ async def delete_job(job_id: str, services: ServicesDep, delete_file: bool = Fal
     response_class=FileResponse,
     responses=ERROR_RESPONSES,
 )
-async def get_job_file(job_id: str, services: ServicesDep) -> FileResponse:
-    job = services.store.get(job_id)
-    if job is None or job.state != JobState.done or not job.rel_path:
+async def get_job_file(job_id: str, services: ServicesDep, user: UserDep) -> FileResponse:
+    job = _owned(services, job_id, user)
+    if job.state != JobState.done or not job.rel_path:
         raise _not_found()
     root = services.settings.downloads_dir
     try:
@@ -187,9 +201,12 @@ async def get_job_file(job_id: str, services: ServicesDep) -> FileResponse:
     response_class=StreamingResponse,
     responses={200: {"content": {"text/event-stream": {}}}},
 )
-async def job_events(job_id: str, services: ServicesDep) -> StreamingResponse:
+async def job_events(job_id: str, services: ServicesDep, user: UserDep) -> StreamingResponse:
+    _owned(services, job_id, user)
     return StreamingResponse(
-        sse_stream(services.bus, job_id), media_type="text/event-stream", headers=SSE_HEADERS
+        sse_stream(services.bus, job_id, user_id=user),
+        media_type="text/event-stream",
+        headers=SSE_HEADERS,
     )
 
 
@@ -199,7 +216,7 @@ async def job_events(job_id: str, services: ServicesDep) -> StreamingResponse:
     response_class=StreamingResponse,
     responses={200: {"content": {"text/event-stream": {}}}},
 )
-async def all_events(services: ServicesDep) -> StreamingResponse:
+async def all_events(services: ServicesDep, user: UserDep) -> StreamingResponse:
     return StreamingResponse(
-        sse_stream(services.bus), media_type="text/event-stream", headers=SSE_HEADERS
+        sse_stream(services.bus, user_id=user), media_type="text/event-stream", headers=SSE_HEADERS
     )

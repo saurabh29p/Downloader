@@ -1,5 +1,6 @@
 """App settings, read from environment variables prefixed with ANYGET_ (and .env)."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Any, Literal
@@ -8,6 +9,16 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 from anyget import __version__
+
+# Env vars set by hosting platforms: their presence means AnyGet is on the internet.
+HOSTED_ENV = (
+    "RAILWAY_ENVIRONMENT",
+    "RAILWAY_PROJECT_ID",
+    "RENDER",
+    "FLY_APP_NAME",
+    "K_SERVICE",  # Google Cloud Run
+    "DYNO",  # Heroku
+)
 
 
 class Settings(BaseSettings):
@@ -65,6 +76,18 @@ class Settings(BaseSettings):
     # "auto": requests from this computer are allowed, requests through Cloudflare need
     # Access or the token. "always": every request needs Access or the token.
     auth_mode: Literal["auto", "always"] = "auto"
+    # Owner sign-in (v2). When an owner is set, every /api request except /api/health
+    # and the sign-in itself needs the session cookie, the bearer token or Access.
+    # Make the hash with `anyget hash-password` (argon2id).
+    owner_email: str = ""
+    owner_password_hash: str = Field(default="", repr=False)
+    # Signs the session cookie. Empty: a random key is made once in data/session.key.
+    session_secret: str = Field(default="", repr=False)
+    session_days: int = Field(default=30, ge=1, le=365)
+    # Set to true when AnyGet is reachable from the internet (Railway, Fly, a VPS…).
+    # Hosting platforms are also detected from their env vars. A public AnyGet without
+    # an owner refuses every request (fails closed).
+    public: bool = False
     # Requests per minute per client from outside (writes are limited separately).
     rate_limit_per_minute: int = Field(default=600, ge=10, le=100_000)
     rate_limit_writes_per_minute: int = Field(default=60, ge=1, le=100_000)
@@ -98,6 +121,19 @@ class Settings(BaseSettings):
     @property
     def database_url(self) -> str:
         return f"sqlite:///{self.data_dir / 'anyget.db'}"
+
+    @property
+    def owner_configured(self) -> bool:
+        return bool(self.owner_email.strip() and self.owner_password_hash.strip())
+
+    @property
+    def hosted(self) -> bool:
+        """Reachable from the internet: set by ANYGET_PUBLIC or a hosting platform."""
+        return self.public or any(os.environ.get(name) for name in HOSTED_ENV)
+
+    @property
+    def login_required(self) -> bool:
+        return self.auth_mode == "always" or self.owner_configured or self.hosted
 
     @property
     def user_agent(self) -> str:

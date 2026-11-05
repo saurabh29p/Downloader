@@ -20,6 +20,7 @@ dependencies = [
     "img2pdf==0.6.3",
     "defusedxml==0.7.1",
     "pyjwt[crypto]==2.10.1",
+    "argon2-cffi>=25.1",
 ]
 
 [project.scripts]

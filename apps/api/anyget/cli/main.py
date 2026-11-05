@@ -39,6 +39,30 @@ def version() -> None:
     console.print(f"anyget {__version__}")
 
 
+@app.command("hash-password")
+def hash_password_cmd(
+    password: Annotated[
+        str | None,
+        typer.Option(
+            "--password",
+            help="The password (asked for when left out; avoid it on shared shells)",
+        ),
+    ] = None,
+) -> None:
+    """Print an argon2 hash for ANYGET_OWNER_PASSWORD_HASH (the owner's sign-in)."""
+    from anyget.core.session import hash_password
+
+    if password is None:
+        password = typer.prompt("Password", hide_input=True, confirmation_prompt=True)
+    if len(password) < 10:
+        raise typer.BadParameter("use at least 10 characters")
+    typer.echo(hash_password(password))
+    typer.echo(
+        "Set it as ANYGET_OWNER_PASSWORD_HASH. In a Docker Compose .env file write each $ as $$.",
+        err=True,
+    )
+
+
 @app.command()
 def health(
     url: Annotated[str | None, typer.Option(help="API base URL (default: from settings)")] = None,
