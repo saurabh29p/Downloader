@@ -4,7 +4,7 @@ import type { ProbeResult } from "@anyget/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { ClipboardPasteIcon, FileTextIcon, Loader2Icon, SearchIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   useEffect,
   useId,
@@ -35,6 +35,7 @@ const noopSubscribe = () => () => {};
 
 export function PasteBox() {
   const t = useTranslations("Home");
+  const locale = useLocale();
   const tJobs = useTranslations("Jobs");
   const tErrors = useTranslations("Errors");
   const queryClient = useQueryClient();
@@ -96,7 +97,15 @@ export function PasteBox() {
     event?.preventDefault();
     setError(null);
     if (links.length === 0) {
-      setError(text.trim() ? t("notALink") : t("noLinks"));
+      if (!text.trim()) {
+        setError(t("noLinks"));
+        return;
+      }
+      // Not a link: search everything for it (universal search).
+      const q = encodeURIComponent(text.trim().slice(0, 500));
+      // A full load: the target page starts from its address.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign(`${window.location.origin}/${locale}/search?q=${q}`);
       return;
     }
     if (links.length === 1) probeMutation.mutate(links[0]!);
@@ -167,7 +176,7 @@ export function PasteBox() {
                 submit();
               }
             }}
-            placeholder="https://"
+            placeholder={t("searchHint")}
             autoComplete="off"
             spellCheck={false}
             aria-describedby={error ? `${ids.hint} ${ids.error}` : ids.hint}

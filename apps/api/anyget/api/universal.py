@@ -51,6 +51,9 @@ def _engine(services: ServicesDep) -> Engine:
 
 def _stream(services: ServicesDep, text: str, section: str | None) -> StreamingResponse:
     planned = keyword_plan(text, section)
+    allowed = set(services.settings.universal_sources)
+    if allowed:
+        planned.queries = [q for q in planned.queries if q.source in allowed]
 
     async def events() -> AsyncIterator[str]:
         yield format_sse("plan", planned.model_dump(mode="json"))

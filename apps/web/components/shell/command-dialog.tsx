@@ -21,7 +21,8 @@ import {
   SettingsIcon,
   SunIcon,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { useState } from "react";
 
 import { useRouter } from "@/i18n/navigation";
 import { saveTheme } from "@/lib/theme";
@@ -40,6 +41,8 @@ export default function CommandDialog({
 }) {
   const t = useTranslations("Command");
   const router = useRouter();
+  const locale = useLocale();
+  const [query, setQuery] = useState("");
   const run = (action: () => void) => {
     onOpenChange(false);
     action();
@@ -54,6 +57,8 @@ export default function CommandDialog({
       contentClassName="fixed start-1/2 top-[15vh] z-50 w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 rtl:translate-x-1/2 overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg"
     >
       <Command.Input
+        value={query}
+        onValueChange={setQuery}
         placeholder={t("placeholder")}
         className="h-12 w-full border-b bg-transparent px-4 text-base outline-none placeholder:text-muted-foreground"
       />
@@ -140,6 +145,27 @@ export default function CommandDialog({
             {t("themeSystem")}
           </Command.Item>
         </Command.Group>
+        {query.trim() && (
+          <Command.Group forceMount className={groupClass}>
+            <Command.Item
+              forceMount
+              value={`search ${query}`}
+              className={itemClass}
+              onSelect={() =>
+                run(() =>
+                  // A full load: the search page starts from the address.
+                  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                  window.location.assign(
+                    `${window.location.origin}/${locale}/search?q=${encodeURIComponent(query.trim())}`,
+                  ),
+                )
+              }
+            >
+              <SearchIcon aria-hidden="true" />
+              {t("searchFor", { query: query.trim() })}
+            </Command.Item>
+          </Command.Group>
+        )}
       </Command.List>
     </Command.Dialog>
   );

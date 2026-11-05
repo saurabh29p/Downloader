@@ -46,6 +46,8 @@ export default defineConfig({
         // Books come from a Gutendex stand-in on the fixture server; no other source is asked.
         ANYGET_GUTENDEX_URL: `http://127.0.0.1:${fixturePort}/gutendex`,
         ANYGET_BOOK_SOURCES: "gutendex",
+        // Universal search asks only the books stand-in (no real sites in e2e).
+        ANYGET_UNIVERSAL_SOURCES: "books",
       },
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,

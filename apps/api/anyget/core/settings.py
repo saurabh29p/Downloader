@@ -124,9 +124,11 @@ class Settings(BaseSettings):
     # Books: limit which sources are asked (empty = all), and Gutendex's address
     # (it is open source and can be self-hosted).
     book_sources: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    # Universal search: limit the sources asked (archive, books, videos, libraries).
+    universal_sources: Annotated[list[str], NoDecode] = Field(default_factory=list)
     gutendex_url: str = "https://gutendex.com"
 
-    @field_validator("net_allowlist", "book_sources", "plugins", mode="before")
+    @field_validator("net_allowlist", "book_sources", "universal_sources", "plugins", mode="before")
     @classmethod
     def _split_csv(cls, value: Any) -> Any:
         if isinstance(value, str):
