@@ -17,6 +17,8 @@ from anyget.core.settings import Settings
 from anyget.core.text import words
 from anyget.handlers.archive_org import SearchHit, build_query
 from anyget.handlers.archive_org import search as archive_search
+from anyget.handlers.base import HandlerError
+from anyget.universal.commons import search_photos
 from anyget.universal.models import (
     Licence,
     Media,
@@ -27,10 +29,18 @@ from anyget.universal.models import (
     UniversalDone,
 )
 from anyget.universal.relevance import score as archive_score
+from anyget.universal.tmdb import search_movies
 
 log = logging.getLogger("anyget.universal")
 
-TIME_LIMIT = {"archive": 10.0, "books": 10.0, "videos": 20.0, "libraries": 20.0}
+TIME_LIMIT = {
+    "archive": 10.0,
+    "books": 10.0,
+    "videos": 20.0,
+    "libraries": 20.0,
+    "tmdb": 10.0,
+    "commons": 10.0,
+}
 PER_SOURCE = 12
 
 ARCHIVE_MEDIA: dict[str, Media] = {
@@ -127,7 +137,11 @@ class Engine:
 
     async def _run(self, spec: QuerySpec) -> list[ResultCard]:
         if spec.source == "archive":
-            query = build_query(spec.q, mediatype=spec.filters.get("mediatype"))
+            query = build_query(
+                spec.q,
+                mediatype=spec.filters.get("mediatype"),
+                collection=spec.filters.get("collection"),
+            )
             page = await archive_search(self.net, query, rows=50)
             return [archive_card(hit, spec.q) for hit in page.items]
         if spec.source in ("books", "libraries"):
@@ -136,6 +150,10 @@ class Engine:
             )
             found = await search_books(self.net, self.settings, spec.q, kind=kind, limit=PER_SOURCE)
             return [book_card(hit, spec.q, spec.source) for hit in found.results]
+        if spec.source == "tmdb":
+            return await search_movies(self.net, self.settings.tmdb_key, spec.q)
+        if spec.source == "commons":
+            return await search_photos(self.net, spec.q)
         if spec.source == "videos" and self.video_search is not None:
             entries = await self.video_search(spec.q, PER_SOURCE)
             return [video_card(entry, spec.q) for entry in entries]
@@ -146,6 +164,9 @@ class Engine:
             cards = await asyncio.wait_for(self._run(spec), TIME_LIMIT[spec.source])
         except TimeoutError:
             return SourceDone(source=spec.source, status="timeout")
+        except HandlerError as exc:
+            state = "needs_key" if exc.code == "needs_key" else "error"
+            return SourceDone(source=spec.source, status=state, message=exc.message)
         except Exception as exc:  # one source failing never stops the others
             log.info("universal source %s failed: %s", spec.source, type(exc).__name__)
             return SourceDone(source=spec.source, status="error", message=type(exc).__name__)

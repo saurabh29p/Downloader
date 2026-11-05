@@ -15,6 +15,7 @@ from anyget.api import (
     jobs,
     library,
     probe,
+    sections,
     system,
     universal,
     watches,
@@ -97,6 +98,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         archive,
         books,
         universal,
+        sections,
         library,
         watches,
     ):

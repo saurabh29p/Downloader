@@ -10,7 +10,7 @@ Links (kind "url") end after `plan`: the web probes them as before.
 from collections.abc import AsyncIterator
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -20,6 +20,7 @@ from anyget.handlers.ytdlp import YtDlpHandler
 from anyget.universal.engine import Engine
 from anyget.universal.keyword_router import plan as keyword_plan
 from anyget.universal.models import UniversalDone
+from anyget.universal.sections import preset_of
 
 router = APIRouter(tags=["universal"])
 
@@ -39,8 +40,9 @@ SSE_RESPONSE: dict[int | str, dict[str, Any]] = {200: {"content": {"text/event-s
 
 
 class UniversalIn(BaseModel):
-    text: str = Field(min_length=1, max_length=2000)
+    text: str = Field(default="", max_length=2000)
     section: SectionId | None = None
+    preset: str | None = Field(default=None, pattern=r"^[a-z0-9-]{1,40}$")
 
 
 def _engine(services: ServicesDep) -> Engine:
@@ -49,8 +51,15 @@ def _engine(services: ServicesDep) -> Engine:
     return Engine(services.net, services.settings, videos)
 
 
-def _stream(services: ServicesDep, text: str, section: str | None) -> StreamingResponse:
-    planned = keyword_plan(text, section)
+def _stream(
+    services: ServicesDep, text: str, section: str | None, preset: str | None = None
+) -> StreamingResponse:
+    if not text.strip() and preset_of(section, preset) is None:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            {"code": "unsupported", "message": "type something to search for"},
+        )
+    planned = keyword_plan(text, section, preset)
     allowed = set(services.settings.universal_sources)
     if allowed:
         planned.queries = [q for q in planned.queries if q.source in allowed]
@@ -75,11 +84,15 @@ def _stream(services: ServicesDep, text: str, section: str | None) -> StreamingR
 )
 async def universal_get(
     services: ServicesDep,
-    q: Annotated[str, Query(min_length=1, max_length=2000)],
+    q: Annotated[str, Query(max_length=2000)] = "",
     section: SectionId | None = None,
+    preset: Annotated[str | None, Query(pattern=r"^[a-z0-9-]{1,40}$")] = None,
 ) -> StreamingResponse:
-    """The same stream as POST, for EventSource (which can only GET)."""
-    return _stream(services, q, section)
+    """The same stream as POST, for EventSource (which can only GET).
+
+    `preset` runs one of the section's pre-built searches (GET /api/sections).
+    """
+    return _stream(services, q, section, preset)
 
 
 @router.post(
@@ -89,4 +102,4 @@ async def universal_get(
     responses=SSE_RESPONSE,
 )
 async def universal_post(body: UniversalIn, services: ServicesDep) -> StreamingResponse:
-    return _stream(services, body.text, body.section)
+    return _stream(services, body.text, body.section, body.preset)
