@@ -69,7 +69,8 @@ async def test_library_pages_by_region(settings: Settings, source: str, query: s
     status = result.sources[0]
     assert status.status == "ok", status
     with_pages = [h for h in result.results if h.downloadable and h.formats[0].kind == "images"]
-    assert with_pages, f"{source}: no open item with page images for {query!r}"
+    seen = [(h.access.value, h.details_url) for h in result.results[:5]]
+    assert with_pages, f"{source}: no open item with page images for {query!r}; got {seen}"
     errors = []
     for hit in with_pages[:3]:  # an item may still be closed online; try the next one
         try:

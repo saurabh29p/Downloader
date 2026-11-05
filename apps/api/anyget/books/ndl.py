@@ -1,6 +1,7 @@
 """National Diet Library, Japan: NDL Search (OpenSearch), IIIF from NDL Digital Collections.
 
-Only items published on the internet have open manifests; others are read on site.
+The search asks only for Digital Collections items published on the internet
+(data provider `ndl-dl-online`), the ones with open IIIF manifests.
 """
 
 import re
@@ -9,11 +10,17 @@ from urllib.parse import quote
 from anyget.books.base import Access, Adapter, BookFormat, BookHit, SearchContext
 from anyget.books.http import children, get_xml, text_of, texts_of
 
-_PID = re.compile(r"dl\.ndl\.go\.jp/(?:info:ndljp/)?pid/(\d+)")
+# Digital Collections ids appear as https://dl.ndl.go.jp/pid/N, …/info:ndljp/pid/N or
+# a bare info:ndljp/pid/N identifier.
+_PID = re.compile(r"(?:dl\.ndl\.go\.jp/(?:info:ndljp/)?|info:ndljp/)pid/(\d+)")
 
 
 async def search(ctx: SearchContext, query: str, limit: int) -> list[BookHit]:
-    url = f"https://ndlsearch.ndl.go.jp/api/opensearch?any={quote(query)}&cnt={limit}&mediatype=digitized"
+    # dpid=ndl-dl-online: Digital Collections items published on the internet (open).
+    url = (
+        "https://ndlsearch.ndl.go.jp/api/opensearch"
+        f"?any={quote(query)}&cnt={limit}&dpid=ndl-dl-online"
+    )
     root = await get_xml(ctx, url)
     hits = []
     for item in children(root, "item"):

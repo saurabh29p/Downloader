@@ -215,13 +215,15 @@ async def test_gallica_sru(net: Net, settings: Settings) -> None:
 
 @respx.mock
 async def test_ndl_opensearch(net: Net, settings: Settings) -> None:
-    respx.get(url__startswith="https://ndlsearch.ndl.go.jp/api/opensearch").mock(
+    route = respx.get(url__startswith="https://ndlsearch.ndl.go.jp/api/opensearch").mock(
         return_value=httpx.Response(200, text=fixture("ndl.xml"))
     )
     found = await BY_NAME["ndl"].search(ctx(net, settings), "源氏物語", 10)  # type: ignore[misc]
+    assert "dpid=ndl-dl-online" in str(route.calls[0].request.url)
     assert found[0].formats[0].url == "https://dl.ndl.go.jp/pid/2567680"
     assert found[0].authors == ["紫式部"]
-    assert found[1].access == Access.view_online
+    assert found[1].formats[0].url == "https://dl.ndl.go.jp/pid/1288416"  # bare identifier
+    assert found[2].access == Access.view_online
 
 
 @pytest.mark.parametrize(

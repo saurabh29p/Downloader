@@ -3,5 +3,6 @@
 <channel><title>NDL</title>
 <item><title>源氏物語</title><link>https://ndlsearch.ndl.go.jp/books/R100000039-I1</link><dc:creator>紫式部</dc:creator><dc:date>1654</dc:date>
 <rdfs:seeAlso rdf:resource="https://dl.ndl.go.jp/pid/2567680" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/></item>
+<item><title>枕草子</title><link>https://ndlsearch.ndl.go.jp/books/R100000002-I3</link><dc:identifier>info:ndljp/pid/1288416</dc:identifier></item>
 <item><title>現代の本</title><link>https://ndlsearch.ndl.go.jp/books/R1-I2</link></item>
 </channel></rss>
