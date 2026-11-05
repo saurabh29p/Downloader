@@ -105,8 +105,10 @@ async def _get(urls: list[str], options: dict[str, Any]) -> int:
     try:
         for raw in urls:
             try:
-                url = normalize(raw)
-                await services.net.check(url)
+                url = raw.strip()
+                if not url.startswith("anyget:"):  # internal task links need no network
+                    url = normalize(raw)
+                    await services.net.check(url)
             except BlockedURLError as exc:
                 console.print(f"[red]✗[/red] {raw}: {exc}")
                 failures += 1
@@ -258,6 +260,77 @@ def jobs(
         done = f"{job.downloaded:,}" + (f" / {job.total:,}" if job.total else "")
         table.add_row(job.state, (job.title or job.url)[:50], done, job.id[:8])
     console.print(table)
+
+
+@app.command()
+def search(
+    query: Annotated[str, typer.Argument(help="Title, author, ISBN or an old ebook URL")],
+    kind: Annotated[
+        str, typer.Option("--type", help="books or libraries", case_sensitive=False)
+    ] = "books",
+    lang: Annotated[str | None, typer.Option(help="Language code, e.g. fr")] = None,
+    limit: Annotated[int, typer.Option(help="Results per source")] = 5,
+) -> None:
+    """Find the best legal copy of a book across many free sources."""
+    from anyget.books.search import search_books
+
+    if kind not in ("books", "libraries"):
+        raise typer.BadParameter("--type must be books or libraries")
+
+    async def run() -> Any:
+        services = Services.build(get_settings())
+        try:
+            return await search_books(
+                services.net,
+                services.settings,
+                query,
+                kind="libraries" if kind == "libraries" else "books",
+                lang=lang,
+                limit=limit,
+            )
+        finally:
+            await services.stop()
+
+    result = asyncio.run(run())
+    if result.best:
+        best = result.best
+        console.print(f"[green]Best copy:[/green] {best.title} ({best.source})")
+        console.print(f"  {best.formats[0].kind}: {best.formats[0].url}")
+    table = Table("Source", "Title", "Access", "Formats")
+    for hit in result.results[:25]:
+        table.add_row(
+            hit.source,
+            hit.title[:50],
+            hit.access.value.replace("_", " "),
+            ", ".join(f.kind for f in hit.formats) or hit.details_url[:40],
+        )
+    console.print(table)
+    notes = [f"{s.label}: {s.status}" for s in result.sources if s.status != "ok"]
+    if notes:
+        console.print("[dim]" + "; ".join(notes) + "[/dim]")
+
+
+@app.command()
+def convert(
+    job: Annotated[str, typer.Argument(help="Job id (or its first characters)")],
+    to: Annotated[str, typer.Option(help="pdf, ocr, mp3, m4a, opus, flac, wav, mp4, mkv, webm")],
+    lang: Annotated[str | None, typer.Option(help="OCR languages, e.g. eng+hin")] = None,
+) -> None:
+    """Convert a finished download (page images to PDF, OCR, audio/video formats)."""
+    from anyget.handlers.convert import TARGETS, convert_url
+
+    if to not in TARGETS:
+        raise typer.BadParameter(f"--to must be one of: {', '.join(TARGETS)}")
+    services = Services.build(get_settings())
+    matches = [j for j in services.store.list_jobs(limit=1000) if j.id.startswith(job)]
+    services.db.dispose()
+    if len(matches) != 1:
+        console.print(
+            f"[red]{'no job' if not matches else 'more than one job'} matches {job}[/red]"
+        )
+        raise typer.Exit(code=1)
+    code = asyncio.run(_get([convert_url(matches[0].id, to, lang)], {}))
+    raise typer.Exit(code=code)
 
 
 if __name__ == "__main__":

@@ -91,6 +91,12 @@ class Router:
 
     async def resolve(self, url: str) -> tuple[str, Handler]:
         """Return the normalized (and expanded) URL and the handler for it."""
+        internal = url.strip()
+        if internal.startswith("anyget:"):  # local work such as conversions; no network
+            handler = self.registry.find(internal)
+            if handler is None:
+                raise HandlerError("unsupported", "unknown AnyGet task link")
+            return internal, handler
         normalized = normalize(url)
         if normalized.startswith("magnet:"):
             raise HandlerError("unsupported", "torrent links are not supported yet")

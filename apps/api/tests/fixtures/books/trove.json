@@ -1,0 +1,20 @@
+{
+ "category": [
+  {
+   "code": "book",
+   "records": {
+    "work": [
+     {
+      "id": "123",
+      "title": "For the term of his natural life",
+      "contributor": [
+       "Clarke, Marcus"
+      ],
+      "issued": "1874",
+      "troveUrl": "https://trove.nla.gov.au/work/123"
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,88 @@
+{
+ "@context": "http://iiif.io/api/presentation/3/context.json",
+ "id": "https://dl.ndl.go.jp/api/iiif/2567680/manifest.json",
+ "type": "Manifest",
+ "label": {
+  "ja": [
+   "源氏物語"
+  ]
+ },
+ "rights": "https://creativecommons.org/publicdomain/mark/1.0/",
+ "requiredStatement": {
+  "label": {
+   "en": [
+    "Attribution"
+   ]
+  },
+  "value": {
+   "en": [
+    "National Diet Library"
+   ]
+  }
+ },
+ "items": [
+  {
+   "id": "c1",
+   "type": "Canvas",
+   "label": {
+    "none": [
+     "1"
+    ]
+   },
+   "items": [
+    {
+     "items": [
+      {
+       "body": {
+        "id": "https://dl.ndl.go.jp/api/iiif/2567680/R0000001/full/full/0/default.jpg",
+        "type": "Image",
+        "format": "image/jpeg",
+        "service": [
+         {
+          "id": "https://dl.ndl.go.jp/api/iiif/2567680/R0000001",
+          "type": "ImageService3",
+          "profile": "level1"
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c2",
+   "type": "Canvas",
+   "label": {
+    "none": [
+     "2"
+    ]
+   },
+   "items": [
+    {
+     "items": [
+      {
+       "body": {
+        "id": "https://dl.ndl.go.jp/api/iiif/2567680/R0000002/full/full/0/default.jpg",
+        "type": "Image",
+        "format": "image/jpeg",
+        "service": [
+         {
+          "id": "https://dl.ndl.go.jp/api/iiif/2567680/R0000002",
+          "type": "ImageService3",
+          "profile": "level1"
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c3",
+   "type": "Canvas",
+   "items": []
+  }
+ ]
+}

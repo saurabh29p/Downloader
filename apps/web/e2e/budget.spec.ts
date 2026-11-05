@@ -14,6 +14,9 @@ for (const path of [
   "/en/wayback",
   "/en/code",
   "/en/images",
+  "/en/books",
+  "/en/libraries",
+  "/en/search",
 ]) {
   test(`first-load JS on ${path} stays under ${BUDGET_KB} KB gzip`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "measured once");

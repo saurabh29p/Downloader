@@ -13,8 +13,9 @@ Read this file at the start of every session. The full research doc lives in `do
 - [x] Phase 4 — YouTube and media
 - [x] Phase 5 — archive.org and Wayback
 - [x] Phase 6 — code, cloud, images, AI
-- [ ] Phase 7 — books, libraries, search (next)
-- [ ] Phases 8–10 — see roadmap below
+- [x] Phase 7 — books, libraries, search
+- [ ] Phase 8 — library, watch, settings (next)
+- [ ] Phases 9–10 — see roadmap below
 
 Update this checklist at the end of every phase.
 
@@ -99,6 +100,8 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `uv run anyget get URL -q 720` / `-x mp3` | video at a quality / audio only; playlists expand into numbered items |
 | `make live` | live network tests (YouTube, Vimeo) in the Docker `test` image with ffmpeg + Deno; also the manual "Live tests" GitHub workflow |
 | `make gen-api` | alias of `make gen` |
+| `uv run anyget search "title" [--type libraries]` | best legal copy across book sources / library search |
+| `uv run anyget convert JOB --to ocr\|pdf\|mp3…` | convert a finished download (OCR needs OCRmyPDF + Tesseract) |
 
 ## Architecture rules
 
@@ -225,8 +228,18 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Downloads send `Accept-Encoding: identity`; with a `Content-Encoding` response the length is unknown (no size check).
 - Live tests: GitHub works from the sandbox; Flickr and Hugging Face need CI. `ANYGET_LIVE_DRIVE_URL` / `ANYGET_LIVE_FLICKR_ALBUM` are optional repo variables for the Live tests workflow.
 
+### Books / libraries / convert gotchas
+- `anyget/books/<source>.py` each export `ADAPTER` (name, label, region, `search(ctx, query, limit)`, optional `key_setting`, `search_url` for link-only sources); `books/sources.py` lists them; `books/search.search_books` fans out with a per-source time limit and returns a status per source (`ok`, `needs_key`, `timeout`, `error`, `link_only`). Keyless adapters are skipped, never failed.
+- Ranking is `books/ranker.rank` (pure). Access states: `full_view` (downloadable), `view_online`, `borrow_only`, `in_copyright`; anything but a full-view hit with formats gets library/buy links (`find_links`). Never add shadow libraries (`test_no_shadow_libraries_are_sources`).
+- Standard Ebooks' OPDS feeds need a Patrons login, so the adapter reads the public search page and builds `/downloads/<author>_<title>.epub`. HathiTrust is lookup-by-ISBN/OCLC only and full view is "read online" (whole-book PDFs need a member login). NDLI is a search link only.
+- `ANYGET_BOOK_SOURCES=gutendex,…` limits sources; `ANYGET_GUTENDEX_URL` points at a self-hosted Gutendex (e2e uses the fixture server's stand-in).
+- `handlers/iiif_library.py` maps item pages to manifests (`manifest_url_for`) and refuses `rightsstatements.org/vocab/InC` items. Pages are `NNNN.jpg` in `downloads/<title>/`; `options.pdf` merges them (PDF is the job's main file). Library hosts get per-host limit 2.
+- Conversions are jobs with the internal link `anyget:convert?job=…&to=…&lang=…`; the router passes `anyget:` links straight to the `convert` handler (no network). Inputs must be inside the downloads root; ffmpeg runs with `-protocol_whitelist file`. OCR writes `<name> (OCR).pdf` plus a `.txt` sidecar.
+- defusedxml parses every XML answer (Gallica SRU, NDL OpenSearch). img2pdf/pikepdf/Pillow are Python deps; OCRmyPDF/Tesseract/Calibre are optional system tools (Docker `WITH_OCR=1`).
+- Live tests for these hosts can't run in the sandbox (DNS); they run in the Live tests workflow.
+
 ### Frontend gotchas
-- First-load JS is at the 170 KB budget (Home ≈169.3 KB, Downloads ≈168.4, others ≈166–168). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, format picker, video card and playlist view).
+- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Downloads ≈168.6, others ≈166–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
 - `Button` has no `asChild` (Radix Slot was dropped to save bytes): style links with `buttonVariants()`.
 - Media pills (`components/media/choice.tsx`) are native radios/checkboxes hidden inside labels; in Playwright click the label (`pick()` in `e2e/youtube.spec.ts`), not the input.
 - No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).

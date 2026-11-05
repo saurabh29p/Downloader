@@ -9,6 +9,9 @@ import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 
 const SOURCES = [
+  { href: "/search", key: "search" },
+  { href: "/books", key: "books" },
+  { href: "/libraries", key: "libraries" },
   { href: "/youtube", key: "youtube" },
   { href: "/archive", key: "archive" },
   { href: "/wayback", key: "wayback" },

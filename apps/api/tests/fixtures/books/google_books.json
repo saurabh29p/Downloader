@@ -1,0 +1,47 @@
+{
+ "items": [
+  {
+   "id": "s1gVAAAAYAAJ",
+   "volumeInfo": {
+    "title": "Pride and Prejudice",
+    "authors": [
+     "Jane Austen"
+    ],
+    "publishedDate": "1813",
+    "language": "en",
+    "infoLink": "https://books.google.com/books?id=s1gVAAAAYAAJ",
+    "industryIdentifiers": [
+     {
+      "type": "OTHER",
+      "identifier": "HARVARD:1"
+     }
+    ]
+   },
+   "accessInfo": {
+    "viewability": "ALL_PAGES",
+    "publicDomain": true,
+    "epub": {
+     "isAvailable": false
+    },
+    "pdf": {
+     "isAvailable": true,
+     "downloadLink": "https://books.google.com/books/download/Pride_and_Prejudice.pdf?id=s1gVAAAAYAAJ&output=pdf"
+    }
+   }
+  },
+  {
+   "id": "x",
+   "volumeInfo": {
+    "title": "Pride and Prejudice"
+   },
+   "accessInfo": {
+    "epub": {
+     "isAvailable": false
+    },
+    "pdf": {
+     "isAvailable": false
+    }
+   }
+  }
+ ]
+}

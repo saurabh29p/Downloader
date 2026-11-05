@@ -3,14 +3,17 @@
 import { Command } from "cmdk";
 import {
   ArchiveIcon,
+  BookOpenIcon,
   ClapperboardIcon,
   CodeIcon,
   DownloadIcon,
   HistoryIcon,
   HomeIcon,
   ImagesIcon,
+  LandmarkIcon,
   MonitorIcon,
   MoonIcon,
+  SearchIcon,
   SettingsIcon,
   SunIcon,
 } from "lucide-react";
@@ -58,6 +61,18 @@ export default function CommandDialog({
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/"))}>
             <HomeIcon aria-hidden="true" />
             {t("goHome")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/search"))}>
+            <SearchIcon aria-hidden="true" />
+            {t("goSearch")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/books"))}>
+            <BookOpenIcon aria-hidden="true" />
+            {t("goBooks")}
+          </Command.Item>
+          <Command.Item className={itemClass} onSelect={() => run(() => router.push("/libraries"))}>
+            <LandmarkIcon aria-hidden="true" />
+            {t("goLibraries")}
           </Command.Item>
           <Command.Item className={itemClass} onSelect={() => run(() => router.push("/youtube"))}>
             <ClapperboardIcon aria-hidden="true" />

@@ -113,3 +113,33 @@ async def test_playlist_expands_into_numbered_items(
         "archive": "youtubetab-PL",
         "archive_id": "youtube a1",
     }
+
+
+@respx.mock
+def test_search_books(env_settings: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANYGET_BOOK_SOURCES", "gutendex")
+    respx.get(url__startswith="https://gutendex.com/books").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "results": [
+                    {
+                        "id": 1342,
+                        "title": "Pride and Prejudice",
+                        "authors": [{"name": "Austen, Jane"}],
+                        "formats": {"application/epub+zip": "https://www.gutenberg.org/x.epub"},
+                    }
+                ]
+            },
+        )
+    )
+    result = runner.invoke(app, ["search", "pride and prejudice"])
+    assert result.exit_code == 0, result.output
+    assert "Best copy:" in result.output and "epub" in result.output
+
+
+def test_convert_needs_a_matching_job(env_settings: Path) -> None:
+    result = runner.invoke(app, ["convert", "nope", "--to", "pdf"])
+    assert result.exit_code == 1 and "no job matches" in result.output
+    bad = runner.invoke(app, ["convert", "nope", "--to", "exe"])
+    assert bad.exit_code != 0

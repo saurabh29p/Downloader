@@ -1,0 +1,43 @@
+{
+ "@context": "http://iiif.io/api/presentation/2/context.json",
+ "@id": "https://gallica.bnf.fr/iiif/ark:/12148/bpt6k5545437j/manifest.json",
+ "label": "Les misérables",
+ "license": "https://gallica.bnf.fr/edit/und/conditions-dutilisation-des-contenus-de-gallica",
+ "attribution": "Bibliothèque nationale de France",
+ "sequences": [
+  {
+   "canvases": [
+    {
+     "label": "NP",
+     "images": [
+      {
+       "resource": {
+        "@id": "https://gallica.bnf.fr/iiif/ark:/12148/bpt6k5545437j/f1/full/full/0/native.jpg",
+        "format": "image/jpeg",
+        "service": {
+         "@id": "https://gallica.bnf.fr/iiif/ark:/12148/bpt6k5545437j/f1",
+         "profile": "http://iiif.io/api/image/2/level1.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "label": "2",
+     "images": [
+      {
+       "resource": {
+        "@id": "https://gallica.bnf.fr/iiif/ark:/12148/bpt6k5545437j/f2/full/full/0/native.jpg",
+        "format": "image/jpeg",
+        "service": {
+         "@id": "https://gallica.bnf.fr/iiif/ark:/12148/bpt6k5545437j/f2",
+         "profile": "http://iiif.io/api/image/2/level1.json"
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

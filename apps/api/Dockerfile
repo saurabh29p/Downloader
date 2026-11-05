@@ -11,8 +11,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_PROJECT_ENVIRONMENT=/opt/venv \
     PATH="/opt/venv/bin:$PATH"
 
+# OCR (OCRmyPDF + Tesseract with common languages) adds ~300 MB, so it is opt-in:
+# `docker compose build --build-arg WITH_OCR=1 api` (the test image always has it).
+ARG WITH_OCR=0
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg git megatools ca-certificates \
+    && if [ "$WITH_OCR" = "1" ]; then \
+         apt-get install -y --no-install-recommends ocrmypdf tesseract-ocr \
+           tesseract-ocr-eng tesseract-ocr-hin tesseract-ocr-ara tesseract-ocr-jpn \
+           tesseract-ocr-chi-sim tesseract-ocr-fra tesseract-ocr-deu tesseract-ocr-spa \
+           tesseract-ocr-rus; \
+       fi \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=deno /deno /usr/local/bin/deno
 COPY --from=uv /uv /usr/local/bin/uv

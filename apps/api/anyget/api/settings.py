@@ -81,3 +81,36 @@ async def put_cookies(body: CookiesUpload, services: ServicesDep) -> CookiesStat
 async def delete_cookies(services: ServicesDep) -> Response:
     cookies_path(services.settings).unlink(missing_ok=True)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+KEY_SETTINGS = (
+    "github_token",
+    "hf_token",
+    "civitai_token",
+    "kaggle_key",
+    "europeana_key",
+    "dpla_key",
+    "trove_key",
+    "digitalnz_key",
+    "bhl_key",
+    "ddb_key",
+)
+
+
+class KeyStatus(BaseModel):
+    name: str
+    env: str
+    configured: bool
+
+
+@router.get("/settings/keys", operation_id="getKeyStatus")
+async def key_status(services: ServicesDep) -> list[KeyStatus]:
+    """Which optional API keys are set. Values are never returned."""
+    return [
+        KeyStatus(
+            name=name,
+            env=f"ANYGET_{name.upper()}",
+            configured=bool(getattr(services.settings, name, "")),
+        )
+        for name in KEY_SETTINGS
+    ]

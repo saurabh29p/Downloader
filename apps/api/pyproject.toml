@@ -17,6 +17,8 @@ dependencies = [
     "yt-dlp[default]==2026.10.26",
     # Image galleries. GPL: only ever run as a separate process (python -m gallery_dl).
     "gallery-dl==1.32.19",
+    "img2pdf==0.6.3",
+    "defusedxml==0.7.1",
 ]
 
 [project.scripts]
@@ -29,6 +31,7 @@ dev = [
     "pytest>=9.2",
     "pytest-asyncio>=1.4",
     "respx>=0.23",
+    "types-defusedxml==0.7.0.20250822",
 ]
 
 [build-system]

@@ -8,12 +8,19 @@ from functools import lru_cache
 
 from pydantic import BaseModel
 
+from anyget.convert.ocr import languages as ocr_languages
+
 
 class ToolVersions(BaseModel):
     yt_dlp: str | None
     yt_dlp_ejs: str | None
     deno: str | None
     ffmpeg: str | None
+    ocrmypdf: str | None = None
+    tesseract: str | None = None
+    tesseract_langs: list[str] = []
+    calibre: str | None = None
+    img2pdf: str | None = None
 
 
 def _package(name: str) -> str | None:
@@ -45,6 +52,11 @@ def tool_versions() -> ToolVersions:
         yt_dlp_ejs=_package("yt-dlp-ejs"),
         deno=_binary("deno", ["--version"], r"deno (\S+)"),
         ffmpeg=_binary("ffmpeg", ["-version"], r"ffmpeg version (\S+)"),
+        ocrmypdf=_binary("ocrmypdf", ["--version"], r"(\d+\.\d+[\w.]*)"),
+        tesseract=_binary("tesseract", ["--version"], r"tesseract v?(\S+)"),
+        tesseract_langs=list(ocr_languages()),
+        calibre=_binary("ebook-convert", ["--version"], r"calibre (\S+?)\)?$"),
+        img2pdf=_package("img2pdf"),
     )
 
 

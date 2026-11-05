@@ -7,6 +7,9 @@ services:
     build:
       context: ./apps/api
       target: runtime
+      args:
+        # Set ANYGET_WITH_OCR=1 in your shell (or .env) to include OCRmyPDF + Tesseract.
+        WITH_OCR: ${ANYGET_WITH_OCR:-0}
     restart: unless-stopped
     env_file:
       - path: .env
@@ -39,6 +42,8 @@ services:
     build:
       context: ./apps/api
       target: test
+      args:
+        WITH_OCR: "1"
     environment:
       ANYGET_DOWNLOADS_DIR: /downloads
       ANYGET_DATA_DIR: /data
@@ -48,6 +53,8 @@ services:
       ANYGET_LIVE_COOKIES: ${ANYGET_LIVE_COOKIES:-}
       ANYGET_LIVE_DRIVE_URL: ${ANYGET_LIVE_DRIVE_URL:-}
       ANYGET_LIVE_FLICKR_ALBUM: ${ANYGET_LIVE_FLICKR_ALBUM:-}
+      ANYGET_LIVE_QDL_ITEM: ${ANYGET_LIVE_QDL_ITEM:-}
+      ANYGET_REQUIRE_OCR: "1"
 
   web:
     build:

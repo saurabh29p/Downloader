@@ -1,0 +1,23 @@
+{
+ "records": {
+  "000": {
+   "titles": [
+    "Pride and prejudice / Jane Austen."
+   ]
+  }
+ },
+ "items": [
+  {
+   "htid": "uc1.b3",
+   "usRightsString": "Full view",
+   "itemURL": "https://hdl.handle.net/2027/uc1.b3",
+   "enumcron": false
+  },
+  {
+   "htid": "mdp.1",
+   "usRightsString": "Limited (search-only)",
+   "itemURL": "https://hdl.handle.net/2027/mdp.1",
+   "enumcron": "v.2"
+  }
+ ]
+}

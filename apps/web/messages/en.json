@@ -63,6 +63,18 @@
       "images": {
         "title": "Image galleries",
         "text": "Flickr, Imgur, DeviantArt and more"
+      },
+      "search": {
+        "title": "Search everything",
+        "text": "Books, libraries, archive.org and videos"
+      },
+      "books": {
+        "title": "Books",
+        "text": "The best legal copy of any free book"
+      },
+      "libraries": {
+        "title": "Libraries",
+        "text": "National libraries worldwide, page by page"
       }
     }
   },
@@ -156,7 +168,10 @@
     "invalid_cookies": "That isn't a cookies.txt file (Netscape format).",
     "restricted": "archive.org restricts access to this item, so it can't be downloaded.",
     "borrow_only": "This item can only be borrowed from archive.org's lending library. AnyGet does not get around that.",
-    "rate_limited": "The site's limit for anonymous requests was reached. Try again later, or add your own API token."
+    "rate_limited": "The site's limit for anonymous requests was reached. Try again later, or add your own API token.",
+    "in_copyright": "This is in copyright, so it is not legally downloadable. Borrow or buy it instead.",
+    "needs_key": "This source needs a free API key. Add it to your .env file.",
+    "tool_missing": "The tool for this conversion is not installed on this computer."
   },
   "Downloads": {
     "title": "Downloads",
@@ -196,7 +211,10 @@
     "goArchive": "archive.org",
     "goWayback": "Wayback Machine",
     "goCode": "Code repositories",
-    "goImages": "Image galleries"
+    "goImages": "Image galleries",
+    "goSearch": "Search everything",
+    "goBooks": "Books",
+    "goLibraries": "Libraries worldwide"
   },
   "Status": {
     "checking": "Checking the server…",
@@ -341,7 +359,8 @@
       "audio": "Audio",
       "archive": "Archive",
       "file": "File"
-    }
+    },
+    "mergePdf": "Also merge the pages into one PDF"
   },
   "Code": {
     "title": "Code",
@@ -360,5 +379,129 @@
     "find": "Find images",
     "needUrl": "Enter a link first.",
     "hosts": "Works with the sites gallery-dl supports, such as Flickr, Imgur, DeviantArt and Wikimedia Commons. Only save images you are allowed to."
+  },
+  "Books": {
+    "title": "Books",
+    "subtitle": "Search a title, author or ISBN once. AnyGet asks many free sources and puts the best legal copy first: full view, then EPUB, text PDF, scanned PDF and page images.",
+    "searchLabel": "Title, author or ISBN",
+    "placeholder": "Pride and Prejudice",
+    "language": "Language",
+    "anyLanguage": "Any language",
+    "langs": {
+      "en": "English",
+      "fr": "French",
+      "de": "German",
+      "es": "Spanish",
+      "it": "Italian",
+      "ru": "Russian",
+      "ja": "Japanese",
+      "zh": "Chinese",
+      "hi": "Hindi",
+      "ar": "Arabic"
+    },
+    "search": "Find books",
+    "needQuery": "Enter a title, author or ISBN first.",
+    "hint": "Public domain and openly licensed books only. You can also paste the old address of a lost PDF or EPUB.",
+    "results": "Results",
+    "count": "{count, plural, one {# result} other {# results}}",
+    "noBest": "No free legal copy was found. The results below show where to borrow or buy it.",
+    "bestCopy": "Best legal copy",
+    "download": "Download",
+    "partial": "Part of a work",
+    "access": {
+      "full_view": "Free to download",
+      "view_online": "Read online",
+      "borrow_only": "Borrow only",
+      "in_copyright": "In copyright"
+    },
+    "formats": {
+      "epub": "EPUB",
+      "pdf_text": "Text PDF",
+      "pdf_scan": "Scanned PDF",
+      "images": "Page images",
+      "txt": "Plain text",
+      "html": "HTML"
+    },
+    "notDownloadable": "Not legally downloadable.",
+    "readOnSite": "View on the site",
+    "borrowAt": "Borrow: {place}",
+    "buyAt": "Buy: {place}",
+    "sourcesSummary": "{ok} of {total} sources answered",
+    "sourceFound": "{count, plural, =0 {nothing found} one {# found} other {# found}}",
+    "sourceStatus": {
+      "needs_key": "needs a free key",
+      "timeout": "took too long",
+      "error": "did not answer",
+      "link_only": "search on the site",
+      "skipped": "skipped",
+      "ok": "answered"
+    },
+    "searchThere": "Search there",
+    "retry": "Try again"
+  },
+  "Libraries": {
+    "title": "Libraries worldwide",
+    "subtitle": "National libraries and archives that publish their collections openly. Paste an item link to save every page at full size, or merge the pages into one PDF.",
+    "byRegion": "Libraries by region",
+    "region": "Region",
+    "regions": {
+      "global": "Global",
+      "europe": "Europe",
+      "asia": "Asia",
+      "oceania": "Oceania",
+      "middle_east_africa": "Middle East and Africa",
+      "americas": "Americas"
+    },
+    "access": {
+      "iiif": "Item links (IIIF)",
+      "search": "Searchable here",
+      "pdf": "PDF files",
+      "page": "Web page files",
+      "link": "Read on site"
+    },
+    "needsKey": "Search needs a free key: {env}",
+    "visit": "Visit",
+    "itemLabel": "Library item link",
+    "itemHint": "Works with Gallica, Library of Congress, NDL Japan, Europeana, Qatar Digital Library and any IIIF manifest.",
+    "findPages": "Find pages",
+    "needUrl": "Enter a link first.",
+    "mergePdf": "Also merge the pages into one PDF",
+    "download": "Download",
+    "retry": "Try again"
+  },
+  "Search": {
+    "title": "Search everything",
+    "subtitle": "One search across free books, worldwide libraries, archive.org and videos.",
+    "label": "What are you looking for?",
+    "placeholder": "Title, author, subject…",
+    "search": "Search",
+    "needQuery": "Type something to search for first.",
+    "tabs": "Result type",
+    "tab": {
+      "books": "Books",
+      "libraries": "Libraries",
+      "archive": "archive.org",
+      "videos": "Videos"
+    },
+    "empty": "Results appear here, one tab at a time.",
+    "retry": "Try again",
+    "none": "Nothing found.",
+    "count": "{count, plural, =0 {Nothing found} one {# result} other {# results}}",
+    "groupStatus": {
+      "error": "This source did not answer. Try again later.",
+      "timeout": "This source took too long. Try again later."
+    },
+    "openItem": "Open",
+    "chooseFormat": "Choose format",
+    "download": "Download"
+  },
+  "Convert": {
+    "label": "Convert…",
+    "to": {
+      "ocr": "Make searchable (OCR)",
+      "pdf": "Make a PDF",
+      "mp3": "Audio as MP3",
+      "m4a": "Audio as M4A"
+    }
   }
 }

@@ -17,6 +17,9 @@ const pages = [
   "/en/wayback",
   "/en/code",
   "/ar/images",
+  "/en/books",
+  "/en/libraries",
+  "/ar/search",
 ];
 const budgets = { performance: 0.9, accessibility: 1, "best-practices": 0.9 };
 const out = mkdtempSync(join(tmpdir(), "anyget-lh-"));

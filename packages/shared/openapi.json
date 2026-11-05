@@ -1,6 +1,16 @@
 {
   "components": {
     "schemas": {
+      "Access": {
+        "enum": [
+          "full_view",
+          "view_online",
+          "borrow_only",
+          "in_copyright"
+        ],
+        "title": "Access",
+        "type": "string"
+      },
       "ApiError": {
         "properties": {
           "code": {
@@ -73,6 +83,40 @@
           "format"
         ],
         "title": "ArchiveFile",
+        "type": "object"
+      },
+      "ArchiveGroup": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "status": {
+            "default": "ok",
+            "enum": [
+              "ok",
+              "error",
+              "timeout"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "ArchiveGroup",
         "type": "object"
       },
       "ArchiveItemOut": {
@@ -221,6 +265,207 @@
         "title": "ArchiveItemOut",
         "type": "object"
       },
+      "BookFormat": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "epub",
+              "pdf_text",
+              "pdf_scan",
+              "images",
+              "txt",
+              "html"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "url"
+        ],
+        "title": "BookFormat",
+        "type": "object"
+      },
+      "BookHit": {
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/Access"
+          },
+          "authors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Authors",
+            "type": "array"
+          },
+          "buy_links": {
+            "items": {
+              "$ref": "#/components/schemas/Link"
+            },
+            "title": "Buy Links",
+            "type": "array"
+          },
+          "details_url": {
+            "title": "Details Url",
+            "type": "string"
+          },
+          "formats": {
+            "items": {
+              "$ref": "#/components/schemas/BookFormat"
+            },
+            "title": "Formats",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "isbn": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Isbn",
+            "type": "array"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "library_links": {
+            "items": {
+              "$ref": "#/components/schemas/Link"
+            },
+            "title": "Library Links",
+            "type": "array"
+          },
+          "partial": {
+            "default": false,
+            "title": "Partial",
+            "type": "boolean"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Label"
+          },
+          "thumbnail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "source",
+          "id",
+          "title",
+          "access",
+          "details_url"
+        ],
+        "title": "BookHit",
+        "type": "object"
+      },
+      "BookSearch": {
+        "properties": {
+          "best": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookHit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/BookHit"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceStatus"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "BookSearch",
+        "type": "object"
+      },
       "Choice": {
         "description": "One thing the user can pick after a probe: a format, a file or a playlist item.",
         "properties": {
@@ -271,6 +516,48 @@
           "kind"
         ],
         "title": "Choice",
+        "type": "object"
+      },
+      "ConvertRequest": {
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z_+]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
+          },
+          "to": {
+            "enum": [
+              "pdf",
+              "ocr",
+              "mp3",
+              "m4a",
+              "opus",
+              "flac",
+              "wav",
+              "mp4",
+              "mkv",
+              "webm"
+            ],
+            "title": "To",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "to"
+        ],
+        "title": "ConvertRequest",
         "type": "object"
       },
       "CookiesStatus": {
@@ -640,6 +927,173 @@
         "title": "JobState",
         "type": "string"
       },
+      "KeyStatus": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "env": {
+            "title": "Env",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "env",
+          "configured"
+        ],
+        "title": "KeyStatus",
+        "type": "object"
+      },
+      "LibraryList": {
+        "properties": {
+          "libraries": {
+            "items": {
+              "$ref": "#/components/schemas/LibraryOut"
+            },
+            "title": "Libraries",
+            "type": "array"
+          },
+          "regions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Regions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "regions",
+          "libraries"
+        ],
+        "title": "LibraryList",
+        "type": "object"
+      },
+      "LibraryOut": {
+        "properties": {
+          "access": {
+            "items": {
+              "enum": [
+                "iiif",
+                "search",
+                "pdf",
+                "page",
+                "link"
+              ],
+              "type": "string"
+            },
+            "title": "Access",
+            "type": "array"
+          },
+          "adapter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adapter"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "homepage": {
+            "title": "Homepage",
+            "type": "string"
+          },
+          "hosts": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Hosts",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "key_configured": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Configured"
+          },
+          "key_setting": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Setting"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "enum": [
+              "global",
+              "europe",
+              "asia",
+              "oceania",
+              "middle_east_africa",
+              "americas"
+            ],
+            "title": "Region",
+            "type": "string"
+          },
+          "searchable": {
+            "title": "Searchable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "region",
+          "country",
+          "homepage",
+          "access",
+          "searchable"
+        ],
+        "title": "LibraryOut",
+        "type": "object"
+      },
+      "Link": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "url"
+        ],
+        "title": "Link",
+        "type": "object"
+      },
       "ProbeRequest": {
         "properties": {
           "options": {
@@ -954,8 +1408,82 @@
         "title": "SnapshotList",
         "type": "object"
       },
+      "SourceStatus": {
+        "properties": {
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "search_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Url"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "needs_key",
+              "timeout",
+              "error",
+              "link_only",
+              "skipped"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "region",
+          "status"
+        ],
+        "title": "SourceStatus",
+        "type": "object"
+      },
       "ToolVersions": {
         "properties": {
+          "calibre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calibre"
+          },
           "deno": {
             "anyOf": [
               {
@@ -977,6 +1505,47 @@
               }
             ],
             "title": "Ffmpeg"
+          },
+          "img2pdf": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Img2Pdf"
+          },
+          "ocrmypdf": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocrmypdf"
+          },
+          "tesseract": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tesseract"
+          },
+          "tesseract_langs": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Tesseract Langs",
+            "type": "array"
           },
           "yt_dlp": {
             "anyOf": [
@@ -1008,6 +1577,59 @@
           "ffmpeg"
         ],
         "title": "ToolVersions",
+        "type": "object"
+      },
+      "UniversalSearch": {
+        "properties": {
+          "archive": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArchiveGroup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "books": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookSearch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "libraries": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookSearch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "videos": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VideoGroup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "UniversalSearch",
         "type": "object"
       },
       "ValidationError": {
@@ -1071,6 +1693,96 @@
           "python"
         ],
         "title": "VersionInfo",
+        "type": "object"
+      },
+      "VideoGroup": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/VideoHit"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "status": {
+            "default": "ok",
+            "enum": [
+              "ok",
+              "error",
+              "timeout"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "VideoGroup",
+        "type": "object"
+      },
+      "VideoHit": {
+        "properties": {
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "thumbnail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "url"
+        ],
+        "title": "VideoHit",
         "type": "object"
       }
     }
@@ -1400,6 +2112,200 @@
         "summary": "Archive Search",
         "tags": [
           "archive"
+        ]
+      }
+    },
+    "/api/books/search": {
+      "get": {
+        "operationId": "searchBooks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z]{2,3}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 40,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookSearch"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Books Search",
+        "tags": [
+          "books"
+        ]
+      }
+    },
+    "/api/convert": {
+      "post": {
+        "operationId": "convertJob",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConvertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Convert",
+        "tags": [
+          "books"
         ]
       }
     },
@@ -2194,6 +3100,27 @@
         ]
       }
     },
+    "/api/libraries": {
+      "get": {
+        "operationId": "listLibraries",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Libraries",
+        "tags": [
+          "books"
+        ]
+      }
+    },
     "/api/probe": {
       "post": {
         "operationId": "probeUrl",
@@ -2272,6 +3199,127 @@
         "summary": "Probe",
         "tags": [
           "probe"
+        ]
+      }
+    },
+    "/api/search": {
+      "get": {
+        "operationId": "universalSearch",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "types",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "archive",
+                      "books",
+                      "videos",
+                      "libraries"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Types"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 40,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UniversalSearch"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Universal Search",
+        "tags": [
+          "books"
         ]
       }
     },
@@ -2382,6 +3430,32 @@
           }
         },
         "summary": "Put Cookies",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/api/settings/keys": {
+      "get": {
+        "description": "Which optional API keys are set. Values are never returned.",
+        "operationId": "getKeyStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/KeyStatus"
+                  },
+                  "title": "Response Getkeystatus",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Key Status",
         "tags": [
           "settings"
         ]

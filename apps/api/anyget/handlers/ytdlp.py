@@ -162,6 +162,31 @@ class YtDlpHandler:
         info, tabs = await loop.run_in_executor(self._executor, self._extract, url, opts)
         return self._to_probe(url, info, tabs, opts)
 
+    async def search_videos(self, query: str, limit: int = 10) -> list[dict[str, Any]]:
+        """YouTube search results (flat, no formats), for the universal search."""
+        opts = ProbeOptions(max_entries=limit)
+        loop = asyncio.get_running_loop()
+        info, _ = await loop.run_in_executor(
+            self._executor, self._extract, f"ytsearch{limit}:{query}", opts
+        )
+        found = []
+        for entry in info.get("entries") or []:
+            if not entry or not entry.get("id"):
+                continue
+            found.append(
+                {
+                    "id": str(entry["id"]),
+                    "title": str(entry.get("title") or entry["id"]),
+                    "url": str(
+                        entry.get("url") or f"https://www.youtube.com/watch?v={entry['id']}"
+                    ),
+                    "duration": entry.get("duration"),
+                    "channel": entry.get("channel") or entry.get("uploader"),
+                    "thumbnail": _thumbnail(entry),
+                }
+            )
+        return found
+
     def _ydl(self, params: dict[str, Any]) -> Any:
         from yt_dlp import YoutubeDL
 

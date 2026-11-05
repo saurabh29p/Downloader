@@ -11,6 +11,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 
 import { JobItem } from "@/components/jobs/job-item";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -19,6 +20,13 @@ import { errorMessage } from "@/lib/errors";
 import { applyJobEvent, isActive, jobName } from "@/lib/jobs";
 import { toast } from "@/lib/toast";
 import { JOBS_KEY } from "@/lib/use-jobs";
+
+// Loaded only for finished files that can be converted (PDF, images, EPUB, audio, video).
+const ConvertMenu = dynamic(() =>
+  import("@/components/jobs/convert-menu").then((m) => m.ConvertMenu),
+);
+const CONVERTIBLE =
+  /\.(pdf|jpe?g|png|tiff?|jp2|webp|epub|mp4|mkv|webm|mov|m4v|mp3|m4a|opus|ogg|flac|wav)$/i;
 
 /** A job with its controls: save, pause, resume, retry, cancel, remove. */
 export function JobRow({ job }: { job: Job }) {
@@ -73,6 +81,9 @@ export function JobRow({ job }: { job: Job }) {
               <DownloadIcon aria-hidden="true" />
               <span className="hidden sm:inline">{t("actions.save")}</span>
             </a>
+          )}
+          {job.state === "done" && CONVERTIBLE.test(job.rel_path ?? "") && (
+            <ConvertMenu job={job} name={name} />
           )}
           {isActive(job) && iconButton("pause", t("actions.pause"), PauseIcon)}
           {job.state === "paused" && iconButton("resume", t("actions.resume"), PlayIcon)}

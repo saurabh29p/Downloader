@@ -1,0 +1,37 @@
+{
+ "response": {
+  "numFound": 2,
+  "docs": [
+   {
+    "identifier": "prideprejudice00aust",
+    "title": "Pride and prejudice",
+    "creator": [
+     "Austen, Jane"
+    ],
+    "year": "1918",
+    "language": "eng",
+    "format": [
+     "Text PDF",
+     "DjVuTXT",
+     "Metadata"
+    ],
+    "collection": [
+     "americana"
+    ]
+   },
+   {
+    "identifier": "prideprejudice0000aust_lend",
+    "title": "Pride and Prejudice",
+    "creator": "Austen, Jane",
+    "year": "2003",
+    "format": [
+     "PDF"
+    ],
+    "collection": [
+     "inlibrary",
+     "printdisabled"
+    ]
+   }
+  ]
+ }
+}
