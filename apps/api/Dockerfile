@@ -28,10 +28,10 @@ COPY --from=uv /uv /usr/local/bin/uv
 
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
+RUN uv sync --frozen --no-dev --no-install-project
 COPY anyget ./anyget
 COPY README.md ./
-RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev
 
 RUN useradd --create-home --uid 1000 anyget \
     && mkdir -p /downloads /data && chown anyget:anyget /downloads /data
@@ -50,7 +50,7 @@ CMD ["uvicorn", "anyget.main:app", "--host", "0.0.0.0", "--port", "8000", "--pro
 
 # ---- test image: production image + dev tools + tests (used by `make live`) ----
 FROM base AS test
-RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv uv sync --frozen
+RUN uv sync --frozen
 COPY tests ./tests
 ENV PYTEST_ADDOPTS="-p no:cacheprovider"
 HEALTHCHECK NONE
