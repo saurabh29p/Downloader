@@ -237,6 +237,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - APIs: `GET /api/archive/search` (`deep=true`/`cursor` → scrape API), `GET /api/archive/items/{id}`, `GET /api/wayback/snapshots?url=`. Web calls live in `lib/api-archive.ts` so Home never loads them.
 
 ### Code / cloud / gallery / AI gotchas
+- `JobOut.connect` (computed, `core/sites.connect_site`) names the site whose account would fix a failed job (`login_required`, `bot_check`, `age_restricted`, `forbidden`); the web shows "Connect your <site> account" from it. Phase 2 grows `core/sites.py` into the Connections registry.
 - `handlers/wikimedia.py` (priority 75, before yt-dlp whose "Wikimedia" extractor saves File: pages as video): MediaWiki `imageinfo` → original file through `HttpGenericHandler` with its sha1. The router also sends any image-suffix link that would go to `ytdlp`/`gallery` to `http` (`router.is_image_link`). Image probes have `extra.kind == "image"` and `thumbnail`.
 - Multi-file handlers (archive.org, git_code, gallery, ai_resources, web pages) build `RemoteFile`s and call `handlers/multi.download_many`; the user's pick arrives as `options["files"]` (choice ids).
 - Handler-only request headers (tokens, Referer) go in `options["_headers"]` / `RemoteFile.headers`. The API drops every option key that starts with `_`, so users can't set them.
@@ -291,14 +292,14 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Backups (`anyget/backup.py`) use SQLite's online backup API; restore uses `tarfile` `filter="data"` plus its own path checks, and removes stale `-wal`/`-shm` files.
 
 ### Frontend gotchas
-- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Settings ≈169.3, Downloads ≈168.6, others ≈162–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
+- First-load JS is at the 170 KB budget (Home ≈169.4 KB, Settings ≈169.3, Downloads ≈168.6, others ≈162–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Downloads was already ≈169.9 KB with real jobs before v2 (the convert menu's lazy chunk counts); keep `lib/api-convert.ts` separate from `lib/api-books.ts` and the 401 redirect lazily imported (`lib/sign-in.ts`). Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
 - `Button` has no `asChild` (Radix Slot was dropped to save bytes): style links with `buttonVariants()`.
 - Media pills (`components/media/choice.tsx`) are native radios/checkboxes hidden inside labels; in Playwright click the label (`pick()` in `e2e/youtube.spec.ts`), not the input.
 - No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).
 - Toasts are our own (`lib/toast.ts` + `components/ui/toaster.tsx`), not sonner. Language and theme use styled native `<select>` (`components/ui/native-select.tsx`), not Radix menus.
 - next-intl messages are precompiled at build time (`next.config.ts`); ICU plurals need all Arabic forms (zero, one, two, few, many, other).
 - RTL: wrap LTR values (sizes, speeds, hosts) with `isolate()` from `lib/format.ts`; don't rely on `<bdi>` auto-direction for strings that mix Arabic with numbers (Chrome resolves them as LTR).
-- Live updates: one EventSource in `JobEventsBridge` writes into the TanStack Query `["jobs"]` cache; refetches are merged by `updated_at` (`mergeJobs`) so they never undo a newer live event.
+- Live updates: one EventSource in `JobEventsBridge` writes into the TanStack Query `["jobs"]` cache; refetches are merged by `updated_at` (`mergeJobs`) so they never undo a newer live event. It refetches the list on every (re)connect, so a job that changed between the list request and the connection is not left stale.
 - The shadcn registry may be unreachable from sandboxes; components in `components/ui` are written by hand in shadcn style.
 - E2E downloads come from `e2e/fixture-server.mjs` (Range, Content-MD5, `?slow=1`), reachable because Playwright starts the API with `ANYGET_NET_ALLOWLIST=127.0.0.1:8200`.
 

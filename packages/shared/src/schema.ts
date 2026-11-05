@@ -938,6 +938,11 @@ export interface components {
             /** Checksum Ok */
             checksum_ok: boolean | null;
             /**
+             * Connect
+             * @description Site whose account would fix this failure ("YouTube"), shown as "Connect …".
+             */
+            readonly connect: string | null;
+            /**
              * Created At
              * Format: date-time
              */

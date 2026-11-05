@@ -779,6 +779,19 @@
             ],
             "title": "Checksum Ok"
           },
+          "connect": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Site whose account would fix this failure (\"YouTube\"), shown as \"Connect …\".",
+            "readOnly": true,
+            "title": "Connect"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -952,7 +965,8 @@
           "options",
           "created_at",
           "updated_at",
-          "finished_at"
+          "finished_at",
+          "connect"
         ],
         "title": "JobOut",
         "type": "object"

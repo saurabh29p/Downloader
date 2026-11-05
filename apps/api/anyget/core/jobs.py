@@ -5,11 +5,12 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, computed_field, field_validator
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel, col, select
 
 from anyget.core.db import Database
+from anyget.core.sites import connect_site
 from anyget.core.users import OWNER_ID
 
 
@@ -166,6 +167,12 @@ class JobOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     finished_at: datetime | None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def connect(self) -> str | None:
+        """Site whose account would fix this failure ("YouTube"), shown as "Connect …"."""
+        return connect_site(self.error_code, self.url)
 
     @field_validator("created_at", "updated_at", "finished_at", mode="after")
     @classmethod

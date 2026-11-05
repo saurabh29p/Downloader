@@ -7,7 +7,6 @@ import type { ReactNode } from "react";
 
 import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { connectFor } from "@/lib/connect";
 import { errorMessage } from "@/lib/errors";
 import { formatBytes, formatDuration, isolate } from "@/lib/format";
 import { etaSeconds, isActive, jobName, progressPercent } from "@/lib/jobs";
@@ -131,7 +130,6 @@ function FailedNote({ job }: { job: Job }) {
   const t = useTranslations("Jobs");
   const tErrors = useTranslations("Errors");
   const locale = useLocale();
-  const connect = connectFor(job.error_code, job.url);
   // Codes with their own message hide the raw server text under "Details".
   const code = (job.error_code ?? "") as "network";
   const known = !!code && code !== ("upstream" as string) && tErrors.has(code);
@@ -146,13 +144,13 @@ function FailedNote({ job }: { job: Job }) {
           </span>
         )}
       </p>
-      {connect && (
+      {job.connect && (
         <a
           href={`/${locale}/settings#cookies`}
           className="self-start font-medium text-primary underline underline-offset-4"
           data-testid="connect-site"
         >
-          {t("connect", { site: connect.label })}
+          {t("connect", { site: job.connect })}
         </a>
       )}
       {job.error && known && (

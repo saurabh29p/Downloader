@@ -169,3 +169,14 @@ async def test_html_instead_of_a_book_is_never_saved(net: Net, settings: Setting
         await http.download(job, {}, lambda _: None)
     assert caught.value.code == "not_a_file"
     assert not any(settings.downloads_dir.glob("*.epub"))
+
+
+def test_failed_jobs_name_the_site_to_connect() -> None:
+    from anyget.core.sites import connect_site
+
+    assert connect_site("bot_check", "https://www.youtube.com/watch?v=x") == "YouTube"
+    assert connect_site("login_required", "https://mobile.x.com/a/status/1") == "X"
+    assert connect_site("forbidden", "https://old.reddit.com/r/a") == "Reddit"
+    assert connect_site("login_required", "https://www.example.org/v") == "example.org"
+    assert connect_site("geo_blocked", "https://www.youtube.com/watch?v=x") is None
+    assert connect_site("members_only", "https://www.youtube.com/watch?v=x") is None
