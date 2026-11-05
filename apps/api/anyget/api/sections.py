@@ -71,3 +71,27 @@ async def get_section(
             status.HTTP_404_NOT_FOUND, {"code": "not_found", "message": "no such section"}
         )
     return _out(section, services, q)
+
+
+class SuggestionsOut(BaseModel):
+    queries: list[str]
+    # "ai": written by the AI helper (cached 24 h); "presets": its ready-made searches.
+    source: str
+
+
+@router.get(
+    "/sections/{section_id}/suggestions",
+    operation_id="sectionSuggestions",
+    responses=ERROR_RESPONSES,
+)
+async def suggestions(
+    services: ServicesDep, section_id: Annotated[str, Path(pattern=r"^[a-z]{2,20}$")]
+) -> SuggestionsOut:
+    section = BY_ID.get(section_id)
+    if section is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, {"code": "not_found", "message": "no such section"}
+        )
+    queries = await services.brain.suggestions(section_id)
+    presets = [p.query for p in section.presets]
+    return SuggestionsOut(queries=queries, source="presets" if queries == presets else "ai")

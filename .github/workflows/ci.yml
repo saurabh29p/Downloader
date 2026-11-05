@@ -30,6 +30,9 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy anyget tests
       - run: uv run pytest
+      - name: OpenRouter model IDs still exist (informational)
+        continue-on-error: true
+        run: uv run anyget llm-models
       - name: Example plugin loads and passes its tests
         working-directory: examples/anyget-plugin-example
         run: uv sync --locked && uv run pytest -q

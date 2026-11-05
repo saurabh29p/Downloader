@@ -14,6 +14,7 @@ import {
   type Media,
   type ResultCard,
   type RouterPlan,
+  type Answer,
   type MovieInfo,
   type SourceDone,
 } from "@/lib/api-universal";
@@ -51,8 +52,19 @@ type State = {
   sources: SourceDone[];
   cards: Card[];
   failed: boolean;
+  /** The AI helper's order for the cards (ids), when it sent one. */
+  order: string[] | null;
+  answer: Answer | null;
 };
-const EMPTY: State = { running: false, plan: null, sources: [], cards: [], failed: false };
+const EMPTY: State = {
+  running: false,
+  plan: null,
+  sources: [],
+  cards: [],
+  failed: false,
+  order: null,
+  answer: null,
+};
 
 /** One box for everything: results stream in per source, grouped by kind of media. */
 export function SearchView({
@@ -120,6 +132,14 @@ export function SearchView({
         ),
       }));
     });
+    source.addEventListener("rerank", (event) => {
+      const { ids } = JSON.parse((event as MessageEvent<string>).data) as { ids: string[] };
+      setState((s) => ({ ...s, order: ids }));
+    });
+    source.addEventListener("answer", (event) => {
+      const answer = JSON.parse((event as MessageEvent<string>).data) as Answer;
+      setState((s) => ({ ...s, answer }));
+    });
     source.addEventListener("done", () => {
       finished = true;
       source.close();
@@ -153,7 +173,8 @@ export function SearchView({
   const counts = new Map<Media, number>();
   for (const card of state.cards) counts.set(card.media, (counts.get(card.media) ?? 0) + 1);
   const tabs = MEDIA_ORDER.filter((m) => counts.has(m));
-  const shown = tab === "all" ? state.cards : state.cards.filter((c) => c.media === tab);
+  const ordered = state.order ? byOrder(state.cards, state.order) : state.cards;
+  const shown = tab === "all" ? ordered : ordered.filter((c) => c.media === tab);
   const failedSources = state.sources.filter((s) => s.status === "error" || s.status === "timeout");
   const needsKey = state.sources.some((s) => s.status === "needs_key");
   const presetQuery = givenPresetQuery || state.plan?.queries?.[0]?.q || "";
@@ -193,10 +214,16 @@ export function SearchView({
         )}
       </form>
 
-      {state.plan?.kind === "question" && (
-        <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-          {t("questionNote")}
-        </p>
+      {state.answer ? (
+        <AnswerCard answer={state.answer} cards={state.cards} />
+      ) : (
+        state.plan?.kind === "question" &&
+        !state.running &&
+        state.plan.router !== "llm" && (
+          <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+            {t("questionNote")}
+          </p>
+        )
       )}
 
       {tabs.length > 1 && (
@@ -464,5 +491,47 @@ function MovieDetails({ movie }: { movie: MovieInfo }) {
         )}
       </p>
     </div>
+  );
+}
+
+/** Cards in the AI helper's order; cards it didn't rank keep their place at the end. */
+export function byOrder(cards: Card[], order: string[]): Card[] {
+  const position = new Map(order.map((id, i) => [id, i]));
+  return [...cards].sort(
+    (a, b) => (position.get(a.id) ?? order.length) - (position.get(b.id) ?? order.length),
+  );
+}
+
+function AnswerCard({ answer, cards }: { answer: Answer; cards: Card[] }) {
+  const t = useTranslations("Search");
+  const cited = answer.citations
+    .map((id) => cards.find((c) => c.id === id))
+    .filter((c): c is Card => Boolean(c));
+  return (
+    <section
+      aria-labelledby="answer-heading"
+      className="flex flex-col gap-2 rounded-lg border border-primary/40 bg-card p-4 shadow-card"
+      data-testid="answer-card"
+    >
+      <h2 id="answer-heading" className="text-sm font-semibold">
+        {t("answerTitle")}
+      </h2>
+      <p dir="auto" className="whitespace-pre-line">
+        {answer.text}
+      </p>
+      {cited.length > 0 && (
+        <ol className="flex list-decimal flex-col gap-1 ps-5 text-sm">
+          {cited.map((c) => (
+            <li key={c.id}>
+              <a href={c.url} target="_blank" rel="noreferrer" className="text-primary underline">
+                {c.title}
+              </a>{" "}
+              <span className="text-muted-foreground">· {c.source_label}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+      <p className="text-xs text-muted-foreground">{t("answerNote")}</p>
+    </section>
   );
 }

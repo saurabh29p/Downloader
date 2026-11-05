@@ -5,6 +5,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (v2 Phase 5 — optional AI helper)
+- **OpenRouter brain** (`anyget/llm/`), used only when an OpenRouter key is set (Connections or `OPENROUTER_API_KEY`); everything works without it.
+  - Calls go through the SSRF-guarded client.
+  - Each call sends the fallback `models` list, `provider: {require_parameters, sort: latency}` and a strict JSON-schema answer format.
+  - Answers are validated with Pydantic, with one retry; after that AnyGet falls back to the keyword search.
+- **What it does:**
+  - Understands searches and questions in English, Hindi, Hinglish and Arabic.
+  - Re-ranks results.
+  - Writes a short answer card with numbered sources for questions, in the language you asked in.
+  - Suggests searches on section pages.
+- **Models** follow the v2 prompt: router `gemini-2.5-flash-lite` → `gpt-5-nano` → `gemma-4-31b-it:free`; answers `gemini-3.1-flash-lite` → `deepseek-v3.2`.
+  - `ANYGET_LLM_ROUTER_MODELS` / `ANYGET_LLM_SUMMARY_MODELS` override them.
+  - **Free mode** (Settings) uses only `:free` models.
+  - `anyget llm-models` checks the IDs against OpenRouter, and CI runs it as an informational step.
+- **Limits and cost:** a daily cap (`ANYGET_LLM_DAILY_LIMIT`, default 500); 24 h caching of plans, answers and suggestions in SQLite; Settings → AI helper shows today's calls and the cost OpenRouter reports.
+- **Privacy:** prompts carry only what you typed and result metadata (titles, sources, years). A test checks that no keys or tokens reach the payload.
+- **API:**
+  - `/api/universal` adds `rerank` and `answer` events.
+  - New: `GET /api/sections/{id}/suggestions` and `GET /api/llm`.
+
 ### Added (v2 Phase 4 — Sections)
 - **Sections:** Movies, Books, Music, Video, Declassified and More (Maps, Newspapers, Photos, Manuscripts, plus archive.org, Wayback, Code, Images and Libraries).
   - They appear on Home, at `/sections` and in Ctrl+K.

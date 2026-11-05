@@ -30,6 +30,7 @@ class Database:
         from anyget.connections import store as connection_models  # noqa: F401
         from anyget.core import jobs, settings_store  # noqa: F401  (register tables)
         from anyget.library import models  # noqa: F401
+        from anyget.llm import store as llm_models  # noqa: F401
         from anyget.watch import models as watch_models  # noqa: F401
 
         SQLModel.metadata.create_all(self.engine)

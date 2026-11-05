@@ -66,6 +66,9 @@ export type SourceDone = {
   results: ResultCard[];
 };
 
+/** The AI helper's short answer to a question, citing result card ids. */
+export type Answer = { text: string; citations: string[] };
+
 export function universalUrl(q: string, section?: string, preset?: string): string {
   const params = new URLSearchParams();
   if (q) params.set("q", q);

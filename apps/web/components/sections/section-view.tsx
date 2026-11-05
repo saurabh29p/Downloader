@@ -10,6 +10,9 @@ import { api, call } from "@/lib/api";
 import type { SectionId } from "@/lib/sections";
 import { cn } from "@/lib/utils";
 
+const getSuggestions = (id: string) =>
+  call(api.GET("/api/sections/{section_id}/suggestions", { params: { path: { section_id: id } } }));
+
 const getSection = (id: string) =>
   call(api.GET("/api/sections/{section_id}", { params: { path: { section_id: id } } }));
 
@@ -25,8 +28,17 @@ export function SectionView({
 }) {
   const t = useTranslations("Sections");
   const section = useQuery({ queryKey: ["section", id], queryFn: () => getSection(id) });
+  const suggested = useQuery({
+    queryKey: ["section", id, "suggestions"],
+    queryFn: () => getSuggestions(id),
+    staleTime: 60 * 60_000,
+  });
+  const ideas = suggested.data?.source === "ai" ? suggested.data.queries : [];
   // Each run gets a new key so the search view starts fresh.
-  const [run, setRun] = useState({ key: 0, preset: initialPreset });
+  const [run, setRun] = useState<{ key: number; preset?: string; query?: string }>({
+    key: 0,
+    preset: initialPreset,
+  });
   const presets = section.data?.presets ?? [];
 
   return (
@@ -60,13 +72,31 @@ export function SectionView({
             ))}
           </ul>
         )}
+        {ideas.length > 0 && (
+          <div className="flex flex-col gap-2" data-testid="suggestions">
+            <h3 className="text-sm font-medium">{t("suggested")}</h3>
+            <ul className="flex flex-wrap gap-2">
+              {ideas.map((idea) => (
+                <li key={idea}>
+                  <button
+                    type="button"
+                    onClick={() => setRun((r) => ({ key: r.key + 1, query: idea }))}
+                    className="inline-flex min-h-11 items-center rounded-full border border-dashed px-4 text-sm hover:bg-accent"
+                  >
+                    {idea}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {section.data?.needs_key?.includes("tmdb") && (
           <p className="text-sm text-muted-foreground">{t("tmdbHint")}</p>
         )}
       </section>
       <SearchView
         key={run.key}
-        initialQuery={run.preset ? "" : initialQuery}
+        initialQuery={run.preset ? "" : (run.query ?? initialQuery)}
         section={id}
         preset={run.preset}
         presetQuery={presets.find((p) => p.id === run.preset)?.query}

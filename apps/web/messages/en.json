@@ -350,7 +350,12 @@
     "torrentsEnabled": "Allow magnet links and .torrent files",
     "torrentsSeed": "Keep sharing after a download finishes",
     "keysMoved": "API keys and cookies for your accounts are now in Connections.",
-    "openConnections": "Open Connections"
+    "openConnections": "Open Connections",
+    "ai": "AI helper",
+    "aiOn": "On: an OpenRouter key is set. It reads what you type and result titles, never your cookies, keys or files.",
+    "aiOff": "Off: add an OpenRouter key in Connections to get smarter search and answers to questions. Everything works without it.",
+    "aiFreeMode": "Free mode: use only free models",
+    "aiUsage": "Today: {calls} of {limit} calls, about ${cost}"
   },
   "Archive": {
     "title": "archive.org",
@@ -548,7 +553,7 @@
     "results": "Results",
     "all": "All",
     "streaming": "{count, plural, =0 {Searching…} one {# source answered so far…} other {# sources answered so far…}}",
-    "questionNote": "Questions get a written answer once the optional AI helper is set up. For now, here is what the sources found.",
+    "questionNote": "Questions get a short answer with sources once the AI helper is set up (an OpenRouter key in Connections). For now, here is what the sources found.",
     "someFailed": "Didn't answer in time: {sources}.",
     "streamFailed": "The search stopped before it finished.",
     "preview": "Preview",
@@ -594,7 +599,9 @@
     },
     "notStreaming": "Not on a streaming service in this region.",
     "trailer": "Trailer",
-    "watchOptions": "All watch options"
+    "watchOptions": "All watch options",
+    "answerTitle": "Answer",
+    "answerNote": "Written by the optional AI helper from the results below. Check the sources."
   },
   "Convert": {
     "label": "Convert…",
@@ -934,6 +941,7 @@
       "old-bombay": "Old Bombay",
       "sanskrit": "Sanskrit manuscripts",
       "illuminated": "Illuminated manuscripts"
-    }
+    },
+    "suggested": "Suggested by the AI helper"
   }
 }
