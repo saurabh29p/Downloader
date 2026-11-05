@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     folder_template: str = ""
     # Watches (scheduled checks for new items) run only in the API server.
     watch_enabled: bool = True
+    # Plugins (extra handlers from installed packages) to load; "*" loads all.
+    plugins: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    # Torrents (magnet links, .torrent files) need the optional libtorrent and are off
+    # by default: peers are arbitrary addresses outside the SSRF guard.
+    torrent_enabled: bool = False
+    torrent_seed: bool = False
 
     # Outgoing HTTP
     contact_email: str = ""
@@ -69,7 +75,7 @@ class Settings(BaseSettings):
     book_sources: Annotated[list[str], NoDecode] = Field(default_factory=list)
     gutendex_url: str = "https://gutendex.com"
 
-    @field_validator("net_allowlist", "book_sources", mode="before")
+    @field_validator("net_allowlist", "book_sources", "plugins", mode="before")
     @classmethod
     def _split_csv(cls, value: Any) -> Any:
         if isinstance(value, str):

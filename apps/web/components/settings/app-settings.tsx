@@ -39,7 +39,7 @@ export function AppSettings() {
   const tErrors = useTranslations("Errors");
   const settings = useQuery({ queryKey: KEY, queryFn: getSettings });
   // Same height as the form, so nothing jumps when it arrives.
-  if (settings.isPending) return <Skeleton className="h-[166rem] sm:h-[115rem]" aria-busy="true" />;
+  if (settings.isPending) return <Skeleton className="h-[178rem] sm:h-[124rem]" aria-busy="true" />;
   if (settings.isError)
     return (
       <div className="flex flex-col gap-2">
@@ -112,6 +112,8 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
     proxy: initial.proxy,
     contact_email: initial.contact_email,
     watch_enabled: initial.watch_enabled,
+    torrent_enabled: initial.torrent_enabled,
+    torrent_seed: initial.torrent_seed,
     host_limits: Object.entries(initial.host_limits ?? {})
       .map(([host, n]) => `${host}=${n}`)
       .join(", "),
@@ -263,6 +265,34 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
             className="size-5 accent-primary"
           />
           {t("watchEnabled")}
+        </label>
+      </Section>
+
+      <Section title={t("torrents")}>
+        <p className="text-sm text-muted-foreground">{t("torrentsHint")}</p>
+        {!initial.torrent_available && (
+          <p className="text-sm" role="note">
+            {t("torrentsMissing")} <code dir="ltr">uv sync --extra torrent</code>
+          </p>
+        )}
+        <label className="flex min-h-11 items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={form.torrent_enabled}
+            onChange={(e) => set("torrent_enabled", e.target.checked)}
+            className="size-5 accent-primary"
+          />
+          {t("torrentsEnabled")}
+        </label>
+        <label className="flex min-h-11 items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={form.torrent_seed}
+            disabled={!form.torrent_enabled}
+            onChange={(e) => set("torrent_seed", e.target.checked)}
+            className="size-5 accent-primary"
+          />
+          {t("torrentsSeed")}
         </label>
       </Section>
 

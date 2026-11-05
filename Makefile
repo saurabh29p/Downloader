@@ -47,9 +47,13 @@ typecheck: ## mypy strict + tsc
 	cd $(API) && uv run mypy anyget tests
 	pnpm typecheck
 
-test: ## pytest + vitest
+test: ## pytest + vitest (+ the example plugin)
 	cd $(API) && uv run pytest
+	cd examples/anyget-plugin-example && uv run pytest -q
 	pnpm test
+
+extension: ## Build the browser extension (apps/extension/dist/*.zip)
+	pnpm --filter @anyget/extension build
 
 check: lint typecheck test ## lint + typecheck + test
 

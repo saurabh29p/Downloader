@@ -5,6 +5,30 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (Phase 9 — PWA, extension, plugins, torrent)
+- **Installable web app (PWA):**
+  - Manifest with icons, a service worker and an "Install the app" button in Settings.
+  - The service worker caches only the app's static files (never API answers or downloads) and shows a short offline note when the server is unreachable.
+  - Android **Share → AnyGet** works through a Web Share Target: `/share` finds the link in the shared text and opens its preview on Home. Home also accepts `?url=`.
+- **Browser extension** (`apps/extension`, Manifest V3, Chrome and Firefox):
+  - Right-click a link, image, video or page, or click the toolbar button, to send it to your AnyGet.
+  - The options page sets the address and an optional token. A non-local address asks permission for that one site.
+  - `make extension` builds both zips. CI uploads them as an artifact.
+- **Termux:** `scripts/termux/termux-url-opener` sends links shared to Termux to your AnyGet, or downloads on the phone with the CLI. `docs/termux.md` explains both setups.
+- **Plugins:** extra handlers come from installed packages through the `anyget.handlers` entry point group.
+  - Only plugins listed in `ANYGET_PLUGINS` load (`*` for all).
+  - A broken plugin is reported in `/api/health` and never stops the app.
+  - `examples/anyget-plugin-example` (xkcd comics) shows the contract. It has its own tests, which CI runs.
+- **Torrents (optional, off by default):** magnet links and `.torrent` files through libtorrent (`uv sync --extra torrent`).
+  - Turn them on in Settings, which also has "keep sharing".
+  - The file list comes first, so you can pick files.
+  - Unsafe paths in torrent metadata are refused, `.torrent` files are fetched through the guarded client, and local peer discovery is off.
+
+### Changed (Phase 9)
+- Magnet and `.torrent` links route to the torrent handler, which explains that torrents are off instead of the old "not supported yet".
+- `/api/health` lists installed plugins (loaded or not, with the reason) and whether torrents are available.
+- The web Docker image now includes `public/` (icons, service worker).
+
 ### Added (Phase 8 — library, watch, settings, help)
 - **Library:** every finished download (and anything you copy into the downloads folder, after a scan) is indexed with its kind, size, sha256, source and tags.
   - Search, filter by kind or tag, and see which files are copies of others (same sha256, or the same source saved again). Copies are never deleted for you.

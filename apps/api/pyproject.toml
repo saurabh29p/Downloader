@@ -27,6 +27,8 @@ anyget = "anyget.cli.main:app"
 [project.optional-dependencies]
 # `anyget watch-clipboard` on a desktop
 desktop = ["pyperclip==1.11.0"]
+# Torrents (off by default; see handlers/torrent.py)
+torrent = ["libtorrent>=2.0.11"]
 
 [dependency-groups]
 dev = [

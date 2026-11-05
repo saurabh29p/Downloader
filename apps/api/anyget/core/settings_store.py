@@ -14,6 +14,7 @@ from sqlmodel import SQLModel, select
 from anyget.core.db import Database
 from anyget.core.settings import Settings
 from anyget.core.templates import TemplateError, validate
+from anyget.handlers.torrent import load_libtorrent
 
 SECRETS = (
     "github_token",
@@ -37,6 +38,8 @@ PLAIN = (
     "proxy",
     "contact_email",
     "watch_enabled",
+    "torrent_enabled",
+    "torrent_seed",
 )
 EDITABLE = PLAIN + SECRETS
 # Read when the HTTP client is built: changing them needs a restart.
@@ -61,6 +64,8 @@ class SettingsUpdate(BaseModel):
     proxy: str | None = Field(default=None, max_length=300)
     contact_email: str | None = Field(default=None, max_length=200)
     watch_enabled: bool | None = None
+    torrent_enabled: bool | None = None
+    torrent_seed: bool | None = None
     github_token: str | None = Field(default=None, max_length=500)
     hf_token: str | None = Field(default=None, max_length=500)
     civitai_token: str | None = Field(default=None, max_length=500)
@@ -114,6 +119,9 @@ class SettingsView(BaseModel):
     proxy: str
     contact_email: str
     watch_enabled: bool
+    torrent_enabled: bool
+    torrent_seed: bool
+    torrent_available: bool
     secrets: dict[str, bool]  # name → is it set
     restart_needed: list[str] = Field(default_factory=list)
 
@@ -150,6 +158,9 @@ class SettingsStore:
             proxy=s.proxy,
             contact_email=s.contact_email,
             watch_enabled=s.watch_enabled,
+            torrent_enabled=s.torrent_enabled,
+            torrent_seed=s.torrent_seed,
+            torrent_available=load_libtorrent() is not None,
             secrets={name: bool(getattr(s, name)) for name in SECRETS},
             restart_needed=sorted(self.pending_restart),
         )

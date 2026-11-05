@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { ClipboardPasteIcon, FileTextIcon, Loader2Icon, SearchIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -79,6 +80,17 @@ export function PasteBox() {
   });
 
   const busy = probeMutation.isPending || queueMutation.isPending;
+
+  // A link handed over by the share target (/share) or a bookmarklet: /?url=…
+  const { mutate: probeShared } = probeMutation;
+  useEffect(() => {
+    const shared = new URLSearchParams(window.location.search).get("url");
+    if (!shared) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hand-over from the URL
+    setText(shared);
+    probeShared(shared);
+  }, [probeShared]);
 
   function submit(event?: FormEvent) {
     event?.preventDefault();

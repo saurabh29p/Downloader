@@ -29,12 +29,15 @@ from anyget.handlers.registry import (
     PRIORITY_GALLERY,
     PRIORITY_GIT,
     PRIORITY_IIIF,
+    PRIORITY_TORRENT,
     PRIORITY_YTDLP,
     Registry,
 )
+from anyget.handlers.torrent import TorrentHandler
 from anyget.handlers.wayback import WaybackHandler
 from anyget.handlers.ytdlp import YtDlpHandler
 from anyget.library.index import LibraryIndex
+from anyget.plugins import PluginInfo, load_plugins
 from anyget.watch.runner import WatchScheduler, WatchService
 
 
@@ -42,6 +45,7 @@ def build_registry(net: Net, settings: Settings, store: JobStore | None = None) 
     registry = Registry()
     if store is not None:
         registry.register(ConvertHandler(settings, store), PRIORITY_CONVERT)
+    registry.register(TorrentHandler(net, settings), PRIORITY_TORRENT)
     archive = ArchiveOrgHandler(net)
     registry.register(archive, PRIORITY_ARCHIVE)
     registry.register(WaybackHandler(net), PRIORITY_ARCHIVE)
@@ -70,6 +74,7 @@ class Services:
     library: LibraryIndex
     watches: WatchService
     scheduler: WatchScheduler
+    plugins: list[PluginInfo]
 
     @classmethod
     def build(cls, settings: Settings, net: Net | None = None) -> "Services":
@@ -82,6 +87,7 @@ class Services:
         bus = EventBus()
         net = net or Net(settings)
         registry = build_registry(net, settings, store)
+        plugins = load_plugins(registry, net, settings)
         router = Router(registry, net)
         queue = DownloadQueue(settings, store, bus, router)
         library = LibraryIndex(db, settings.downloads_dir)
@@ -100,6 +106,7 @@ class Services:
             library,
             watches,
             WatchScheduler(watches),
+            plugins,
         )
 
     async def start(self, recover: bool = True, watch: bool | None = None) -> None:

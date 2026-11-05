@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 
 import { dirFor, routing } from "@/i18n/routing";
 import { Providers } from "@/lib/providers";
+import { pwaScript } from "@/lib/pwa";
 import { themeScript } from "@/lib/theme";
 
 export function generateStaticParams() {
@@ -23,7 +24,12 @@ export async function generateMetadata({
   const requested = (await params).locale;
   const locale = hasLocale(routing.locales, requested) ? requested : routing.defaultLocale;
   const t = await getTranslations({ locale, namespace: "Meta" });
-  return { title: t("title"), description: t("description") };
+  return {
+    title: t("title"),
+    description: t("description"),
+    icons: { icon: "/favicon.png", apple: "/icons/apple-touch-icon.png" },
+    appleWebApp: { capable: true, title: "AnyGet", statusBarStyle: "default" },
+  };
 }
 
 export const viewport: Viewport = {
@@ -51,6 +57,8 @@ export default async function LocaleLayout({
       <head>
         {/* Static theme script (no user input); runs before paint to avoid a flash. */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* Static PWA script: service worker registration and the install prompt. */}
+        <script dangerouslySetInnerHTML={{ __html: pwaScript }} />
       </head>
       <body className="min-h-dvh">
         <NextIntlClientProvider>

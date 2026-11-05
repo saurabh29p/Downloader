@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "AnyGet",
+  "description": "Send a page, link, image or video to your own AnyGet downloader.",
+  "permissions": ["contextMenus", "storage"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "action": {
+    "default_title": "Send this page to AnyGet",
+    "default_icon": { "48": "icons/icon-48.png", "128": "icons/icon-128.png" }
+  },
+  "icons": { "48": "icons/icon-48.png", "128": "icons/icon-128.png" },
+  "options_ui": { "page": "options.html", "open_in_tab": true }
+}
