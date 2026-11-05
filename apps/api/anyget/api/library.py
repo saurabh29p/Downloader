@@ -104,7 +104,12 @@ async def get_file(item_id: str, services: ServicesDep, download: bool = False) 
         filename=path.name,
         content_disposition_type="attachment" if download else "inline",
         # Untrusted files (HTML, SVG) must not run scripts on AnyGet's origin.
-        headers={"Content-Security-Policy": "sandbox", "X-Content-Type-Options": "nosniff"},
+        headers={
+            "Content-Security-Policy": "sandbox",
+            "X-Content-Type-Options": "nosniff",
+            # The Library page shows PDFs in an iframe on the same site.
+            "X-Frame-Options": "SAMEORIGIN",
+        },
     )
 
 

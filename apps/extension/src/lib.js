@@ -38,13 +38,22 @@ export function sendable(url) {
   }
 }
 
-/** fetch() arguments for POST /api/jobs. */
+/**
+ * fetch() arguments for POST /api/jobs.
+ * @returns {{ url: string, init: RequestInit }}
+ */
 export function jobsRequest(base, token, urls) {
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
   return {
     url: `${normalizeBase(base)}/api/jobs`,
-    init: { method: "POST", headers, body: JSON.stringify({ urls, options: {} }) },
+    // credentials: a signed-in Cloudflare Access session (cookie) is sent along.
+    init: {
+      method: "POST",
+      headers,
+      credentials: "include",
+      body: JSON.stringify({ urls, options: {} }),
+    },
   };
 }
 

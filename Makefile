@@ -7,7 +7,7 @@ export PUID ?= $(shell id -u)
 export PGID ?= $(shell id -g)
 
 .DEFAULT_GOAL := help
-.PHONY: help setup dev dev-api dev-web gen gen-api gen-check lint format typecheck test check e2e live build up down logs ps up-public
+.PHONY: help setup dev dev-api dev-web gen gen-api gen-check lint format typecheck test check e2e live build up down logs ps up-public backup restore extension release-check
 
 help: ## Show this help
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -51,6 +51,15 @@ test: ## pytest + vitest (+ the example plugin)
 	cd $(API) && uv run pytest
 	cd examples/anyget-plugin-example && uv run pytest -q
 	pnpm test
+
+backup: ## Back up data/ (database, settings, cookies) to backups/
+	cd $(API) && ANYGET_DATA_DIR=$(CURDIR)/data uv run anyget backup create --out $(CURDIR)/backups
+
+restore: ## Restore a backup: make restore FILE=backups/anyget-….tar.gz (stop AnyGet first)
+	@test -n "$(FILE)" || (echo "Usage: make restore FILE=backups/anyget-....tar.gz" && exit 1)
+	@if docker compose ps --status running --services 2>/dev/null | grep -qx api; then \
+		echo "AnyGet is running. Stop it first: make down"; exit 1; fi
+	cd $(API) && ANYGET_DATA_DIR=$(CURDIR)/data uv run anyget backup restore $(abspath $(FILE))
 
 extension: ## Build the browser extension (apps/extension/dist/*.zip)
 	pnpm --filter @anyget/extension build

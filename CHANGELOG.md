@@ -5,6 +5,30 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-05
+
+First release: everything below, plus worldwide access.
+
+### Added (Phase 10 — deploy and release)
+- **Access control in the API:**
+  - Cloudflare Access JWTs are verified: RS256 against the team's published keys (cached, re-read once when the key id changes), with AUD, issuer and expiry checked.
+  - A bearer token (`ANYGET_API_TOKEN`) is accepted for the CLI, the extension and scripts.
+  - Requests from this computer are allowed. Requests that came through Cloudflare without Access are refused (fail closed). `ANYGET_AUTH_MODE=always` requires sign-in everywhere.
+- **Per-client rate limits** for requests from outside (all requests and writes separately, `Retry-After` on 429).
+- **Security headers:**
+  - The API sends `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `COOP`, `Permissions-Policy` and a strict `default-src 'none'` CSP. Swagger has its own CSP, and library files stay sandboxed and frameable only by AnyGet itself.
+  - Website pages (production builds) send a CSP with same-origin scripts and no `eval`, plus the same headers.
+- **Cloudflare Tunnel:** `docker-compose.tunnel.yml` (cloudflared 2026.10.7, unprivileged), `make up-public`, and `docs/deploy.md`. The guide covers exporting DNS first, Cloudflare and Hostinger nameservers, the tunnel and route, Access with One-time PIN, tokens for the CLI and extension, and troubleshooting.
+- **Tailscale fallback** with `tailscale serve`: `docs/tailscale.md`.
+- **Backups:** `make backup` / `make restore FILE=…` and `anyget backup create|restore`.
+  - Backups take a consistent online SQLite copy, plus cookies and download archives (optionally `.env`), and are written 0600.
+  - Restore refuses unsafe paths and foreign archives, and won't run while the containers are up.
+- **Release workflow:** tags `v*.*.*` build and push `ghcr.io/<owner>/anyget-api` and `anyget-web`, build the extension, and publish a GitHub release with this changelog's notes.
+
+### Changed (Phase 10)
+- The browser extension sends the Cloudflare Access cookie with its requests (`credentials: "include"`).
+- All packages are version 1.0.0.
+
 ### Added (Phase 9 — PWA, extension, plugins, torrent)
 - **Installable web app (PWA):**
   - Manifest with icons, a service worker and an "Install the app" button in Settings.
@@ -130,3 +154,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - SSE stream cleanup raised errors when a browser disconnected.
 - Live progress could be dropped by the browser after a page refresh (stale timestamps); job times are now always sent as UTC.
 - API container could not create its database when Docker created the `data` folder as root (CI Docker job). The container now adopts `PUID`/`PGID` and fixes folder ownership before dropping privileges.
+
+[Unreleased]: https://github.com/saurabh29p/Downloader/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/saurabh29p/Downloader/releases/tag/v1.0.0

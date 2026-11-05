@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from anyget.core.auth import AccessVerifier
 from anyget.core.db import Database
 from anyget.core.events import EventBus
 from anyget.core.jobs import JobStore
@@ -75,6 +76,7 @@ class Services:
     watches: WatchService
     scheduler: WatchScheduler
     plugins: list[PluginInfo]
+    access: AccessVerifier
 
     @classmethod
     def build(cls, settings: Settings, net: Net | None = None) -> "Services":
@@ -107,6 +109,7 @@ class Services:
             watches,
             WatchScheduler(watches),
             plugins,
+            AccessVerifier(net, settings),
         )
 
     async def start(self, recover: bool = True, watch: bool | None = None) -> None:

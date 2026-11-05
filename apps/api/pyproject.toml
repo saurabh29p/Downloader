@@ -1,6 +1,6 @@
 [project]
 name = "anyget"
-version = "0.1.0"
+version = "1.0.0"
 description = "AnyGet core: paste any public link, get the file."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -19,6 +19,7 @@ dependencies = [
     "gallery-dl==1.32.19",
     "img2pdf==0.6.3",
     "defusedxml==0.7.1",
+    "pyjwt[crypto]==2.10.1",
 ]
 
 [project.scripts]

@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -54,7 +54,20 @@ class Settings(BaseSettings):
     # local fixture servers; leave empty in normal use.
     net_allowlist: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
+    # ----- access control (see docs/deploy.md) ---------------------------------------
+    # Bearer token for the CLI, the extension and scripts: "Authorization: Bearer <token>".
     api_token: str = Field(default="", repr=False)
+    # Cloudflare Access: team domain (e.g. "myteam.cloudflareaccess.com") and the
+    # application's AUD tag. When set, requests that come through Cloudflare must carry
+    # a valid Cf-Access-Jwt-Assertion (or the bearer token).
+    access_team_domain: str = ""
+    access_aud: str = Field(default="", repr=False)
+    # "auto": requests from this computer are allowed, requests through Cloudflare need
+    # Access or the token. "always": every request needs Access or the token.
+    auth_mode: Literal["auto", "always"] = "auto"
+    # Requests per minute per client from outside (writes are limited separately).
+    rate_limit_per_minute: int = Field(default=600, ge=10, le=100_000)
+    rate_limit_writes_per_minute: int = Field(default=60, ge=1, le=100_000)
 
     # Optional keys for sources that need them. Never logged or returned by the API.
     github_token: str = Field(default="", repr=False)

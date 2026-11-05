@@ -16,7 +16,7 @@ Read this file at the start of every session. The full research doc lives in `do
 - [x] Phase 7 — books, libraries, search
 - [x] Phase 8 — library, watch, settings
 - [x] Phase 9 — PWA, extension, plugins
-- [ ] Phase 10 — deploy and release (next)
+- [x] Phase 10 — deploy and release (v1.0.0)
 
 Update this checklist at the end of every phase.
 
@@ -106,6 +106,8 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `uv run anyget library [--scan]` / `anyget watch add\|list\|run` | the offline library / scheduled watches |
 | `uv run --extra desktop anyget watch-clipboard [--auto]` | offer copied links as downloads (desktop) |
 | `make extension` | build the browser extension zips (`apps/extension/dist/`) |
+| `make backup` / `make restore FILE=…` | back up / restore `data/` (stop AnyGet before restoring) |
+| `git tag vX.Y.Z && git push origin vX.Y.Z` | release: images to ghcr.io + GitHub release (`.github/workflows/release.yml`) |
 | `cd examples/anyget-plugin-example && uv run pytest` | example plugin tests (also part of `make test`) |
 
 ## Architecture rules
@@ -260,6 +262,15 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Plugins (`anyget/plugins.py`): entry point group `anyget.handlers`, factory `make(net, settings)`, optional `priority` (default 85). Load only with `ANYGET_PLUGINS` (env only, not a UI setting: plugins are code). Results are in `Services.plugins` and `/api/health`.
 - Torrent (`handlers/torrent.py`): always registered so magnet links get a clear message; `probe`/`download` require `settings.torrent_enabled` (UI setting) and libtorrent (`--extra torrent`). Peer traffic is outside the SSRF guard by nature; LSD/UPnP/NAT-PMP are off. Paths from metadata go through `safe_parts` (no `..`, no absolute). Tests use a fake libtorrent module.
 - The Libraries page reserves the list height in its skeleton (`h-[77rem] sm:h-[39rem]`) and Settings reserves `h-[178rem] sm:h-[124rem]` (CLS). When measuring Lighthouse locally, build the web with the same `API_URL` the API listens on, or pages show their error state and CLS numbers are wrong.
+
+### Deploy / auth gotchas
+- `core/auth.SecurityMiddleware` (pure ASGI, outermost) does access control, rate limits and security headers. It reads `app.state.services`, so it answers 503 until the lifespan has started; tests must use `with TestClient(...)`.
+- "Through Cloudflare" means the request has `Cf-Connecting-Ip`, `Cf-Ray` or `Cf-Access-Jwt-Assertion`. Those requests need a valid Access JWT or the bearer token; everything else is local (ports are bound to 127.0.0.1) and allowed in `auth_mode=auto`. Next.js rewrites forward these headers to the API (`e2e/pwa.spec.ts` checks this). Don't add a proxy that strips them.
+- JWKS: `https://<team>/cdn-cgi/access/certs` through `Net`, cached 1 h, re-read once (at most every 60 s) for an unknown `kid`.
+- Rate limits apply to remote clients only (keyed by `Cf-Connecting-Ip`); the owner's local requests aren't limited, which keeps e2e and the web UI fast.
+- API responses get `X-Frame-Options: DENY` unless they set their own: library file responses set `SAMEORIGIN` so the PDF preview iframe works.
+- Web CSP lives in `next.config.ts` (production only; dev needs eval) and covers pages, not `/api/*`. Images may come from any https host (thumbnails); scripts are same-origin plus `'unsafe-inline'` for the theme/PWA inline scripts and Next's bootstrap.
+- Backups (`anyget/backup.py`) use SQLite's online backup API; restore uses `tarfile` `filter="data"` plus its own path checks, and removes stale `-wal`/`-shm` files.
 
 ### Frontend gotchas
 - First-load JS is at the 170 KB budget (Home ≈169.4 KB, Settings ≈169.3, Downloads ≈168.6, others ≈162–169). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Do not add client JS to the shell (nav, layout): new sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
