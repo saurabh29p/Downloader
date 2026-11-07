@@ -160,3 +160,11 @@ async def test_retry_downloads_an_expired_file_again(services: Services) -> None
     services.store.update(other.id, state=JobState.done, rel_path="fine.zip")
     with pytest.raises(InvalidStateError):
         services.queue.retry(other.id)  # a normal finished download is not retried
+
+
+def test_downloads_inside_the_data_volume_is_fine(services: Services, tmp_path: Path) -> None:
+    # e.g. Railway with one volume: ANYGET_DATA_DIR=/data, ANYGET_DOWNLOADS_DIR=/data/downloads
+    services.settings.data_dir = services.settings.downloads_dir.parent
+    assert services.retention.status().blocked is None
+    services.settings.data_dir = services.settings.downloads_dir
+    assert services.retention.status().blocked == "folders_overlap"

@@ -5,6 +5,33 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added (previews, audio player, retention, honest AI states)
+- **Open files in AnyGet** (Downloads and Library): the server checks a file's real type (first bytes, not only the name) and AnyGet picks a viewer:
+  - **Video:** speed, subtitles from `.srt`/`.vtt` files next to it, and resume.
+  - **PDF** (pdf.js, loaded on demand, byte ranges): pages, zoom, search.
+  - **EPUB:** contents, font size, saved position. Chapters arrive as plain text blocks; the book's own HTML never runs.
+  - **Text:** paged, with search. **Pictures:** zoom, fit, full screen, previous/next, keyboard.
+  - Everything else gets a clear reason plus Download / Open.
+- **Audio player** that keeps playing across in-app navigation (one `<audio>` in the app shell), with a mini-player, Media Session lock-screen controls and resume. Starting any player pauses the others.
+- **Retention** (`ANYGET_RETENTION_DAYS`, default 7, 0 = off): removes old downloads daily.
+  - Grace period, then only indexed files inside the downloads folder.
+  - Never touches active downloads or files tagged `keep`, never follows symlinks.
+  - Library entries stay with Download again.
+  - `GET /api/retention`, `POST /api/retention/run` (dry run by default), `anyget cleanup [--apply]`.
+- API: `/api/library/{id}/info`, `/text`, `/epub`, `/epub/{n}`, `/subtitles/{n}`, `/api/library/by-job/{job_id}`.
+
+### Changed
+- **AI helper:** OpenRouter failures are told apart: no key, bad key, no credits, refused, rate limited, provider error, network, daily limit, bad answer.
+  - Settings and the search page show the reason; no answer card is ever made without AI.
+  - 429 is no longer retried with long back-offs; after "no credits" or a refused key, AI pauses for 10 minutes.
+- **TMDB:** a refused key reports "check the saved key" instead of "add a key".
+- **Retry** also downloads again a file that retention removed.
+
+### Fixed
+- **Downloads:** the page no longer shows 0 for All/Done while the list is loading or the live connection reconnects.
+  - Stream events are reconciled with list responses that were in flight: no lost, duplicated or resurrected jobs.
+  - A failed background refresh keeps the last list.
+
 ### Added (v2 Phase 6 — "The Reading Room" UI)
 - **New look:** Paper (light) and Ink (dark) themes with a saffron accent and indigo links, and a tint per section (stripes and line art only, never text colour). Every text colour pair meets WCAG AA.
 - **Type:** Fraunces for headings, Inter for the interface, JetBrains Mono for file facts, plus Noto Sans Devanagari and Noto Naskh Arabic. All fonts are self-hosted; the script fonts load only on pages that use them.

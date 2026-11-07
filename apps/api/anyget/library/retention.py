@@ -7,7 +7,7 @@ Safety rules (each has a test):
   sets a video's file date to its upload date.
 - Never: files of active jobs (queued, probing, downloading, paused), items tagged
   "keep", symlinks or paths through a symlinked folder, anything outside the
-  downloads folder. If the downloads and data folders overlap, nothing runs.
+  downloads folder. If the data folder is inside the downloads folder, nothing runs.
 - Grace period: the first removals happen N days after retention was switched on,
   so turning it on (or upgrading) never deletes existing files at once.
 - The library entry stays ("removed", with Download again); the download row gets
@@ -68,9 +68,11 @@ def _utc(value: datetime) -> datetime:
     return value if value.tzinfo else value.replace(tzinfo=UTC)
 
 
-def _overlap(a: Path, b: Path) -> bool:
-    a, b = a.resolve(), b.resolve()
-    return a == b or a in b.parents or b in a.parents
+def _data_inside_downloads(downloads: Path, data: Path) -> bool:
+    """The database and keys must never be inside the folder cleanup deletes from.
+    (Downloads inside the data folder, e.g. /data/downloads on one volume, is fine.)"""
+    downloads, data = downloads.resolve(), data.resolve()
+    return data == downloads or downloads in data.parents
 
 
 def _through_symlink(root: Path, path: Path) -> bool:
@@ -97,7 +99,7 @@ class Retention:
         self.library = library
 
     def _blocked(self) -> str | None:
-        if _overlap(self.settings.downloads_dir, self.settings.data_dir):
+        if _data_inside_downloads(self.settings.downloads_dir, self.settings.data_dir):
             return "folders_overlap"
         return None
 
