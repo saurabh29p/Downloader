@@ -260,6 +260,10 @@ class LibraryIndex:
             snippet=snippet or None,
         )
 
+    def find(self, rel_path: str) -> LibraryItem | None:
+        with self.db.session() as session:
+            return session.exec(select(LibraryItem).where(LibraryItem.rel_path == rel_path)).first()
+
     def get(self, item_id: str) -> LibraryItem | None:
         with self.db.session() as session:
             return session.get(LibraryItem, item_id)
