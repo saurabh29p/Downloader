@@ -160,7 +160,10 @@
       "resume": "Resume",
       "retry": "Try again",
       "cancel": "Cancel",
-      "remove": "Remove from list"
+      "remove": "Remove from list",
+      "play": "Play",
+      "open": "Open",
+      "downloadAgain": "Download again"
     },
     "notes": {
       "merging": "Merging video and audio",
@@ -172,13 +175,15 @@
       "embedding_thumbnail": "Adding cover image",
       "converting_thumbnail": "Preparing cover image",
       "already_downloaded": "Already downloaded before",
-      "outside_date_range": "Skipped: outside the chosen dates"
+      "outside_date_range": "Skipped: outside the chosen dates",
+      "expired": "File removed by the retention policy"
     },
     "finishedMany": "{count, plural, one {Downloaded # file} other {Downloaded # files}}",
     "connect": "Connect your {site} account",
     "details": "Details",
     "removed": "Removed “{name}”",
-    "undo": "Undo"
+    "undo": "Undo",
+    "notInLibrary": "This file isn't in the Library yet. Try again in a moment, or use Save file."
   },
   "Errors": {
     "blocked_url": "This link points to a private or local network address, or isn't http(s), so it can't be downloaded.",
@@ -236,7 +241,8 @@
       "failed": "No failed downloads. Nice."
     },
     "emptyAction": "Paste a link",
-    "retryAll": "{count, plural, one {Retry # failed} other {Retry # failed}}"
+    "retryAll": "{count, plural, one {Retry # failed} other {Retry # failed}}",
+    "staleList": "Couldn't refresh the list; showing the last one we had."
   },
   "Command": {
     "title": "Quick menu",
@@ -378,7 +384,13 @@
     "connectionsGroup": "Connections",
     "advanced": "Advanced",
     "advancedHint": "Server and network details. Most people never need to change these.",
-    "groupsLabel": "Settings sections"
+    "groupsLabel": "Settings sections",
+    "retention": "Remove downloads after (days)",
+    "retentionHint": "0 keeps files forever. Files tagged “keep” are never removed. The Library keeps an entry with Download again.",
+    "retentionStarts": "Nothing is removed before {date} (grace period).",
+    "retentionLast": "Last cleanup: {date}.",
+    "retentionBlocked": "Cleanup is off: the downloads and data folders overlap.",
+    "aiIssue": "Last problem: {issue}"
   },
   "Archive": {
     "title": "archive.org",
@@ -624,7 +636,9 @@
     "trailer": "Trailer",
     "watchOptions": "All watch options",
     "answerTitle": "Answer",
-    "answerNote": "Written by the optional AI helper from the results below. Check the sources."
+    "answerNote": "Written by the optional AI helper from the results below. Check the sources.",
+    "aiIssue": "AI couldn't help with this search: {issue} These are results from the sources only.",
+    "badKeyTmdb": "TMDB refused the saved key. Check it in Connections."
   },
   "Convert": {
     "label": "Convert…",
@@ -684,7 +698,11 @@
       "sourceAny": "Any source",
       "licence": "Licence",
       "licenceAny": "Any licence"
-    }
+    },
+    "open": "Open",
+    "play": "Play",
+    "expired": "Removed",
+    "expiredNote": "This file was removed by the retention policy (Settings → Downloads). Use Download again to get it back."
   },
   "Watch": {
     "title": "Watches",
@@ -771,7 +789,11 @@
       }
     },
     "legalLink": "Read the legal and fair use rules",
-    "statusTitle": "Server status"
+    "statusTitle": "Server status",
+    "playbackTitle": "Listening and watching",
+    "playbackText": "Audio plays in a small player at the bottom of the screen and keeps playing while you move between AnyGet's pages. On phones, playback can also continue with the screen locked or in another app where the browser allows it: Android Chrome usually does; iPhone Safari usually does in a Safari tab, and less reliably for the app added to the Home Screen. AnyGet doesn't use tricks to keep audio alive, so your phone's battery settings may stop it.",
+    "retentionTitle": "How long files are kept",
+    "retentionText": "By default, downloaded files are removed after 7 days (Settings → Downloads; 0 keeps them). The first removals happen 7 days after the policy is switched on. Files tagged “keep”, and downloads still running, are never removed. The Library keeps an entry for each removed file with Download again."
   },
   "Legal": {
     "title": "Legal and fair use",
@@ -975,5 +997,101 @@
       "illuminated": "Illuminated manuscripts"
     },
     "suggested": "Suggested by the AI helper"
+  },
+  "Player": {
+    "label": "Audio player",
+    "play": "Play",
+    "pause": "Pause",
+    "nowPlaying": "Now playing:",
+    "back10": "Back 10 seconds",
+    "forward30": "Forward 30 seconds",
+    "speed": "Speed",
+    "volume": "Volume",
+    "close": "Stop and close the player",
+    "seek": "Position",
+    "resumed": "Resumed at {time}.",
+    "startOver": "Start over",
+    "cantPlay": "This file can't play in this browser.",
+    "download": "Download it",
+    "signInAgain": "Your sign-in expired. Sign in again to keep listening."
+  },
+  "Viewer": {
+    "close": "Close",
+    "download": "Download",
+    "openTab": "Open in new tab",
+    "retry": "Try again",
+    "audioHint": "Audio plays in the player at the bottom, so it keeps going while you browse.",
+    "playAudio": "Play",
+    "tryAnyway": "Try to play anyway",
+    "subtitlesHint": "Subtitles: use the CC button in the player.",
+    "mayNotPlay": "Some browsers can't play this format.",
+    "convertHint": "Browsers can't show TIFF pictures. Use Convert → PDF in Downloads, or download the file.",
+    "reasons": {
+      "unsupported_format": "AnyGet can't show this kind of file in the browser.",
+      "office": "Word, Excel and other Office files aren't shown in AnyGet. Download the file or open it in an app.",
+      "archive": "This is an archive (ZIP, 7z…). Download it to open it.",
+      "too_large": "This picture is too big to show here. Download it or open it in a new tab.",
+      "empty": "This file is empty.",
+      "missing": "The file is no longer on the server.",
+      "expired": "This file was removed by the retention policy. Download it again from its source.",
+      "codec": "This browser can't play this video format. Try another browser, download the file, or convert it in Downloads.",
+      "protected": "This file is DRM-protected. AnyGet doesn't open protected files.",
+      "malformed": "This file looks damaged and can't be read."
+    },
+    "imageTools": "Picture tools",
+    "previous": "Previous picture",
+    "next": "Next picture",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit",
+    "fitScreen": "Fit to screen",
+    "fullscreen": "Full screen",
+    "imageArea": "{title}. Arrow keys: previous and next; + and −: zoom; 0: fit; F: full screen.",
+    "findInText": "Find in text",
+    "matches": "{count, plural, =0 {No matches} one {# match} other {# matches}}",
+    "previousMatch": "Previous match",
+    "nextMatch": "Next match",
+    "wrap": "Wrap lines",
+    "textArea": "File text",
+    "loadMore": "Load more",
+    "tooLongText": "This file is very long. Download it to read the rest.",
+    "contents": "Contents",
+    "section": "Section {n}",
+    "previousChapter": "Previous chapter",
+    "nextChapter": "Next chapter",
+    "textSize": "Text size",
+    "smaller": "Smaller text",
+    "larger": "Larger text",
+    "resumedChapter": "Back where you left off: {chapter}.",
+    "startOver": "Start over",
+    "chapterArea": "Chapter: {chapter}",
+    "emptyChapter": "This part of the book has no text.",
+    "chapterTruncated": "This chapter is very long; the rest is not shown.",
+    "pdfTools": "PDF tools",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageNumber": "Page number",
+    "fitWidth": "Fit width",
+    "findInPdf": "Find in PDF",
+    "searching": "Searching…",
+    "foundOnPages": "Found on pages:",
+    "notFound": "Not found (some PDFs are scans without text).",
+    "pdfPage": "Page {page} of {pages}: {title}",
+    "pdf": {
+      "protected": "This PDF is password-protected. Download it and open it with its password.",
+      "malformed": "This PDF looks damaged and can't be shown. Try downloading it.",
+      "failed": "This PDF couldn't be loaded. Check your connection and try again, or download it."
+    }
+  },
+  "AiIssues": {
+    "no_key": "No OpenRouter key is set.",
+    "bad_key": "OpenRouter refused the saved key. Check it in Connections.",
+    "no_credits": "Your OpenRouter credits have run out. Add credits on openrouter.ai, or turn on Free mode.",
+    "refused": "OpenRouter refused this request.",
+    "rate_limited": "OpenRouter is limiting requests right now. Try again in a minute.",
+    "provider_error": "OpenRouter or the AI model failed to answer. Try again later.",
+    "network": "OpenRouter couldn't be reached.",
+    "daily_limit": "Today's AI limit is reached (ANYGET_LLM_DAILY_LIMIT).",
+    "bad_answer": "The AI's answers didn't make sense, so they were skipped."
   }
 }

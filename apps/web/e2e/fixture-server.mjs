@@ -3,8 +3,43 @@
 //   GET/HEAD /files/<name>?size=<bytes>&slow=1
 //   GET/HEAD /page.html?id=<tag> (links to report-<tag>.pdf and data-<tag>.zip)
 //   GET /gutendex/books?search=<q> (Gutendex stand-in), /iiif/<tag>/manifest.json (IIIF v3)
+//   GET/HEAD /media/<fixture>/<saved name> (a real file from e2e/fixtures/, with Range)
+//   GET/HEAD /text/<name>.txt?lines=<n> (readable UTF-8 text, English and Hindi)
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
+
+const MEDIA_TYPES = {
+  ogg: "audio/ogg",
+  webm: "video/webm",
+  png: "image/png",
+  pdf: "application/pdf",
+  epub: "application/epub+zip",
+  vtt: "text/vtt",
+};
+const FIXTURES = new URL("./fixtures/", import.meta.url);
+
+/** Serve bytes with Content-Length and single-range support. */
+function sendBytes(req, res, data, type, name) {
+  const headers = {
+    "Content-Type": type,
+    "Accept-Ranges": "bytes",
+    "Content-Disposition": `attachment; filename="${name}"`,
+  };
+  const range = /^bytes=(\d+)-(\d*)$/.exec(req.headers.range ?? "");
+  if (range) {
+    const start = Number(range[1]);
+    const end = range[2] ? Math.min(Number(range[2]), data.length - 1) : data.length - 1;
+    res.writeHead(206, {
+      ...headers,
+      "Content-Range": `bytes ${start}-${end}/${data.length}`,
+      "Content-Length": end - start + 1,
+    });
+    return res.end(req.method === "HEAD" ? undefined : data.subarray(start, end + 1));
+  }
+  res.writeHead(200, { ...headers, "Content-Length": data.length });
+  return res.end(req.method === "HEAD" ? undefined : data);
+}
 
 const port = Number(process.env.FIXTURE_PORT ?? 8200);
 const cache = new Map();
@@ -26,6 +61,23 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", `http://127.0.0.1:${port}`);
   if (url.pathname === "/health") return res.end("ok");
+  const media = /^\/media\/([a-z0-9.-]+)\/([^/]+)$/.exec(url.pathname);
+  if (media) {
+    const [, fixture, saved] = media;
+    const type = MEDIA_TYPES[fixture.split(".").pop()];
+    if (!type) return res.writeHead(404).end();
+    const data = readFileSync(new URL(fixture, FIXTURES));
+    return sendBytes(req, res, data, type, decodeURIComponent(saved));
+  }
+  const text = /^\/text\/([^/]+\.txt)$/.exec(url.pathname);
+  if (text) {
+    const lines = Math.min(Number(url.searchParams.get("lines") ?? 50), 50000);
+    const body = Array.from(
+      { length: lines },
+      (_, i) => `Line ${i + 1}: the lighthouse keeper's log. पंक्ति ${i + 1}`,
+    ).join("\n");
+    return sendBytes(req, res, Buffer.from(body, "utf8"), "text/plain; charset=utf-8", text[1]);
+  }
   if (url.pathname === "/page.html") {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     const tag = encodeURIComponent(url.searchParams.get("id") ?? "x");

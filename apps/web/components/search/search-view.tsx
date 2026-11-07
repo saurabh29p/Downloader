@@ -8,16 +8,19 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "@/i18n/navigation";
 import { createJobs } from "@/lib/api";
 import {
   universalUrl,
   type Media,
+  type UniversalDone,
   type ResultCard,
   type RouterPlan,
   type Answer,
   type MovieInfo,
   type SourceDone,
 } from "@/lib/api-universal";
+import { byOrder } from "@/lib/by-order";
 import { errorMessage } from "@/lib/errors";
 import { toast } from "@/lib/toast";
 import { JOBS_KEY } from "@/lib/use-jobs";
@@ -55,6 +58,7 @@ type State = {
   /** The AI helper's order for the cards (ids), when it sent one. */
   order: string[] | null;
   answer: Answer | null;
+  aiIssue: string | null;
 };
 const EMPTY: State = {
   running: false,
@@ -64,6 +68,7 @@ const EMPTY: State = {
   failed: false,
   order: null,
   answer: null,
+  aiIssue: null,
 };
 
 /** One box for everything: results stream in per source, grouped by kind of media. */
@@ -84,6 +89,7 @@ export function SearchView({
   links?: { label: string; url: string }[];
 }) {
   const t = useTranslations("Search");
+  const tIssues = useTranslations("AiIssues");
   const locale = useLocale();
   const id = useId();
   const [text, setText] = useState(initialQuery);
@@ -140,10 +146,16 @@ export function SearchView({
       const answer = JSON.parse((event as MessageEvent<string>).data) as Answer;
       setState((s) => ({ ...s, answer }));
     });
-    source.addEventListener("done", () => {
+    source.addEventListener("done", (event) => {
       finished = true;
       source.close();
-      setState((s) => ({ ...s, running: false }));
+      let aiIssue: string | null = null;
+      try {
+        aiIssue = (JSON.parse((event as MessageEvent<string>).data) as UniversalDone).ai_issue;
+      } catch {
+        // an older server: no AI status
+      }
+      setState((s) => ({ ...s, running: false, aiIssue }));
     });
     source.onerror = () => {
       source.close();
@@ -175,8 +187,11 @@ export function SearchView({
   const tabs = MEDIA_ORDER.filter((m) => counts.has(m));
   const ordered = state.order ? byOrder(state.cards, state.order) : state.cards;
   const shown = tab === "all" ? ordered : ordered.filter((c) => c.media === tab);
-  const failedSources = state.sources.filter((s) => s.status === "error" || s.status === "timeout");
+  const failedSources = state.sources.filter(
+    (s) => s.status === "error" || s.status === "timeout" || s.status === "rate_limited",
+  );
   const needsKey = state.sources.some((s) => s.status === "needs_key");
+  const badKey = state.sources.some((s) => s.status === "bad_key");
   const presetQuery = givenPresetQuery || state.plan?.queries?.[0]?.q || "";
   const linkQuery = asked || presetQuery;
 
@@ -273,9 +288,18 @@ export function SearchView({
           ))}
         </ul>
         {state.running && <Skeleton className="h-28" aria-hidden="true" />}
-        {needsKey && (
+        {state.aiIssue && !state.running && (
+          <p className="text-sm text-muted-foreground" role="status" data-testid="ai-issue">
+            {t("aiIssue", {
+              issue: tIssues.has(state.aiIssue as "no_credits")
+                ? tIssues(state.aiIssue as "no_credits")
+                : tIssues("provider_error"),
+            })}
+          </p>
+        )}
+        {(needsKey || badKey) && (
           <p className="text-sm" data-testid="needs-key">
-            {t("needsTmdb")}{" "}
+            {badKey ? t("badKeyTmdb") : t("needsTmdb")}{" "}
             <a
               href={`/${locale}/connections#tmdb`}
               className="font-medium text-primary underline underline-offset-4"
@@ -344,7 +368,6 @@ function ResultItem({ card }: { card: Card }) {
   const t = useTranslations("Search");
   const tJobs = useTranslations("Jobs");
   const tErrors = useTranslations("Errors");
-  const locale = useLocale();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<"download" | "save" | null>(null);
   const queue = async (kind: "download" | "save") => {
@@ -409,12 +432,13 @@ function ResultItem({ card }: { card: Card }) {
           <div className="flex flex-wrap items-center gap-2">
             {card.download && (
               <>
-                <a
-                  href={`/${locale}?url=${encodeURIComponent(card.download)}`}
+                {/* In-app navigation: a playing audio file keeps playing. */}
+                <Link
+                  href={`/?url=${encodeURIComponent(card.download)}`}
                   className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-accent"
                 >
                   {t("preview")}
-                </a>
+                </Link>
                 <Button size="sm" onClick={() => void queue("download")} disabled={busy !== null}>
                   {busy === "download" && (
                     <Loader2Icon className="animate-spin" aria-hidden="true" />
@@ -515,12 +539,7 @@ function MovieDetails({ movie }: { movie: MovieInfo }) {
 }
 
 /** Cards in the AI helper's order; cards it didn't rank keep their place at the end. */
-export function byOrder(cards: Card[], order: string[]): Card[] {
-  const position = new Map(order.map((id, i) => [id, i]));
-  return [...cards].sort(
-    (a, b) => (position.get(a.id) ?? order.length) - (position.get(b.id) ?? order.length),
-  );
-}
+export { byOrder };
 
 function AnswerCard({ answer, cards }: { answer: Answer; cards: Card[] }) {
   const t = useTranslations("Search");

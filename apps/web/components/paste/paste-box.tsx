@@ -4,7 +4,7 @@ import type { ProbeResult } from "@anyget/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { ArrowRightIcon, ClipboardPasteIcon, FileTextIcon, Loader2Icon } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   useEffect,
   useId,
@@ -16,6 +16,7 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useRouter } from "@/i18n/navigation";
 import { createJobs, probeUrl } from "@/lib/api";
 import { DROP_EVENT, DROP_KEY } from "@/lib/drop";
 import { errorMessage } from "@/lib/errors";
@@ -39,7 +40,7 @@ type Step = (typeof STEPS)[number] | null;
 export function PasteBox() {
   const t = useTranslations("Home");
   const tSections = useTranslations("Sections");
-  const locale = useLocale();
+  const router = useRouter();
   const tJobs = useTranslations("Jobs");
   const tErrors = useTranslations("Errors");
   const queryClient = useQueryClient();
@@ -146,9 +147,8 @@ export function PasteBox() {
       // Not a link: search everything (or the chosen section) for it.
       const params = new URLSearchParams({ q: text.trim().slice(0, 500) });
       if (mode !== "all") params.set("section", mode);
-      // A full load: the target page starts from its address.
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.assign(`${window.location.origin}/${locale}/search?${params}`);
+      // In-app navigation, so audio playing in the mini-player keeps going.
+      router.push(`/search?${params}`);
       return;
     }
     if (links.length === 1) probeMutation.mutate(links[0]!);

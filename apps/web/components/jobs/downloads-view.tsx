@@ -82,7 +82,8 @@ export function DownloadsView() {
             onClick={() => setFilter(f)}
           >
             {t(`filters.${f}`)}
-            <span className="tabular-nums opacity-80">{counts[f]}</span>
+            {/* No count until the list has loaded: a 0 here would be a false "empty". */}
+            {data && <span className="tabular-nums opacity-80">{counts[f]}</span>}
           </Button>
         ))}
         {failed.length > 1 && (
@@ -99,13 +100,22 @@ export function DownloadsView() {
         )}
       </div>
 
+      {isError && data && (
+        <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+          {t("staleList")}
+          <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isRefetching}>
+            <RefreshCwIcon aria-hidden="true" />
+            {t("retry")}
+          </Button>
+        </p>
+      )}
       {isPending ? (
         <div className="flex flex-col gap-2" aria-busy="true">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-20" />
           ))}
         </div>
-      ) : isError ? (
+      ) : isError && !data ? (
         <div
           role="alert"
           className="flex flex-col items-center gap-3 rounded-lg border p-8 text-center"

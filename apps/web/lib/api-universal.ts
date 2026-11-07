@@ -61,9 +61,16 @@ export type RouterPlan = {
 
 export type SourceDone = {
   source: UniversalSource;
-  status: "ok" | "timeout" | "error" | "needs_key";
+  status: "ok" | "timeout" | "error" | "needs_key" | "bad_key" | "rate_limited";
   message: string | null;
   results: ResultCard[];
+};
+
+/** The end of a search; ai_issue says why AI couldn't help (results are source-only). */
+export type UniversalDone = {
+  total: number;
+  counts: Record<string, number>;
+  ai_issue: string | null;
 };
 
 /** The AI helper's short answer to a question, citing result card ids. */
