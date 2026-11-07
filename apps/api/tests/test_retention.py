@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from anyget.core.jobs import JobState
+from anyget.core.queue import InvalidStateError
 from anyget.core.services import Services
 from anyget.core.settings import Settings
 from anyget.library.models import LibraryItem
@@ -145,3 +146,17 @@ def test_retention_api(env_settings: Path) -> None:
         assert saved["retention_days"] == 0
         assert client.get("/api/retention").json()["enabled"] is False
         assert client.put("/api/settings", json={"retention_days": -1}).status_code == 422
+
+
+async def test_retry_downloads_an_expired_file_again(services: Services) -> None:
+    _start(services, days_ago=30)
+    done = services.store.create("https://files.test/old.zip")
+    services.store.update(done.id, state=JobState.done, rel_path="old.zip")
+    _add(services, "old.zip", age_days=20, job_id=done.id)
+    services.retention.run(now=NOW)
+    again = services.queue.retry(done.id)
+    assert again.state == JobState.queued and again.note is None
+    other = services.store.create("https://files.test/fine.zip")
+    services.store.update(other.id, state=JobState.done, rel_path="fine.zip")
+    with pytest.raises(InvalidStateError):
+        services.queue.retry(other.id)  # a normal finished download is not retried
