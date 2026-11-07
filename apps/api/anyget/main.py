@@ -16,6 +16,7 @@ from anyget.api import (
     library,
     llm,
     probe,
+    retention,
     sections,
     system,
     universal,
@@ -102,6 +103,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sections,
         llm,
         library,
+        retention,
         watches,
     ):
         app.include_router(module.router, prefix="/api")

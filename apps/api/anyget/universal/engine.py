@@ -165,7 +165,7 @@ class Engine:
         except TimeoutError:
             return SourceDone(source=spec.source, status="timeout")
         except HandlerError as exc:
-            state = "needs_key" if exc.code == "needs_key" else "error"
+            state = exc.code if exc.code in ("needs_key", "bad_key", "rate_limited") else "error"
             return SourceDone(source=spec.source, status=state, message=exc.message)
         except Exception as exc:  # one source failing never stops the others
             log.info("universal source %s failed: %s", spec.source, type(exc).__name__)

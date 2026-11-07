@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from anyget.api.deps import ServicesDep
+from anyget.llm.client import AiIssue
 from anyget.llm.models import router_models, summary_models
 
 router = APIRouter(tags=["llm"])
@@ -23,6 +24,9 @@ class LlmStatus(BaseModel):
     today: LlmToday
     router_models: list[str]
     summary_models: list[str]
+    # Why AI isn't helping right now: no_credits, bad_key, rate_limited… (None = fine
+    # or no key). Never contains key material.
+    issue: AiIssue | None = None
 
 
 @router.get("/llm", operation_id="llmStatus")
@@ -41,4 +45,5 @@ async def llm_status(services: ServicesDep) -> LlmStatus:
         ),
         router_models=router_models(s),
         summary_models=summary_models(s),
+        issue=services.brain.issue(),
     )

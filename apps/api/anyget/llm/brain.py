@@ -9,12 +9,13 @@ sent. Answers come back in the language the user wrote in.
 """
 
 import logging
+from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from anyget.core.settings import Settings
-from anyget.llm.client import LlmUnavailable, OpenRouter
+from anyget.llm.client import AiIssue, LlmUnavailable, OpenRouter
 from anyget.llm.models import router_models, summary_models
 from anyget.universal.keyword_router import ALL_SOURCES
 from anyget.universal.keyword_router import plan as keyword_plan
@@ -23,6 +24,10 @@ from anyget.universal.sections import BY_ID as SECTIONS
 from anyget.universal.sections import preset_of
 
 log = logging.getLogger("anyget.llm")
+
+COOL_DOWN_ISSUES = ("no_credits", "bad_key")
+COOL_DOWN = timedelta(minutes=10)
+RECENT = timedelta(minutes=10)
 
 LANGUAGE_NAMES = {"en": "English", "hi": "Hindi", "hinglish": "Hinglish", "ar": "Arabic"}
 MAX_CARDS = 30
@@ -81,7 +86,27 @@ class Brain:
 
     @property
     def active(self) -> bool:
-        return self.client.configured and self.client.under_limit()
+        if not (self.client.configured and self.client.under_limit()):
+            return False
+        # After "no credits" or a refused key, don't ask again for a while: every
+        # search would wait for the same refusal.
+        last = self.client.last_issue
+        return not (
+            last is not None
+            and last[0] in COOL_DOWN_ISSUES
+            and datetime.now(UTC) - last[1] < COOL_DOWN
+        )
+
+    def issue(self) -> AiIssue | None:
+        """Why AI isn't helping right now (None if it is, or if no key is set)."""
+        if not self.client.configured:
+            return None
+        if not self.client.under_limit():
+            return "daily_limit"
+        last = self.client.last_issue
+        if last is not None and datetime.now(UTC) - last[1] < RECENT:
+            return last[0]
+        return None
 
     async def plan(
         self, text: str, section: str | None = None, preset: str | None = None

@@ -431,6 +431,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/library/by-job/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Item For Job
+         * @description The library item for a finished download's main file (Downloads → Preview).
+         */
+        get: operations["libraryItemForJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/library/scan": {
         parameters: {
             query?: never;
@@ -467,6 +487,46 @@ export interface paths {
         patch: operations["updateLibraryItem"];
         trace?: never;
     };
+    "/api/library/{item_id}/epub": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Epub Contents
+         * @description An EPUB's title and chapters (from its table of contents when it has one).
+         */
+        get: operations["libraryEpub"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/{item_id}/epub/{index}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Epub Contents Chapter
+         * @description One chapter as plain text blocks (headings, paragraphs, lists): no HTML.
+         */
+        get: operations["libraryEpubChapter"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/library/{item_id}/file": {
         parameters: {
             query?: never;
@@ -487,6 +547,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/library/{item_id}/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * File Info
+         * @description What the file really is (from its first bytes) and how AnyGet can show it.
+         */
+        get: operations["libraryFileInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/library/{item_id}/preview": {
         parameters: {
             query?: never;
@@ -496,7 +576,7 @@ export interface paths {
         };
         /**
          * Preview Item
-         * @description Text preview for EPUB files (other kinds preview the file itself).
+         * @description Short text preview: the first chapters of an EPUB, or the start of a text file.
          */
         get: operations["previewLibraryItem"];
         put?: never;
@@ -518,6 +598,47 @@ export interface paths {
         put?: never;
         /** Redownload */
         post: operations["redownloadLibraryItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/{item_id}/subtitles/{index}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Subtitles
+         * @description A subtitle file saved next to the video, as WebVTT (SRT is converted).
+         */
+        get: operations["librarySubtitles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/{item_id}/text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * File Text
+         * @description A page of a text file (UTF-8), so big logs and books load piece by piece.
+         *     HTML comes back as its visible text: tags and scripts never run.
+         */
+        get: operations["libraryText"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -572,6 +693,46 @@ export interface paths {
         put?: never;
         /** Probe */
         post: operations["probeUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/retention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Retention
+         * @description The policy: days (0 = off), when removals start (grace period), the last run.
+         */
+        get: operations["getRetention"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/retention/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Retention
+         * @description What a cleanup would remove (dry_run=true, the default), or run it now.
+         */
+        post: operations["runRetention"];
         delete?: never;
         options?: never;
         head?: never;
@@ -884,6 +1045,16 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** Block */
+        Block: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "h1" | "h2" | "h3" | "h4" | "p" | "li" | "quote" | "pre";
+            /** Text */
+            text: string;
+        };
         /** BookFormat */
         BookFormat: {
             /**
@@ -943,6 +1114,13 @@ export interface components {
             /** Sources */
             sources?: components["schemas"]["SourceStatus"][];
         };
+        /** Chapter */
+        Chapter: {
+            /** Index */
+            index: number;
+            /** Title */
+            title: string | null;
+        };
         /**
          * Choice
          * @description One thing the user can pick after a probe: a format, a file or a playlist item.
@@ -966,6 +1144,31 @@ export interface components {
             label: string;
             /** Size */
             size?: number | null;
+        };
+        /** CleanupResult */
+        CleanupResult: {
+            /** Blocked */
+            blocked?: string | null;
+            /** Cutoff */
+            cutoff: string | null;
+            /** Days */
+            days: number;
+            /** Dry Run */
+            dry_run: boolean;
+            /** Enabled */
+            enabled: boolean;
+            /** Freed Bytes */
+            freed_bytes: number;
+            /** Removed */
+            removed: string[];
+            /** Skipped Active */
+            skipped_active: number;
+            /** Skipped Kept */
+            skipped_kept: number;
+            /** Skipped Unsafe */
+            skipped_unsafe: number;
+            /** Starts At */
+            starts_at: string | null;
         };
         /**
          * ConnectionIn
@@ -1067,6 +1270,27 @@ export interface components {
             /** Skipped */
             skipped?: components["schemas"]["RejectedUrl"][];
         };
+        /** EpubBook */
+        EpubBook: {
+            /** Chapters */
+            chapters: components["schemas"]["Chapter"][];
+            /** Title */
+            title: string | null;
+        };
+        /** EpubChapter */
+        EpubChapter: {
+            /** Blocks */
+            blocks: components["schemas"]["Block"][];
+            /** Index */
+            index: number;
+            /** Title */
+            title: string | null;
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated: boolean;
+        };
         /** EpubPreview */
         EpubPreview: {
             /** Text */
@@ -1075,6 +1299,30 @@ export interface components {
             title: string | null;
             /** Truncated */
             truncated: boolean;
+        };
+        /** FileInfo */
+        FileInfo: {
+            /**
+             * May Not Play
+             * @default false
+             */
+            may_not_play: boolean;
+            /** Mime */
+            mime: string;
+            /**
+             * Preview
+             * @enum {string}
+             */
+            preview: "video" | "audio" | "image" | "pdf" | "epub" | "text" | "none";
+            /** Reason */
+            reason?: ("unsupported_format" | "office" | "archive" | "too_large" | "empty" | "missing") | null;
+            /** Size */
+            size: number;
+            /**
+             * Subtitles
+             * @default []
+             */
+            subtitles: components["schemas"]["Subtitle"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1193,6 +1441,11 @@ export interface components {
             added_at: string;
             /** Duplicate Of */
             duplicate_of: string | null;
+            /**
+             * Expired
+             * @default false
+             */
+            expired: boolean;
             /** Id */
             id: string;
             /** Job Id */
@@ -1327,6 +1580,8 @@ export interface components {
             daily_limit: number;
             /** Free Mode */
             free_mode: boolean;
+            /** Issue */
+            issue?: ("no_key" | "bad_key" | "no_credits" | "refused" | "rate_limited" | "provider_error" | "network" | "daily_limit" | "bad_answer") | null;
             /** Router Models */
             router_models: string[];
             /** Summary Models */
@@ -1425,6 +1680,19 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** RetentionStatus */
+        RetentionStatus: {
+            /** Blocked */
+            blocked?: string | null;
+            /** Days */
+            days: number;
+            /** Enabled */
+            enabled: boolean;
+            /** Last Run */
+            last_run: string | null;
+            /** Starts At */
+            starts_at: string | null;
+        };
         /** ScanResult */
         ScanResult: {
             /** Added */
@@ -1510,6 +1778,8 @@ export interface components {
             proxy?: string | null;
             /** Rate Limit Kbps */
             rate_limit_kbps?: number | null;
+            /** Retention Days */
+            retention_days?: number | null;
             /** Torrent Enabled */
             torrent_enabled?: boolean | null;
             /** Torrent Seed */
@@ -1543,6 +1813,8 @@ export interface components {
             rate_limit_kbps: number;
             /** Restart Needed */
             restart_needed?: string[];
+            /** Retention Days */
+            retention_days: number;
             /** Torrent Available */
             torrent_available: boolean;
             /** Torrent Enabled */
@@ -1605,6 +1877,15 @@ export interface components {
              */
             status: "ok" | "needs_key" | "timeout" | "error" | "link_only" | "skipped";
         };
+        /** Subtitle */
+        Subtitle: {
+            /** Index */
+            index: number;
+            /** Label */
+            label: string;
+            /** Lang */
+            lang: string | null;
+        };
         /** SuggestionsOut */
         SuggestionsOut: {
             /** Queries */
@@ -1618,6 +1899,17 @@ export interface components {
             ok: boolean;
             /** Result */
             result: string;
+        };
+        /** TextPage */
+        TextPage: {
+            /** Next Offset */
+            next_offset: number | null;
+            /** Offset */
+            offset: number;
+            /** Size */
+            size: number;
+            /** Text */
+            text: string;
         };
         /** ToolVersions */
         ToolVersions: {
@@ -3217,6 +3509,73 @@ export interface operations {
             };
         };
     };
+    libraryItemForJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryItemOut"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     scanLibrary: {
         parameters: {
             query?: never;
@@ -3442,6 +3801,141 @@ export interface operations {
             };
         };
     };
+    libraryEpub: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EpubBook"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    libraryEpubChapter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EpubChapter"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     getLibraryFile: {
         parameters: {
             query?: {
@@ -3461,6 +3955,73 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    libraryFileInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileInfo"];
+                };
             };
             /** @description Blocked or invalid link */
             400: {
@@ -3594,6 +4155,144 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    librarySubtitles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    libraryText: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextPage"];
                 };
             };
             /** @description Blocked or invalid link */
@@ -3793,6 +4492,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getRetention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetentionStatus"];
+                };
+            };
+        };
+    };
+    runRetention: {
+        parameters: {
+            query?: {
+                dry_run?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CleanupResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

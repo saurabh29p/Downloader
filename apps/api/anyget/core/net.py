@@ -289,9 +289,13 @@ class Net:
         url: str,
         headers: dict[str, str] | None = None,
         content: bytes | None = None,
+        retries: int = 3,
     ) -> httpx.Response:
-        """Send a request (following redirects safely) and read the whole body."""
-        response = await self._send(method, url, headers, stream=False, content=content)
+        """Send a request (following redirects safely) and read the whole body.
+        `retries` is how often a 429/503 answer is retried after a back-off."""
+        response = await self._send(
+            method, url, headers, stream=False, retries=retries, content=content
+        )
         return response
 
     @asynccontextmanager

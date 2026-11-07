@@ -222,3 +222,65 @@ def test_stream_sends_rerank_and_answer(client: TestClient, respx_mock: respx.Mo
     assert status["daily_limit"] == 500
     suggested = client.get("/api/sections/movies/suggestions").json()
     assert suggested == {"queries": ["Nosferatu", "Metropolis"], "source": "ai"}
+
+
+@pytest.mark.parametrize(
+    ("response", "issue"),
+    [
+        (httpx.Response(401, json={}), "bad_key"),
+        (
+            httpx.Response(402, json={"error": {"code": 402, "message": "Insufficient credits"}}),
+            "no_credits",
+        ),
+        (httpx.Response(403, json={}), "refused"),
+        (httpx.Response(429, json={}), "rate_limited"),
+        (httpx.Response(502, json={}), "provider_error"),
+        (httpx.Response(200, json={"error": {"code": 402, "message": "credits"}}), "no_credits"),
+    ],
+)
+@respx.mock
+async def test_failures_are_told_apart(brain: Brain, response: httpx.Response, issue: str) -> None:
+    route = respx.post(API).mock(return_value=response)
+    plan = await brain.plan("who built the Taj Mahal?")
+    assert plan.router == "keyword" and plan.queries  # the search still works
+    assert brain.issue() == issue
+    assert route.call_count == 1  # 429 is not retried with a long back-off
+
+
+@respx.mock
+async def test_no_credits_cools_down_then_recovers(brain: Brain) -> None:
+    route = respx.post(API).mock(return_value=httpx.Response(402, json={}))
+    await brain.plan("Taj Mahal history")
+    await brain.plan("Qutub Minar history")
+    assert route.call_count == 1  # no second call while credits are known to be gone
+    brain.client.last_issue = None  # e.g. 10 minutes later
+    route.mock(return_value=reply(ROUTER_OK))
+    assert (await brain.plan("Qutub Minar history")).router == "llm"
+    assert brain.issue() is None
+
+
+@respx.mock(assert_all_called=False)
+def test_stream_says_when_ai_could_not_help(
+    client: TestClient, respx_mock: respx.MockRouter
+) -> None:
+    respx_mock.route(host="testserver").pass_through()
+    respx_mock.get(url__startswith="https://archive.org/advancedsearch.php").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "response": {
+                    "numFound": 1,
+                    "docs": [{"identifier": "a", "title": "Taj", "mediatype": "texts"}],
+                }
+            },
+        )
+    )
+    respx_mock.get(url__startswith="https://commons.wikimedia.org").mock(
+        return_value=httpx.Response(200, json={"query": {"pages": []}})
+    )
+    respx_mock.post(API).mock(return_value=httpx.Response(402, json={}))
+    text = client.get("/api/universal", params={"q": "who built the Taj Mahal?"}).text
+    assert "event: answer" not in text  # no AI answer card is made up
+    assert '"router": "keyword"' in text and '"ai_issue": "no_credits"' in text
+    status = client.get("/api/llm").json()
+    assert status["issue"] == "no_credits" and KEY not in str(status)

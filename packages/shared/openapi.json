@@ -265,6 +265,34 @@
         "title": "ArchiveItemOut",
         "type": "object"
       },
+      "Block": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "h1",
+              "h2",
+              "h3",
+              "h4",
+              "p",
+              "li",
+              "quote",
+              "pre"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "text"
+        ],
+        "title": "Block",
+        "type": "object"
+      },
       "BookFormat": {
         "properties": {
           "kind": {
@@ -466,6 +494,31 @@
         "title": "BookSearch",
         "type": "object"
       },
+      "Chapter": {
+        "properties": {
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "index",
+          "title"
+        ],
+        "title": "Chapter",
+        "type": "object"
+      },
       "Choice": {
         "description": "One thing the user can pick after a probe: a format, a file or a playlist item.",
         "properties": {
@@ -516,6 +569,94 @@
           "kind"
         ],
         "title": "Choice",
+        "type": "object"
+      },
+      "CleanupResult": {
+        "properties": {
+          "blocked": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocked"
+          },
+          "cutoff": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cutoff"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "freed_bytes": {
+            "title": "Freed Bytes",
+            "type": "integer"
+          },
+          "removed": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Removed",
+            "type": "array"
+          },
+          "skipped_active": {
+            "title": "Skipped Active",
+            "type": "integer"
+          },
+          "skipped_kept": {
+            "title": "Skipped Kept",
+            "type": "integer"
+          },
+          "skipped_unsafe": {
+            "title": "Skipped Unsafe",
+            "type": "integer"
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          }
+        },
+        "required": [
+          "dry_run",
+          "enabled",
+          "days",
+          "cutoff",
+          "starts_at",
+          "removed",
+          "freed_bytes",
+          "skipped_active",
+          "skipped_kept",
+          "skipped_unsafe"
+        ],
+        "title": "CleanupResult",
         "type": "object"
       },
       "ConnectionIn": {
@@ -825,6 +966,72 @@
         "title": "CreateJobsResult",
         "type": "object"
       },
+      "EpubBook": {
+        "properties": {
+          "chapters": {
+            "items": {
+              "$ref": "#/components/schemas/Chapter"
+            },
+            "title": "Chapters",
+            "type": "array"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "title",
+          "chapters"
+        ],
+        "title": "EpubBook",
+        "type": "object"
+      },
+      "EpubChapter": {
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/Block"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "index",
+          "title",
+          "blocks"
+        ],
+        "title": "EpubChapter",
+        "type": "object"
+      },
       "EpubPreview": {
         "properties": {
           "text": {
@@ -853,6 +1060,70 @@
           "truncated"
         ],
         "title": "EpubPreview",
+        "type": "object"
+      },
+      "FileInfo": {
+        "properties": {
+          "may_not_play": {
+            "default": false,
+            "title": "May Not Play",
+            "type": "boolean"
+          },
+          "mime": {
+            "title": "Mime",
+            "type": "string"
+          },
+          "preview": {
+            "enum": [
+              "video",
+              "audio",
+              "image",
+              "pdf",
+              "epub",
+              "text",
+              "none"
+            ],
+            "title": "Preview",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "unsupported_format",
+                  "office",
+                  "archive",
+                  "too_large",
+                  "empty",
+                  "missing"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "subtitles": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Subtitle"
+            },
+            "title": "Subtitles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "preview",
+          "mime",
+          "size"
+        ],
+        "title": "FileInfo",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -1190,6 +1461,11 @@
               }
             ],
             "title": "Duplicate Of"
+          },
+          "expired": {
+            "default": false,
+            "title": "Expired",
+            "type": "boolean"
           },
           "id": {
             "title": "Id",
@@ -1620,6 +1896,28 @@
             "title": "Free Mode",
             "type": "boolean"
           },
+          "issue": {
+            "anyOf": [
+              {
+                "enum": [
+                  "no_key",
+                  "bad_key",
+                  "no_credits",
+                  "refused",
+                  "rate_limited",
+                  "provider_error",
+                  "network",
+                  "daily_limit",
+                  "bad_answer"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issue"
+          },
           "router_models": {
             "items": {
               "type": "string"
@@ -1919,6 +2217,61 @@
           "message"
         ],
         "title": "RejectedUrl",
+        "type": "object"
+      },
+      "RetentionStatus": {
+        "properties": {
+          "blocked": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocked"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run"
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          }
+        },
+        "required": [
+          "days",
+          "enabled",
+          "starts_at",
+          "last_run"
+        ],
+        "title": "RetentionStatus",
         "type": "object"
       },
       "ScanResult": {
@@ -2268,6 +2621,19 @@
             ],
             "title": "Rate Limit Kbps"
           },
+          "retention_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retention Days"
+          },
           "torrent_enabled": {
             "anyOf": [
               {
@@ -2357,6 +2723,10 @@
             "title": "Restart Needed",
             "type": "array"
           },
+          "retention_days": {
+            "title": "Retention Days",
+            "type": "integer"
+          },
           "torrent_available": {
             "title": "Torrent Available",
             "type": "boolean"
@@ -2384,6 +2754,7 @@
           "proxy",
           "contact_email",
           "watch_enabled",
+          "retention_days",
           "torrent_enabled",
           "torrent_seed",
           "llm_free_mode",
@@ -2551,6 +2922,36 @@
         "title": "SourceStatus",
         "type": "object"
       },
+      "Subtitle": {
+        "properties": {
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
+          }
+        },
+        "required": [
+          "index",
+          "label",
+          "lang"
+        ],
+        "title": "Subtitle",
+        "type": "object"
+      },
       "SuggestionsOut": {
         "properties": {
           "queries": {
@@ -2588,6 +2989,41 @@
           "result"
         ],
         "title": "TestResult",
+        "type": "object"
+      },
+      "TextPage": {
+        "properties": {
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "offset",
+          "next_offset",
+          "size"
+        ],
+        "title": "TextPage",
         "type": "object"
       },
       "ToolVersions": {
@@ -5295,6 +5731,89 @@
         ]
       }
     },
+    "/api/library/by-job/{job_id}": {
+      "get": {
+        "description": "The library item for a finished download's main file (Downloads → Preview).",
+        "operationId": "libraryItemForJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryItemOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Item For Job",
+        "tags": [
+          "library"
+        ]
+      }
+    },
     "/api/library/scan": {
       "post": {
         "operationId": "scanLibrary",
@@ -5571,6 +6090,181 @@
         ]
       }
     },
+    "/api/library/{item_id}/epub": {
+      "get": {
+        "description": "An EPUB's title and chapters (from its table of contents when it has one).",
+        "operationId": "libraryEpub",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EpubBook"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Epub Contents",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/{item_id}/epub/{index}": {
+      "get": {
+        "description": "One chapter as plain text blocks (headings, paragraphs, lists): no HTML.",
+        "operationId": "libraryEpubChapter",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "index",
+            "required": true,
+            "schema": {
+              "title": "Index",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EpubChapter"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Epub Contents Chapter",
+        "tags": [
+          "library"
+        ]
+      }
+    },
     "/api/library/{item_id}/file": {
       "get": {
         "description": "The file itself; Range requests work, so video and audio can seek.",
@@ -5657,9 +6351,92 @@
         ]
       }
     },
+    "/api/library/{item_id}/info": {
+      "get": {
+        "description": "What the file really is (from its first bytes) and how AnyGet can show it.",
+        "operationId": "libraryFileInfo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "File Info",
+        "tags": [
+          "library"
+        ]
+      }
+    },
     "/api/library/{item_id}/preview": {
       "get": {
-        "description": "Text preview for EPUB files (other kinds preview the file itself).",
+        "description": "Short text preview: the first chapters of an EPUB, or the start of a text file.",
         "operationId": "previewLibraryItem",
         "parameters": [
           {
@@ -5817,6 +6594,204 @@
           }
         },
         "summary": "Redownload",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/{item_id}/subtitles/{index}": {
+      "get": {
+        "description": "A subtitle file saved next to the video, as WebVTT (SRT is converted).",
+        "operationId": "librarySubtitles",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "index",
+            "required": true,
+            "schema": {
+              "title": "Index",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Subtitles",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/{item_id}/text": {
+      "get": {
+        "description": "A page of a text file (UTF-8), so big logs and books load piece by piece.\nHTML comes back as its visible text: tags and scripts never run.",
+        "operationId": "libraryText",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 262144,
+              "maximum": 1048576,
+              "minimum": 1024,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TextPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "File Text",
         "tags": [
           "library"
         ]
@@ -5997,6 +6972,72 @@
         "summary": "Probe",
         "tags": [
           "probe"
+        ]
+      }
+    },
+    "/api/retention": {
+      "get": {
+        "description": "The policy: days (0 = off), when removals start (grace period), the last run.",
+        "operationId": "getRetention",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Retention",
+        "tags": [
+          "retention"
+        ]
+      }
+    },
+    "/api/retention/run": {
+      "post": {
+        "description": "What a cleanup would remove (dry_run=true, the default), or run it now.",
+        "operationId": "runRetention",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Dry Run",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanupResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Retention",
+        "tags": [
+          "retention"
         ]
       }
     },
