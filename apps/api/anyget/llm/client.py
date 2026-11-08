@@ -14,7 +14,8 @@ never cookies, keys or file contents. The key is never logged.
 
 import json
 import logging
-from typing import Any, TypeVar
+from datetime import UTC, datetime
+from typing import Any, Literal, TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
@@ -29,8 +30,38 @@ API = "https://openrouter.ai/api/v1/chat/completions"
 T = TypeVar("T", bound=BaseModel)
 
 
+# Why the AI helper did not answer (shown to the user without any secret details).
+AiIssue = Literal[
+    "no_key",  # no OpenRouter key set
+    "bad_key",  # OpenRouter refused the key (401)
+    "no_credits",  # the account has no credits left (402)
+    "refused",  # OpenRouter refused this request (403, e.g. moderation)
+    "rate_limited",  # too many requests right now (429)
+    "provider_error",  # OpenRouter or the model provider failed (5xx, timeouts)
+    "network",  # OpenRouter could not be reached
+    "daily_limit",  # AnyGet's own daily cap (ANYGET_LLM_DAILY_LIMIT)
+    "bad_answer",  # two answers that did not match the schema
+]
+
+
 class LlmUnavailable(Exception):  # noqa: N818 - a state, not an error to report
     """No key, daily limit reached, or no valid answer: use the keyword path."""
+
+    def __init__(self, code: AiIssue, detail: str = "") -> None:
+        super().__init__(f"{code}: {detail}" if detail else code)
+        self.code: AiIssue = code
+
+
+def _issue_for(status: int) -> AiIssue:
+    if status == 401:
+        return "bad_key"
+    if status == 402:
+        return "no_credits"
+    if status == 403:
+        return "refused"
+    if status == 429:
+        return "rate_limited"
+    return "provider_error"
 
 
 class OpenRouter:
@@ -38,6 +69,8 @@ class OpenRouter:
         self.net = net
         self.settings = settings
         self.store = store
+        # The last failure (code, when), cleared by the next good answer.
+        self.last_issue: tuple[AiIssue, datetime] | None = None
 
     @property
     def configured(self) -> bool:
@@ -72,15 +105,27 @@ class OpenRouter:
             "HTTP-Referer": self.settings.app_url,
             "X-Title": "AnyGet",
         }
+        # No long back-off on 429: the search goes on without AI instead of waiting.
         response = await self.net.request(
-            "POST", API, headers=headers, content=json.dumps(body).encode()
+            "POST", API, headers=headers, content=json.dumps(body).encode(), retries=0
         )
-        if response.status_code in (401, 402, 403):
-            raise LlmUnavailable(f"OpenRouter refused the request ({response.status_code})")
         if response.status_code >= 400:
-            raise LlmUnavailable(f"OpenRouter answered {response.status_code}")
+            raise LlmUnavailable(
+                _issue_for(response.status_code), f"OpenRouter answered {response.status_code}"
+            )
         data: dict[str, Any] = response.json()
+        # OpenRouter can answer 200 with an error object (e.g. a provider failure).
+        error = data.get("error")
+        if isinstance(error, dict):
+            code = error.get("code")
+            raise LlmUnavailable(
+                _issue_for(code if isinstance(code, int) else 502), "error in the answer"
+            )
         return data
+
+    def _fail(self, exc: LlmUnavailable) -> LlmUnavailable:
+        self.last_issue = (exc.code, datetime.now(UTC))
+        return exc
 
     def _count(self, data: dict[str, Any]) -> None:
         usage = data.get("usage") or {}
@@ -110,16 +155,22 @@ class OpenRouter:
                 except ValidationError:
                     pass  # an old shape: ask again
         if not self.configured:
-            raise LlmUnavailable("no OpenRouter key")
+            raise LlmUnavailable("no_key")
         if not self.under_limit():
-            raise LlmUnavailable("the daily AI limit is reached")
+            raise self._fail(LlmUnavailable("daily_limit"))
         schema = answer.model_json_schema()
         body = self._body(models, system, user, answer.__name__, schema)
         for attempt in (1, 2):
             try:
                 data = await self._post(body)
-            except (httpx.HTTPError, BlockedURLError, ValueError) as exc:
-                raise LlmUnavailable(type(exc).__name__) from exc
+            except LlmUnavailable as exc:
+                raise self._fail(exc) from exc
+            except httpx.TimeoutException as exc:
+                raise self._fail(LlmUnavailable("provider_error", "timeout")) from exc
+            except (httpx.HTTPError, BlockedURLError) as exc:
+                raise self._fail(LlmUnavailable("network", type(exc).__name__)) from exc
+            except ValueError as exc:  # not JSON
+                raise self._fail(LlmUnavailable("provider_error", "not JSON")) from exc
             self._count(data)
             try:
                 content = data["choices"][0]["message"]["content"]
@@ -129,5 +180,6 @@ class OpenRouter:
                 continue
             if cache:
                 self.store.remember(kind, request, parsed.model_dump(mode="json"))
+            self.last_issue = None
             return parsed
-        raise LlmUnavailable("no valid answer")
+        raise self._fail(LlmUnavailable("bad_answer"))

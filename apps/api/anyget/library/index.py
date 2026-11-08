@@ -143,6 +143,7 @@ class LibraryIndex:
             item.job_id = job_id or item.job_id
             item.duplicate_of = None
             item.user_id = item.user_id or user_id
+            item.expired_at = None
             item.section = section or item.section
             item.licence = licence or item.licence
             if tags:
@@ -249,16 +250,22 @@ class LibraryIndex:
             missing = not self.path_of(item).is_file()
         except UnsafePathError:
             missing = True
-        data = item.model_dump(exclude={"section", "licence"})
+        data = item.model_dump(exclude={"section", "licence", "expired_at"})
+        expired = item.expired_at is not None
         return LibraryItemOut(
             **data,
-            missing=missing,
-            thumbnail=thumbnail_url(item),
+            missing=missing or expired,
+            expired=expired,
+            thumbnail=None if expired else thumbnail_url(item),
             section=section_of(item),
             licence=licence_of(item),
             source=source_of(item),
             snippet=snippet or None,
         )
+
+    def find(self, rel_path: str) -> LibraryItem | None:
+        with self.db.session() as session:
+            return session.exec(select(LibraryItem).where(LibraryItem.rel_path == rel_path)).first()
 
     def get(self, item_id: str) -> LibraryItem | None:
         with self.db.session() as session:

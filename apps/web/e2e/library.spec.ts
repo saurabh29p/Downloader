@@ -28,7 +28,7 @@ test("library: finished downloads appear with a preview and tags", async ({ page
 
   await card.click();
   const sheet = page.getByTestId("library-sheet");
-  await expect(sheet.getByTestId("preview-image")).toBeVisible();
+  await expect(sheet.getByTestId("sheet-open")).toBeVisible(); // previews open in the viewer
   await sheet.getByLabel("Tags (comma separated)").fill(`e2e-${testInfo.project.name}`);
   await sheet.getByRole("button", { name: "Save tags" }).click();
   await expect(page.getByText("Tags saved")).toBeVisible();
@@ -42,7 +42,12 @@ test("library: finished downloads appear with a preview and tags", async ({ page
     .getByTestId("library-item")
     .filter({ hasText: pdf.replace(/\.pdf$/, "") })
     .click();
-  await expect(page.getByTestId("preview-pdf")).toBeVisible();
+  await page.getByTestId("library-sheet").getByTestId("sheet-open").click();
+  // The fixture is random bytes named .pdf: the viewer says so instead of failing.
+  await expect(page.getByTestId("viewer-fallback")).toHaveAttribute(
+    "data-reason",
+    "unsupported_format",
+  );
 });
 
 test("watch: explains what can be watched and shows errors", async ({ page }) => {

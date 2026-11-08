@@ -44,6 +44,7 @@ from anyget.handlers.wayback import WaybackHandler
 from anyget.handlers.wikimedia import WikimediaHandler
 from anyget.handlers.ytdlp import YtDlpHandler
 from anyget.library.index import LibraryIndex
+from anyget.library.retention import Retention, RetentionScheduler
 from anyget.llm.brain import Brain
 from anyget.llm.client import OpenRouter
 from anyget.llm.store import LlmStore
@@ -96,6 +97,8 @@ class Services:
     login_limiter: RateLimiter
     connections: ConnectionStore
     brain: Brain
+    retention: Retention
+    cleanup: RetentionScheduler
 
     @classmethod
     def build(cls, settings: Settings, net: Net | None = None) -> "Services":
@@ -118,6 +121,7 @@ class Services:
         library = LibraryIndex(db, settings.downloads_dir)
         queue.on_done.append(library.add_job)
         watches = WatchService(db, net, router, queue)
+        retention = Retention(db, settings, settings_store, library)
         return cls(
             settings,
             db,
@@ -137,6 +141,8 @@ class Services:
             RateLimiter(),
             connections,
             Brain(OpenRouter(net, settings, LlmStore(db)), settings),
+            retention,
+            RetentionScheduler(retention),
         )
 
     async def start(self, recover: bool = True, watch: bool | None = None) -> None:
@@ -144,8 +150,12 @@ class Services:
         # The API server runs watches; the CLI (recover=False) does not.
         if (recover if watch is None else watch) and self.settings.watch_enabled:
             self.scheduler.start()
+        # Retention cleanup also runs only in the API server (never from a CLI command).
+        if recover:
+            self.cleanup.start()
 
     async def stop(self) -> None:
+        await self.cleanup.stop()
         await self.scheduler.stop()
         await self.queue.stop()
         await self.net.aclose()

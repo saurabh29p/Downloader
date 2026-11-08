@@ -117,7 +117,7 @@ async def test_tmdb_v4_token_and_bad_key(net: Net) -> None:
     route = respx.get(url__startswith=f"{TMDB}/search/movie").mock(return_value=httpx.Response(401))
     with pytest.raises(HandlerError) as caught:
         await search_movies(net, "eyJhbGciOi.token", "x")
-    assert caught.value.code == "needs_key"
+    assert caught.value.code == "bad_key"  # a saved key that TMDB refused
     assert route.calls[0].request.headers["authorization"] == "Bearer eyJhbGciOi.token"
     with pytest.raises(HandlerError):
         await search_movies(net, "", "x")

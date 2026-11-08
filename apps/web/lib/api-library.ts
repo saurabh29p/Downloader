@@ -62,3 +62,5 @@ export const putSettings = (body: SettingsUpdate) => call(api.PUT("/api/settings
 export const checkYtDlp = () => call(api.GET("/api/settings/ytdlp"));
 
 export const getLlm = () => call(api.GET("/api/llm"));
+
+export const getRetention = () => call(api.GET("/api/retention"));

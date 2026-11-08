@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { PlayerHost } from "@/components/player/player-host";
 import { CommandPalette } from "@/components/shell/command-palette";
 import { DropAnywhere } from "@/components/shell/drop-anywhere";
 import { JobEventsBridge } from "@/components/shell/job-events-bridge";
@@ -85,6 +86,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <Toaster closeLabel={t("closeToast")} />
       <CommandPalette />
       <DropAnywhere />
+      <PlayerHost />
     </JobEventsBridge>
   );
 }

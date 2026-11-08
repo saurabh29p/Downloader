@@ -9,6 +9,9 @@ import { PasteBox } from "./paste-box";
 const probeUrl = vi.fn<(url: string) => Promise<unknown>>();
 const createJobs = vi.fn<(urls: string[]) => Promise<unknown>>();
 
+const push = vi.fn();
+vi.mock("@/i18n/navigation", () => ({ useRouter: () => ({ push }) }));
+
 vi.mock("@/lib/api", async () => {
   const actual = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
   return {
@@ -89,5 +92,14 @@ describe("PasteBox", () => {
     });
     expect(screen.getByLabelText("Search or paste links")).toHaveValue("https://files.test/b.pdf");
     await waitFor(() => expect(probeUrl).toHaveBeenCalledWith("https://files.test/b.pdf"));
+  });
+
+  it("searches in-app (no page reload, so audio keeps playing)", () => {
+    renderWithProviders(<PasteBox />);
+    fireEvent.change(screen.getByLabelText("Search or paste links"), {
+      target: { value: "Premchand stories" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+    expect(push).toHaveBeenCalledWith("/search?q=Premchand+stories");
   });
 });

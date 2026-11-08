@@ -17,7 +17,17 @@ export async function generateMetadata({
   return { title: `${t("title")} · AnyGet` };
 }
 
-const SECTIONS = ["paste", "sources", "library", "watch", "convert", "cli", "remote"] as const;
+const SECTIONS = [
+  "paste",
+  "sources",
+  "library",
+  "playback",
+  "retention",
+  "watch",
+  "convert",
+  "cli",
+  "remote",
+] as const;
 const KEYS = ["palette", "submit", "close"] as const;
 
 /** How to use AnyGet. Server-rendered: no client JavaScript. */
@@ -34,9 +44,15 @@ export default function HelpPage({ params }: { params: Promise<{ locale: Locale 
       {SECTIONS.map((key) => (
         <section key={key} className="flex flex-col gap-2" aria-labelledby={`help-${key}`}>
           <h2 id={`help-${key}`} className="text-lg font-semibold">
-            {t(`sections.${key}.title`)}
+            {key === "playback" || key === "retention"
+              ? t(`${key}Title`)
+              : t(`sections.${key}.title`)}
           </h2>
-          <p>{t(`sections.${key}.text`)}</p>
+          <p>
+            {key === "playback" || key === "retention"
+              ? t(`${key}Text`)
+              : t(`sections.${key}.text`)}
+          </p>
         </section>
       ))}
       <section className="flex flex-col gap-2" aria-labelledby="help-status">

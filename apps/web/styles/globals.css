@@ -326,3 +326,16 @@
     opacity: 0;
   }
 }
+
+/* While the audio mini-player shows, keep page content and toasts clear of it. */
+html[data-player="on"] #main {
+  padding-bottom: calc(var(--bottom-nav-height) + 9rem);
+}
+html[data-player="on"] [data-toasts] {
+  margin-bottom: 7rem;
+}
+@media (min-width: 48rem) {
+  html[data-player="on"] #main {
+    padding-bottom: 8rem;
+  }
+}

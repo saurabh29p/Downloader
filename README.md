@@ -5,7 +5,9 @@ Paste any public link, get the file. A personal universal downloader that runs o
 - **Core:** FastAPI + SQLite job queue with live progress (SSE), a URL router that sends each link to the best handler (yt-dlp, archive.org, gallery-dl, git, IIIF libraries, plain HTTP …).
 - **Website:** Next.js + Tailwind + shadcn/ui, English / Hindi / Arabic (RTL), installable as a phone app.
 - **CLI:** `anyget` (Typer + Rich).
-- **Access from anywhere:** Cloudflare Tunnel + Access (email login). Nothing is exposed on your router.
+- **Search everything:** one box for links, searches and questions, across legal sources, with Sections (Movies, Books, Music, Video, Declassified, More). An optional AI helper (OpenRouter) improves it; everything works without it.
+- **Read, watch and listen in the app:** saved files open in AnyGet itself: video (speed, subtitles), PDF, EPUB, text and pictures, and audio in a player that keeps going while you move between pages.
+- **Access from anywhere:** hosted (Railway + Vercel, owner sign-in: [docs/hosted.md](docs/hosted.md)), or Cloudflare Tunnel + Access, or Tailscale.
 
 > Personal use only. Download what you own, what is public domain or openly licensed, or what the site allows. No DRM, no shadow libraries, no geo-block or paywall bypass. See `CLAUDE.md`.
 
@@ -31,6 +33,25 @@ make up                                                      # rebuilds the Dock
 ```
 
 Then run `make live` (real downloads of Creative Commons/test media in the Docker test image) to check it still works.
+
+## Previews and listening
+
+Open a file from **Downloads** or the **Library**:
+
+- **Video:** your browser's player (play, seek, volume, full screen), plus speed, subtitles from `.srt`/`.vtt` files saved next to the video, and "resume where you left off". Some formats (MKV, MOV) don't play in every browser. AnyGet says so and offers Download; it never transcodes on its own.
+- **Audio:** plays in a mini-player at the bottom that survives page changes, with lock-screen controls where the browser supports them. On phones, playback with the screen locked depends on the browser and the OS. See Help → Listening and watching.
+- **PDF** (pages, zoom, search), **EPUB** (contents, font size, remembers your place; the book's own HTML and scripts never run), **text** (paged, search) and **pictures** (zoom, full screen, previous/next).
+- Office files, archives and unknown types get a short reason plus Download / Open.
+
+## How long files are kept
+
+Downloaded files are removed after **7 days** by default (`ANYGET_RETENTION_DAYS`, or Settings → Downloads; `0` keeps them forever).
+
+- The first removals happen 7 days after the policy is switched on, so turning it on never deletes old files at once.
+- Files tagged `keep`, and downloads still running, are never removed.
+- Only files AnyGet saved and indexed are considered; nothing outside the downloads folder is touched.
+- The Library keeps an entry for each removed file, with **Download again**.
+- Preview a cleanup with `uv run anyget cleanup` (it lists, deletes nothing); `--apply` runs it.
 
 ## Common commands
 
@@ -65,6 +86,7 @@ Extra sites can be added as Python packages: see [examples/anyget-plugin-example
 
 - `CLAUDE.md`: architecture, rules and roadmap (also read by Claude Code)
 - `docs/setup.md`: install the tools
+- `docs/hosted.md`: Railway + Vercel with the owner sign-in: every variable, and safe checks after a deploy
 - `docs/deploy.md`, `docs/tailscale.md`, `docs/termux.md`: reaching AnyGet from elsewhere
 - `docs/plan.md`: research tables: sources, endpoints, features
 - `prompts/`: one prompt per build phase
@@ -72,4 +94,4 @@ Extra sites can be added as Python packages: see [examples/anyget-plugin-example
 
 ## Status
 
-Version 1.0.0. All ten build phases are done. See `CHANGELOG.md`.
+Version 1.0.0 plus the v2 phases in `CHANGELOG.md` (Unreleased): sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room UI, previews, the audio player and retention.

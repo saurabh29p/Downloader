@@ -9,7 +9,7 @@ import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { checkYtDlp, getLlm, getSettings, putSettings } from "@/lib/api-library";
+import { checkYtDlp, getLlm, getRetention, getSettings, putSettings } from "@/lib/api-library";
 import { errorMessage } from "@/lib/errors";
 import { isolate } from "@/lib/format";
 import { toast } from "@/lib/toast";
@@ -25,7 +25,7 @@ export function AppSettings() {
   const tErrors = useTranslations("Errors");
   const settings = useQuery({ queryKey: KEY, queryFn: getSettings });
   // Same height as the form, so nothing jumps when it arrives.
-  if (settings.isPending) return <Skeleton className="h-[126rem] sm:h-[101rem]" aria-busy="true" />;
+  if (settings.isPending) return <Skeleton className="h-[137rem] sm:h-[109rem]" aria-busy="true" />;
   if (settings.isError)
     return (
       <div className="flex flex-col gap-2">
@@ -99,6 +99,7 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
     proxy: initial.proxy,
     contact_email: initial.contact_email,
     watch_enabled: initial.watch_enabled,
+    retention_days: initial.retention_days,
     torrent_enabled: initial.torrent_enabled,
     torrent_seed: initial.torrent_seed,
     llm_free_mode: initial.llm_free_mode,
@@ -112,6 +113,7 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
     mutationFn: (body: SettingsUpdate) => putSettings(body),
     onSuccess: (view) => {
       queryClient.setQueryData(KEY, view);
+      void queryClient.invalidateQueries({ queryKey: ["retention"] });
       toast.success(t("saved"));
     },
     onError: (err) => toast.error(errorMessage(tErrors, err)),
@@ -197,6 +199,27 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
           />
           {t("watchEnabled")}
         </label>
+        <Field
+          id={`${id}-keep`}
+          label={t("retention")}
+          hint={
+            <>
+              {t("retentionHint")} <RetentionState />
+            </>
+          }
+        >
+          <input
+            id={`${id}-keep`}
+            type="number"
+            min={0}
+            max={3650}
+            value={form.retention_days}
+            onChange={(e) => set("retention_days", Number(e.target.value))}
+            aria-describedby={`${id}-keep-hint`}
+            className={`${input} sm:w-40`}
+            data-testid="retention-days"
+          />
+        </Field>
       </Section>
 
       <Section title={t("ai")} id="ai">
@@ -360,16 +383,44 @@ export default AppSettings;
 /** Today's AI helper use: calls against the daily limit, and the cost OpenRouter reported. */
 function AiUsage() {
   const t = useTranslations("Settings");
+  const tIssues = useTranslations("AiIssues");
   const status = useQuery({ queryKey: ["llm"], queryFn: getLlm });
   if (!status.data) return null;
-  const { today, daily_limit } = status.data;
+  const { today, daily_limit, issue } = status.data;
   return (
-    <p className="text-sm" data-testid="ai-usage">
-      {t("aiUsage", {
-        calls: today.calls,
-        limit: daily_limit,
-        cost: today.cost_usd.toFixed(4),
-      })}
-    </p>
+    <>
+      <p className="text-sm" data-testid="ai-usage">
+        {t("aiUsage", {
+          calls: today.calls,
+          limit: daily_limit,
+          cost: today.cost_usd.toFixed(4),
+        })}
+      </p>
+      {issue && (
+        <p className="text-sm text-destructive" role="status" data-testid="ai-issue">
+          {t("aiIssue", { issue: tIssues(issue) })}
+        </p>
+      )}
+    </>
+  );
+}
+
+/** When cleanup starts (grace period) and when it last ran. */
+function RetentionState() {
+  const t = useTranslations("Settings");
+  const locale = useLocale();
+  const status = useQuery({ queryKey: ["retention"], queryFn: getRetention });
+  if (!status.data) return null;
+  const date = (iso: string) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(iso));
+  const { blocked, starts_at, last_run, enabled } = status.data;
+  if (blocked) return <span>{t("retentionBlocked")}</span>;
+  return (
+    <span data-testid="retention-state">
+      {enabled && starts_at && new Date(starts_at) > new Date()
+        ? t("retentionStarts", { date: date(starts_at) })
+        : null}{" "}
+      {last_run ? t("retentionLast", { date: date(last_run) }) : null}
+    </span>
   );
 }

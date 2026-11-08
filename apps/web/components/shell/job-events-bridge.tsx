@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { toast } from "@/lib/toast";
 
 import { applyJobEvent, jobName, type JobEvent } from "@/lib/jobs";
+import { noteEvent } from "@/lib/jobs-sync";
 import { JOBS_KEY } from "@/lib/use-jobs";
 import type { Job } from "@anyget/shared";
 
@@ -30,12 +31,19 @@ export function JobEventsBridge({ children }: { children: ReactNode }) {
     let finished: string[] = [];
     let flush: ReturnType<typeof setTimeout> | undefined;
 
+    // Every event is noted for the list request in flight (lib/jobs-sync.ts). Before
+    // the first list arrives there is nothing to update: a partial list would show
+    // the wrong counts, so the pending request applies the noted events instead.
+    const apply = (event: JobEvent) => {
+      noteEvent(event);
+      if (queryClient.getQueryData<Job[]>(JOBS_KEY) === undefined) return;
+      queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) => applyJobEvent(jobs, event));
+    };
+
     const handle = (type: JobEvent["type"]) => (message: MessageEvent<string>) => {
       const job = JSON.parse(message.data) as Job;
       const previous = queryClient.getQueryData<Job[]>(JOBS_KEY)?.find((j) => j.id === job.id);
-      queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) =>
-        applyJobEvent(jobs, { type, job } as JobEvent),
-      );
+      apply({ type, job } as JobEvent);
       if (type === "job.updated" && previous && previous.state !== job.state) {
         if (job.state === "done") {
           // Group completions that land close together (a batch) into one toast.
@@ -74,9 +82,7 @@ export function JobEventsBridge({ children }: { children: ReactNode }) {
       source.addEventListener("job.updated", handle("job.updated"));
       source.addEventListener("job.deleted", (message: MessageEvent<string>) => {
         const job = JSON.parse(message.data) as { id: string };
-        queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) =>
-          applyJobEvent(jobs, { type: "job.deleted", job }),
-        );
+        apply({ type: "job.deleted", job });
       });
     };
 

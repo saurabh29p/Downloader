@@ -1,9 +1,10 @@
 "use client";
 
 import type { Job } from "@anyget/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { WandSparklesIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 import { NativeSelect } from "@/components/ui/native-select";
 import { getHealth } from "@/lib/api";
@@ -22,14 +23,18 @@ export function ConvertMenu({ job, name }: { job: Job; name: string }) {
   const tErrors = useTranslations("Errors");
   const queryClient = useQueryClient();
   const health = useQuery({ queryKey: ["health"], queryFn: getHealth, staleTime: 60_000 });
-  const convert = useMutation({
-    mutationFn: (to: ConvertTarget) => convertJob(job.id, to),
-    onSuccess: () => {
+  const [pending, setPending] = useState(false);
+  const convert = async (to: ConvertTarget) => {
+    setPending(true);
+    try {
+      await convertJob(job.id, to);
       void queryClient.invalidateQueries({ queryKey: JOBS_KEY });
       toast.success(tJobs("added", { count: 1 }));
-    },
-    onError: (err) => toast.error(errorMessage(tErrors, err)),
-  });
+    } catch (err) {
+      toast.error(errorMessage(tErrors, err));
+    }
+    setPending(false);
+  };
   const files = [job.rel_path ?? "", ...(job.files ?? [])];
   const tools = health.data?.components;
   const hasImages = files.some((f) => IMAGE.test(f));
@@ -45,11 +50,11 @@ export function ConvertMenu({ job, name }: { job: Job; name: string }) {
       value=""
       aria-label={`${t("label")}: ${name}`}
       title={t("label")}
-      disabled={convert.isPending}
+      disabled={pending}
       icon={<WandSparklesIcon />}
       iconOnlyOnPhone
       onChange={(e) => {
-        if (e.target.value) convert.mutate(e.target.value as ConvertTarget);
+        if (e.target.value) void convert(e.target.value as ConvertTarget);
       }}
     >
       <option value="">{t("label")}</option>

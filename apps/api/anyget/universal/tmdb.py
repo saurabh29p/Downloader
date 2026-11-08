@@ -34,9 +34,11 @@ def _auth(key: str) -> tuple[dict[str, str], dict[str, str]]:
 async def _get(net: Net, key: str, path: str, **params: str) -> dict[str, Any]:
     headers, auth = _auth(key)
     query = urlencode({**params, **auth})
-    response = await net.request("GET", f"{API}{path}?{query}", headers=headers)
+    response = await net.request("GET", f"{API}{path}?{query}", headers=headers, retries=1)
     if response.status_code in (401, 403):
-        raise HandlerError("needs_key", "TMDB refused the key; check it in Connections")
+        raise HandlerError("bad_key", "TMDB refused the saved key; check it in Connections")
+    if response.status_code == 429:
+        raise HandlerError("rate_limited", "TMDB is limiting requests; try again in a minute")
     if response.status_code >= 400:
         raise HandlerError("upstream", f"TMDB answered {response.status_code}")
     data: dict[str, Any] = response.json()

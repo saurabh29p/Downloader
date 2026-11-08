@@ -98,9 +98,11 @@ def _stream(
     allowed = set(services.settings.universal_sources)
 
     async def events() -> AsyncIterator[str]:
+        timed_out = False
         try:
             planned = await asyncio.wait_for(brain.plan(text, section, preset), PLAN_TIME)
         except TimeoutError:
+            timed_out = True
             planned = keyword_plan(text, section, preset)
         if allowed:
             planned.queries = [q for q in planned.queries if q.source in allowed]
@@ -113,6 +115,11 @@ def _stream(
             if isinstance(part, UniversalDone):
                 async for extra in _after(brain, text, planned, cards):
                     yield extra
+                # Say when AI was meant to help but couldn't, so plain source results
+                # are never taken for an AI answer.
+                part.ai_issue = brain.issue() or (
+                    "provider_error" if timed_out and brain.client.configured else None
+                )
                 yield format_sse("done", part.model_dump(mode="json"))
             else:
                 cards.extend(part.results)

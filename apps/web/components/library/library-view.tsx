@@ -3,6 +3,7 @@
 import type { LibraryItem } from "@anyget/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  EyeIcon,
   FileArchiveIcon,
   FileAudioIcon,
   FileIcon,
@@ -10,6 +11,7 @@ import {
   FileVideoIcon,
   ImageIcon,
   Loader2Icon,
+  PlayIcon,
   RefreshCwIcon,
   SearchIcon,
 } from "lucide-react";
@@ -25,10 +27,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { listLibrary, scanLibrary, type LibraryKind, type LibraryQuery } from "@/lib/api-library";
 import { errorMessage } from "@/lib/errors";
 import { formatBytes, isolate } from "@/lib/format";
+import { playTrack } from "@/lib/player";
+import { trackOf } from "@/lib/track";
 import { toast } from "@/lib/toast";
 
 // The preview (video/audio/PDF/EPUB players and edit actions) loads only when opened.
 const ItemSheet = dynamic(() => import("@/components/library/item-sheet").then((m) => m.ItemSheet));
+// The viewer (video, pictures, PDF, EPUB, text) loads only when something is opened.
+const Viewer = dynamic(() => import("@/components/viewer/viewer").then((m) => m.Viewer));
+
+// Kinds with an in-app preview (audio plays in the mini-player instead).
+const VIEWABLE = new Set<LibraryKind>(["video", "image", "pdf", "epub", "text"]);
 
 const KINDS: (LibraryKind | "all")[] = [
   "all",
@@ -69,6 +78,7 @@ export function LibraryView() {
   const [tag, setTag] = useState<string | null>(null);
   const [filters, setFilters] = useState<Pick<LibraryQuery, "section" | "source" | "licence">>({});
   const [open, setOpen] = useState<LibraryItem | null>(null);
+  const [viewing, setViewing] = useState<LibraryItem | null>(null);
   const query: LibraryQuery = {
     q: q || undefined,
     kind: kind === "all" ? undefined : kind,
@@ -230,8 +240,9 @@ export function LibraryView() {
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="library-items">
             {items.map((item) => {
               const Icon = ICONS[item.kind];
+              const canOpen = !item.missing && (item.kind === "audio" || VIEWABLE.has(item.kind));
               return (
-                <li key={item.id}>
+                <li key={item.id} className="relative">
                   <button
                     type="button"
                     onClick={() => setOpen(item)}
@@ -257,16 +268,54 @@ export function LibraryView() {
                       <span>{isolate(formatBytes(item.size, locale))}</span>
                       {item.source && <span dir="ltr">{item.source}</span>}
                       {item.duplicate_of && <Badge variant="outline">{t("duplicate")}</Badge>}
-                      {item.missing && <Badge variant="destructive">{t("missing")}</Badge>}
+                      {item.expired ? (
+                        <Badge variant="outline">{t("expired")}</Badge>
+                      ) : (
+                        item.missing && <Badge variant="destructive">{t("missing")}</Badge>
+                      )}
                     </span>
                   </button>
+                  {canOpen && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        item.kind === "audio" ? playTrack(trackOf(item)) : setViewing(item)
+                      }
+                      aria-label={`${item.kind === "audio" ? t("play") : t("open")}: ${item.title}`}
+                      className="absolute end-4 top-4 inline-flex h-10 items-center gap-1.5 rounded-full bg-card/95 px-3 text-sm font-medium shadow-card hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                      data-testid="library-open"
+                    >
+                      {item.kind === "audio" ? (
+                        <PlayIcon className="size-4" aria-hidden="true" />
+                      ) : (
+                        <EyeIcon className="size-4" aria-hidden="true" />
+                      )}
+                      {item.kind === "audio" ? t("play") : t("open")}
+                    </button>
+                  )}
                 </li>
               );
             })}
           </ul>
         </section>
       )}
-      {open && <ItemSheet item={open} onClose={() => setOpen(null)} />}
+      {open && (
+        <ItemSheet
+          item={open}
+          onClose={() => setOpen(null)}
+          onOpen={(item) => {
+            setOpen(null);
+            setViewing(item);
+          }}
+        />
+      )}
+      {viewing && (
+        <Viewer
+          item={viewing}
+          images={items.filter((i) => i.kind === "image" && !i.missing)}
+          onClose={() => setViewing(null)}
+        />
+      )}
     </div>
   );
 }

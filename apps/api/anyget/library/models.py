@@ -42,6 +42,8 @@ class LibraryItem(SQLModel, table=True):
     # Where it came from in AnyGet (a section id) and its licence, when known.
     section: str | None = Field(default=None, index=True)
     licence: str | None = None
+    # Set when retention cleanup removed the file (the entry stays for Download again).
+    expired_at: datetime | None = None
 
 
 class LibraryItemOut(BaseModel):
@@ -58,6 +60,8 @@ class LibraryItemOut(BaseModel):
     duplicate_of: str | None
     added_at: datetime
     missing: bool = False
+    # The file was removed by retention cleanup (it was older than the retention days).
+    expired: bool = False
     # A small picture for the Library grid (made on first request), or None.
     thumbnail: str | None = None
     section: str | None = None

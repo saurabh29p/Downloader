@@ -40,6 +40,7 @@ PLAIN = (
     "proxy",
     "contact_email",
     "watch_enabled",
+    "retention_days",
     "torrent_enabled",
     "torrent_seed",
     "llm_free_mode",
@@ -67,6 +68,7 @@ class SettingsUpdate(BaseModel):
     proxy: str | None = Field(default=None, max_length=300)
     contact_email: str | None = Field(default=None, max_length=200)
     watch_enabled: bool | None = None
+    retention_days: int | None = Field(default=None, ge=0, le=3650)
     torrent_enabled: bool | None = None
     torrent_seed: bool | None = None
     llm_free_mode: bool | None = None
@@ -112,6 +114,7 @@ class SettingsView(BaseModel):
     proxy: str
     contact_email: str
     watch_enabled: bool
+    retention_days: int
     torrent_enabled: bool
     torrent_seed: bool
     llm_free_mode: bool
@@ -139,6 +142,25 @@ class SettingsStore:
             except (ValueError, ValidationError):
                 continue  # an old or broken row never stops the app
             setattr(self.settings, row.key, getattr(checked, row.key))
+
+    # Internal state (not settings): keys start with "_" and are never loaded or saved
+    # through the API. Used for the retention grace period and the last cleanup.
+    def get_state(self, key: str) -> str | None:
+        with self.db.session() as session:
+            row = session.get(SettingRow, f"_{key}")
+            return None if row is None else str(json.loads(row.value))
+
+    def set_state(self, key: str, value: str | None) -> None:
+        with self.db.session() as session:
+            row = session.get(SettingRow, f"_{key}")
+            if value is None:
+                if row is not None:
+                    session.delete(row)
+            else:
+                row = row or SettingRow(key=f"_{key}", value="")
+                row.value = json.dumps(value)
+                session.add(row)
+            session.commit()
 
     def pop_legacy_secrets(self) -> dict[str, str]:
         """API keys saved by v1 (plain text): returned once, then deleted here."""
@@ -169,6 +191,7 @@ class SettingsStore:
             proxy=s.proxy,
             contact_email=s.contact_email,
             watch_enabled=s.watch_enabled,
+            retention_days=s.retention_days,
             torrent_enabled=s.torrent_enabled,
             torrent_seed=s.torrent_seed,
             llm_free_mode=s.llm_free_mode,

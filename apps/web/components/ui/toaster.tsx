@@ -52,7 +52,10 @@ export function Toaster({ closeLabel }: { closeLabel: string }) {
   const others = items.filter((t) => t.kind !== "error");
   const listClass = "pointer-events-none flex flex-col gap-2 [&:empty]:hidden";
   return (
-    <div className="pointer-events-none fixed inset-x-4 bottom-[calc(var(--bottom-nav-height)+1rem)] z-50 flex flex-col gap-2 sm:start-auto sm:end-4 sm:bottom-4 sm:w-96">
+    <div
+      data-toasts
+      className="pointer-events-none fixed inset-x-4 bottom-[calc(var(--bottom-nav-height)+1rem)] z-50 flex flex-col gap-2 sm:start-auto sm:end-4 sm:bottom-4 sm:w-96"
+    >
       <div role="status" aria-live="polite">
         <ol className={listClass}>
           {others.map((item) => (

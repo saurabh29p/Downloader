@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ResultCard } from "@/lib/api-universal";
 
-import { byOrder } from "./search-view";
+import { byOrder } from "@/lib/by-order";
 
 const card = (id: string) => ({ id }) as ResultCard;
 

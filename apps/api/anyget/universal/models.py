@@ -85,7 +85,7 @@ class ResultCard(BaseModel):
 
 class SourceDone(BaseModel):
     source: SourceName
-    status: Literal["ok", "timeout", "error", "needs_key"]
+    status: Literal["ok", "timeout", "error", "needs_key", "bad_key", "rate_limited"]
     message: str | None = None
     results: list[ResultCard] = Field(default_factory=list)
 
@@ -93,3 +93,6 @@ class SourceDone(BaseModel):
 class UniversalDone(BaseModel):
     total: int
     counts: dict[str, int]  # media → number of cards
+    # Set when an OpenRouter key is configured but AI could not help this search
+    # (no_credits, rate_limited, …): the results above are plain source results.
+    ai_issue: str | None = None

@@ -3,6 +3,7 @@
 import asyncio
 import contextlib
 import re
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -417,6 +418,43 @@ def library(
             item.kind, item.title[:40] + mark, f"{item.size:,}", item.rel_path[:50], item.id[:8]
         )
     console.print(table)
+
+
+@app.command()
+def cleanup(
+    apply: Annotated[
+        bool, typer.Option("--apply", help="Really remove the files (default: only list them)")
+    ] = False,
+) -> None:
+    """Retention: list (or with --apply remove) downloads older than the retention days."""
+
+    async def run() -> Any:
+        services = Services.build(get_settings())
+        try:
+            return services.retention.run(dry_run=not apply)
+        finally:
+            await services.stop()
+
+    result = asyncio.run(run())
+    if not result.enabled:
+        console.print("Retention is off (ANYGET_RETENTION_DAYS=0 or Settings → Downloads).")
+        return
+    if result.blocked:
+        console.print("Cleanup can't run: the downloads and data folders overlap.")
+        return
+    if result.starts_at and result.cutoff is not None and result.starts_at > datetime.now(UTC):
+        console.print(
+            f"Grace period: nothing is removed before {result.starts_at:%Y-%m-%d %H:%M} UTC."
+        )
+        return
+    verb = "Removed" if apply else "Would remove"
+    console.print(
+        f"{verb} {len(result.removed)} files ({result.freed_bytes:,} bytes) older than "
+        f"{result.days} days. Kept: {result.skipped_kept} tagged keep, "
+        f"{result.skipped_active} in active downloads."
+    )
+    for path in result.removed[:50]:
+        console.print(f"  {path}")
 
 
 watch_app = typer.Typer(help="Check channels, playlists and archive.org collections for new items.")

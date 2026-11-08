@@ -36,6 +36,7 @@ const NOTES: ReadonlySet<string> = new Set<Note>([
   "converting_thumbnail",
   "already_downloaded",
   "outside_date_range",
+  "expired",
 ]);
 
 type Note =
@@ -48,7 +49,8 @@ type Note =
   | "embedding_thumbnail"
   | "converting_thumbnail"
   | "already_downloaded"
-  | "outside_date_range";
+  | "outside_date_range"
+  | "expired";
 
 /** One job as a list item: name, state, details, progress and errors. `actions` sit at the end. */
 export function JobItem({ job, actions }: { job: Job; actions?: ReactNode }) {

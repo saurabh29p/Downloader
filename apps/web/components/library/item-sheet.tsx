@@ -1,8 +1,15 @@
 "use client";
 
 import type { LibraryItem } from "@anyget/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DownloadIcon, ExternalLinkIcon, RotateCwIcon, Trash2Icon } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  DownloadIcon,
+  ExternalLinkIcon,
+  EyeIcon,
+  PlayIcon,
+  RotateCwIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useId, useState, type FormEvent } from "react";
 
@@ -16,23 +23,32 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   deleteLibraryItem,
-  epubPreview,
   libraryFileUrl,
   redownload,
   updateLibraryItem,
 } from "@/lib/api-library";
 import { errorMessage } from "@/lib/errors";
 import { formatBytes, isolate } from "@/lib/format";
+import { playTrack } from "@/lib/player";
+import { trackOf } from "@/lib/track";
 import { toast } from "@/lib/toast";
 import { JOBS_KEY } from "@/lib/use-jobs";
 
 const LIBRARY_KEY = ["library"] as const;
+const VIEWABLE = new Set(["video", "image", "pdf", "epub", "text"]);
 
 /** One library file: a preview for its kind, tags, re-download and remove. */
-export function ItemSheet({ item, onClose }: { item: LibraryItem; onClose: () => void }) {
+export function ItemSheet({
+  item,
+  onClose,
+  onOpen,
+}: {
+  item: LibraryItem;
+  onClose: () => void;
+  onOpen: (item: LibraryItem) => void;
+}) {
   const t = useTranslations("Library");
   const tErrors = useTranslations("Errors");
   const tJobs = useTranslations("Jobs");
@@ -92,10 +108,36 @@ export function ItemSheet({ item, onClose }: { item: LibraryItem; onClose: () =>
           </SheetDescription>
         </SheetHeader>
 
-        {item.missing ? (
+        {item.expired ? (
+          <p role="status" data-testid="expired-note">
+            {t("expiredNote")}
+          </p>
+        ) : item.missing ? (
           <p role="alert">{t("missingNote")}</p>
         ) : (
-          <Preview kind={item.kind} src={src} id={item.id} title={item.title} />
+          <div className="flex flex-col gap-3">
+            {item.thumbnail && (
+              // eslint-disable-next-line @next/next/no-img-element -- local thumbnail
+              <img
+                src={item.thumbnail}
+                alt=""
+                className="max-h-56 w-full rounded bg-muted object-contain"
+              />
+            )}
+            {item.kind === "audio" ? (
+              <Button variant="saffron" onClick={() => playTrack(trackOf(item))}>
+                <PlayIcon aria-hidden="true" />
+                {t("play")}
+              </Button>
+            ) : VIEWABLE.has(item.kind) ? (
+              <Button variant="saffron" onClick={() => onOpen(item)} data-testid="sheet-open">
+                <EyeIcon aria-hidden="true" />
+                {t("open")}
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("noPreview")}</p>
+            )}
+          </div>
         )}
 
         <form onSubmit={onSubmit} className="flex flex-col gap-2">
@@ -176,74 +218,5 @@ export function ItemSheet({ item, onClose }: { item: LibraryItem; onClose: () =>
         </SheetFooter>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function Preview({
-  kind,
-  src,
-  id,
-  title,
-}: {
-  kind: LibraryItem["kind"];
-  src: string;
-  id: string;
-  title: string;
-}) {
-  const t = useTranslations("Library");
-  if (kind === "video")
-    return (
-      <video
-        src={src}
-        controls
-        preload="metadata"
-        className="w-full rounded bg-black"
-        data-testid="preview-video"
-      />
-    );
-  if (kind === "audio")
-    return (
-      <audio src={src} controls preload="metadata" className="w-full" data-testid="preview-audio" />
-    );
-  if (kind === "image")
-    return (
-      // eslint-disable-next-line @next/next/no-img-element -- local files
-      <img
-        src={src}
-        alt={title}
-        className="max-h-96 w-full rounded bg-muted object-contain"
-        data-testid="preview-image"
-      />
-    );
-  if (kind === "pdf")
-    return (
-      <iframe
-        src={src}
-        title={title}
-        className="h-96 w-full rounded border"
-        data-testid="preview-pdf"
-      />
-    );
-  if (kind === "epub") return <EpubText id={id} />;
-  return <p className="text-sm text-muted-foreground">{t("noPreview")}</p>;
-}
-
-function EpubText({ id }: { id: string }) {
-  const t = useTranslations("Library");
-  const tErrors = useTranslations("Errors");
-  const preview = useQuery({ queryKey: ["library", "epub", id], queryFn: () => epubPreview(id) });
-  if (preview.isPending) return <Skeleton className="h-48" aria-busy="true" />;
-  if (preview.isError) return <p role="alert">{errorMessage(tErrors, preview.error)}</p>;
-  return (
-    <div
-      className="max-h-96 overflow-y-auto rounded border p-3 text-sm whitespace-pre-line"
-      dir="auto"
-      tabIndex={0}
-      aria-label={t("epubPreview")}
-      data-testid="preview-epub"
-    >
-      {preview.data.text || t("noPreview")}
-      {preview.data.truncated && <p className="mt-2 text-muted-foreground">{t("truncated")}</p>}
-    </div>
   );
 }

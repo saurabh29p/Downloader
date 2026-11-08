@@ -137,7 +137,25 @@ class DownloadQueue:
         self.schedule(job_id)
         return updated
 
-    retry = resume
+    def retry(self, job_id: str) -> Job:
+        """Retry a failed/canceled job, or download again a file that retention removed."""
+        job = self._require(job_id)
+        if job.state == JobState.done and job.note == "expired":
+            updated = self.store.update(
+                job_id,
+                state=JobState.queued,
+                note=None,
+                error=None,
+                error_code=None,
+                speed=None,
+                downloaded=0,
+            )
+            if updated is None:
+                raise JobNotFoundError(job_id)
+            self._publish("job.updated", updated)
+            self.schedule(job_id)
+            return updated
+        return self.resume(job_id)
 
     async def delete(self, job_id: str, delete_file: bool = False) -> None:
         job = self._require(job_id)
