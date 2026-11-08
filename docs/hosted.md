@@ -36,8 +36,8 @@ Keep the volume mounted at `/data`: the database, thumbnails and keys live there
 
 | Variable | What it does |
 |---|---|
-| `ANYGET_DOWNLOADS_DIR` | Where files are saved. The image uses `/downloads`, which is **not** on the `/data` volume, so files are lost when Railway redeploys. To keep them across deploys, set `/data/downloads`. |
-| `ANYGET_RETENTION_DAYS` | Remove downloaded files after this many days (default `7`; `0` = keep forever). Also in Settings → Downloads. See "Retention" below before deploying. |
+| `ANYGET_DOWNLOADS_DIR` | Where files are saved. If it is not set, the image uses `/downloads`. Check where your Railway volume is mounted: files are kept across deploys only if this folder is on the volume (for example `/data/downloads` with the volume at `/data`). |
+| `ANYGET_RETENTION_DAYS` | Remove downloaded files after this many days (`0` = keep forever; the code's default is `7`). **Set `0` for the first deploy** (see "Retention" below). |
 | `ANYGET_API_TOKEN` | A long random string for the CLI and the browser extension (Bearer token). |
 | `OPENROUTER_API_KEY` | The optional AI helper (or add it on the Connections page). |
 | `ANYGET_LLM_DAILY_LIMIT` | AI calls per day (default `500`; `0` turns AI off). |
@@ -59,8 +59,12 @@ is on. Nothing else is needed on Vercel. Redeploy after changing it.
 
 ## 4. Retention (read before deploying this version)
 
-Retention cleanup runs once a day in the API: downloaded files AnyGet saved more than N
-days ago are removed (default 7). Safety:
+**First deploy: set `ANYGET_RETENTION_DAYS=0` on Railway before you deploy.** Cleanup is
+then off: nothing is ever removed. Switch it on later (Railway variable or Settings →
+Downloads) once you have checked where files are stored and what the policy would remove.
+
+When it is on, cleanup runs once a day in the API: downloaded files AnyGet saved more than
+N days ago are removed. Safety:
 
 - **Grace period:** the first removals happen N days after retention is first switched on.
   Deploying never deletes files on day one. You have N days to change your mind.
