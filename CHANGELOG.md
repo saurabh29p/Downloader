@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Docs (v3 launch plan)
+- `docs/business-plan.md`: how AnyGet is sold (desktop app + Android app, free tier, Plus $19/year, Lifetime $39, Pro $79, no ads), who it is for, how people adopt it, costs and break-even, mobile, distribution, launch and legal risks, and the owner's checklist.
+- `prompts/v3-phase-01…07`: one build prompt per launch phase (finish v2, licences and plan limits, desktop app, phone, website and checkout, opt-in telemetry and support, beta and launch).
+- `CLAUDE.md`: v3 checklist and "Commercial rules".
+
 ### Added (previews, audio player, retention, honest AI states)
 - **Open files in AnyGet** (Downloads and Library): the server checks a file's real type (first bytes, not only the name) and AnyGet picks a viewer:
   - **Video:** speed, subtitles from `.srt`/`.vtt` files next to it, and resume.
