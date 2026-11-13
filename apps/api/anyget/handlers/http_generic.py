@@ -257,7 +257,9 @@ class HttpGenericHandler:
             existing = 0
 
         refuse_html = (probe.extra.get("content_type") or "") not in HTML_TYPES
-        if total is None or existing < total:
+        # `not part.exists()` covers 0-byte files: nothing is "missing", but the file still
+        # has to be fetched (and checked for an HTML answer) before it can be saved.
+        if total is None or existing < total or not part.exists():
             existing, total = await self._fetch(
                 job.url,
                 part,

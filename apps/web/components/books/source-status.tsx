@@ -4,7 +4,7 @@ import type { SourceStatus } from "@anyget/shared";
 import { ExternalLinkIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import { isolate } from "@/lib/format";
+import { Link } from "@/i18n/navigation";
 
 /** Which sources answered, which need a key, and where to search by hand. */
 export function SourceStatusList({
@@ -39,10 +39,15 @@ export function SourceStatusList({
               {s.status === "ok"
                 ? t("sourceFound", { count: s.count ?? 0 })
                 : t(`sourceStatus.${s.status}`)}
-              {s.status === "needs_key" && s.message ? (
-                <> ({isolate(s.message.replace(/^set /, ""))})</>
-              ) : null}
             </span>
+            {s.status === "needs_key" && (
+              <Link
+                href={`/connections#${s.name}`}
+                className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
+              >
+                {t("addKey")}
+              </Link>
+            )}
             {onRetry && (s.status === "timeout" || s.status === "error") && (
               <button
                 type="button"

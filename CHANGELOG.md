@@ -5,6 +5,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-13
+
+The v2 release: owner sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room look, in-app previews and the audio player.
+
+### Fixed (v2 Phase 7 — polish)
+- **Empty files** (0 bytes) are saved instead of failing with an internal error.
+- **Downloads on phones:** a long technical error no longer pushes the page sideways. Unexpected errors show a plain message with the server's text under Details; only "the server answered …" stays inline.
+- **Screen readers:** each download's title on Downloads is now a level-2 heading, so heading navigation no longer skips a level (Lighthouse accessibility 98 → 100).
+- **Collapsible sections:** archive.org's Filters and the video page's automatic captions show their open/close arrow again (they looked like empty headings).
+- **Keys and accounts point to Connections:**
+  - The video page's sign-in hint now links to Connections, not Settings.
+  - "Needs a key" notes on Libraries and Books link to that site's Connections entry instead of naming an environment variable.
+  - The Code page and the "needs a key" error say "Connections" instead of `ANYGET_GITHUB_TOKEN` or a `.env` file.
+- **Lighthouse script** (`pnpm --filter @anyget/web lighthouse`) works in containers: Chrome gets `--disable-gpu --disable-dev-shm-usage`, and a page whose trace fails to record is retried up to 3 times.
+
+### Changed (v3 Phase 1 — product wording)
+- Home's tagline reads "private, legal, no ads" (it said "free"). The Legal page says the rules apply on every plan, and the README describes the coming desktop and Android apps. The personal-use rules are unchanged.
+
 ### Docs (v3 launch plan)
 - `docs/business-plan.md`: how AnyGet is sold (desktop app + Android app, free tier, Plus $19/year, Lifetime $39, Pro $79, no ads), who it is for, how people adopt it, costs and break-even, mobile, distribution, launch and legal risks, and the owner's checklist.
 - `prompts/v3-phase-01…07`: one build prompt per launch phase (finish v2, licences and plan limits, desktop app, phone, website and checkout, opt-in telemetry and support, beta and launch).
@@ -294,5 +312,6 @@ First release: everything below, plus worldwide access.
 - Live progress could be dropped by the browser after a page refresh (stale timestamps); job times are now always sent as UTC.
 - API container could not create its database when Docker created the `data` folder as root (CI Docker job). The container now adopts `PUID`/`PGID` and fixes folder ownership before dropping privileges.
 
-[Unreleased]: https://github.com/saurabh29p/Downloader/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/saurabh29p/Downloader/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/saurabh29p/Downloader/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/saurabh29p/Downloader/releases/tag/v1.0.0

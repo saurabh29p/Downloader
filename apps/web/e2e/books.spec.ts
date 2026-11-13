@@ -39,7 +39,9 @@ test("libraries: regions, then a IIIF item's pages", async ({ page }, testInfo) 
   await expect(list).toContainText("National Diet Library");
   await page.locator("label", { hasText: "Oceania" }).click();
   await expect(list).toContainText("Trove");
-  await expect(list).toContainText("ANYGET_TROVE_KEY");
+  // Libraries that need a key link to their Connections entry, not to an env variable.
+  await expect(list.locator('a[href="/en/connections#trove"]')).toHaveText("Add it in Connections");
+  await expect(list).not.toContainText("ANYGET_");
   const axe = await new AxeBuilder({ page }).analyze();
   expect(axe.violations).toEqual([]);
 

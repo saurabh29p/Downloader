@@ -1,6 +1,8 @@
 # AnyGet
 
-Paste any public link, get the file. A personal universal downloader that runs on your own computer.
+Paste any public link, get the file. A universal downloader and legal-copy finder that runs on your own computer: no ads, no tracking.
+
+AnyGet is becoming a desktop app (Windows, macOS, Linux) and an Android app, with a free tier and paid plans. The plan, prices and roadmap are in [docs/business-plan.md](docs/business-plan.md). Running it yourself from this repository (below) stays available as an advanced option.
 
 - **Core:** FastAPI + SQLite job queue with live progress (SSE), a URL router that sends each link to the best handler (yt-dlp, archive.org, gallery-dl, git, IIIF libraries, plain HTTP …).
 - **Website:** Next.js + Tailwind + shadcn/ui, English / Hindi / Arabic (RTL), installable as a phone app.

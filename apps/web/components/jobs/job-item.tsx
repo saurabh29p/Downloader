@@ -94,13 +94,14 @@ export function JobItem({ job, actions }: { job: Job; actions?: ReactNode }) {
       <div className="flex items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h3
+            {/* h2: the rows sit right under the Downloads page's h1 (no level skipped). */}
+            <h2
               className="min-w-0 truncate text-sm font-medium sm:text-base"
               dir="auto"
               title={name}
             >
               {name}
-            </h3>
+            </h2>
             <Badge variant={STATE_VARIANT[job.state]}>{t(`states.${job.state}`)}</Badge>
             {job.checksum_ok && (
               <Badge variant="success">
@@ -136,17 +137,18 @@ function FailedNote({ job }: { job: Job }) {
   const t = useTranslations("Jobs");
   const tErrors = useTranslations("Errors");
   const locale = useLocale();
-  // Codes with their own message hide the raw server text under "Details".
-  const code = (job.error_code ?? "") as "network";
-  const known = !!code && code !== ("upstream" as string) && tErrors.has(code);
+  // Only "upstream" shows the server's short answer inline ("the server answered 503").
+  // Everything else hides the raw text under "Details": it can be a long technical message
+  // with paths that means nothing to a user (and must wrap anywhere on a phone).
+  const inline = job.error_code === "upstream";
   return (
-    <div className="flex flex-col gap-1 text-sm" data-testid="job-error">
+    <div className="flex min-w-0 flex-col gap-1 text-sm" data-testid="job-error">
       <p className="text-destructive">
         {errorMessage(tErrors, job.error_code ?? "")}
-        {job.error && !known && (
+        {job.error && inline && (
           <span className="text-muted-foreground">
             {" ("}
-            <bdi>{job.error}</bdi>)
+            <bdi className="wrap-anywhere">{job.error}</bdi>)
           </span>
         )}
       </p>
@@ -159,10 +161,10 @@ function FailedNote({ job }: { job: Job }) {
           {t("connect", { site: job.connect_label ?? job.connect })}
         </a>
       )}
-      {job.error && known && (
+      {job.error && !inline && (
         <details className="text-muted-foreground">
           <summary className="cursor-pointer select-none">{t("details")}</summary>
-          <bdi className="break-words">{job.error}</bdi>
+          <bdi className="wrap-anywhere">{job.error}</bdi>
         </details>
       )}
     </div>

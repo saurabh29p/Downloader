@@ -25,11 +25,11 @@ v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-u
 - [x] v2 Phase 4 — Sections (Movies, Books, Music, Video, Declassified, More)
 - [x] v2 Phase 5 — OpenRouter brain (optional)
 - [x] v2 Phase 6 — "The Reading Room" UI
-- [ ] v2 Phase 7 — polish and ship
+- [x] v2 Phase 7 — polish and ship (v2.0.0)
 
 v3 "Launch" (plan: `docs/business-plan.md`; prompts: `prompts/v3-phase-NN-*.md`):
 - [x] v3 Phase 0 — business plan, prices and phase prompts
-- [ ] v3 Phase 1 — finish v2 (tag v2.0.0) and commercial rules
+- [x] v3 Phase 1 — finish v2 (tag v2.0.0) and commercial rules
 - [ ] v3 Phase 2 — licence keys, plan limits, free engine updater
 - [ ] v3 Phase 3 — desktop app (Electron, signed, auto-update)
 - [ ] v3 Phase 4 — phone remote and Android app
@@ -341,6 +341,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Audio: one `<audio>` in `PlayerHost` (app layout) so it survives in-app navigation; `playTrack()` must run inside the click handler (phones). Full page loads (`window.location`, plain `<a href>` to internal pages) stop audio: use `Link`/`router.push`. `onlyOnePlayer` pauses other media on any `play`. Positions: `lib/positions.ts` (localStorage). Background playback on locked phones is browser-dependent: never claim it without a real-device check (docs/hosted.md lists the steps).
 - Job list sync: `lib/jobs-sync.ts` journals stream events and `useJobs`'s queryFn reconciles each response with events after its start; the bridge doesn't write a partial list before the first response. Downloads hides counts until data exists.
 - Downloads is near the 170 KB budget: it uses plain async handlers, not `useMutation` (TanStack's mutation code costs ~1 KB there).
+- Job rows (`components/jobs/job-item.tsx`): titles are `h2` (right under the Downloads `h1`). Only `upstream` errors show the server's text inline; every other code shows its translated message with the raw text under Details (`wrap-anywhere`, so long paths never widen the page on phones).
 - Retention (`library/retention.py`): `retention_days` (0 off), grace via the `_retention_since` state row (`SettingsStore.get_state/set_state`), `added_at` not mtime, skips active jobs/`keep`/symlinks, refuses when the data dir is inside the downloads dir. The scheduler starts only in the API (`Services.start(recover=True)`). Never run `--apply` against real files in tests or demos.
 - AI issues: `LlmUnavailable.code` → `OpenRouter.last_issue` → `Brain.issue()` → `/api/llm.issue` and the stream's `done.ai_issue`. TMDB 401/403 → `bad_key`, 429 → `rate_limited`.
 
@@ -354,6 +355,9 @@ Personal use only. Download only what the user owns, what is public domain or op
 - RTL: wrap LTR values (sizes, speeds, hosts) with `isolate()` from `lib/format.ts`; don't rely on `<bdi>` auto-direction for strings that mix Arabic with numbers (Chrome resolves them as LTR).
 - Live updates: one EventSource in `JobEventsBridge` writes into the TanStack Query `["jobs"]` cache; refetches are merged by `updated_at` (`mergeJobs`) so they never undo a newer live event. It refetches the list on every (re)connect, so a job that changed between the list request and the connection is not left stale.
 - The shadcn registry may be unreachable from sandboxes; components in `components/ui` are written by hand in shadcn style.
+- User-facing hints for keys and accounts link to `/connections#<site>` (a library's `key_setting` minus `_key` is its Connections id), never to env variable names or `.env`; env names belong only under Settings → Advanced and the self-hosted sign-in.
+- `<summary>` must not be `flex` (that hides the disclosure arrow): use `min-h-11 cursor-pointer content-center`.
+- Lighthouse in containers needs `--disable-gpu --disable-dev-shm-usage` (in `scripts/lighthouse.mjs`, which also retries a failed trace). Axe in e2e checks Downloads while it is empty; Lighthouse with seeded jobs catches row-level issues.
 - E2E downloads come from `e2e/fixture-server.mjs` (Range, Content-MD5, `?slow=1`), reachable because Playwright starts the API with `ANYGET_NET_ALLOWLIST=127.0.0.1:8200`.
 
 ## Working agreement for each phase

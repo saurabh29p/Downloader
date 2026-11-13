@@ -112,7 +112,7 @@ export function YouTubeView() {
           {t.rich("cookiesHint", {
             link: (chunks) => (
               <Link
-                href="/settings"
+                href="/connections"
                 className="font-medium text-primary underline-offset-4 hover:underline"
               >
                 {chunks}

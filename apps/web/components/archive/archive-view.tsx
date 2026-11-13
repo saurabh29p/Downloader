@@ -109,7 +109,7 @@ export function ArchiveView() {
           </Button>
         </div>
         <details className="text-sm">
-          <summary className="flex min-h-11 cursor-pointer items-center font-medium">
+          <summary className="min-h-11 cursor-pointer content-center font-medium">
             {t("filters")}
           </summary>
           <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-3">
