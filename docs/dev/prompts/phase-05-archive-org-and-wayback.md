@@ -1,6 +1,6 @@
 # Phase 5 — archive.org and Wayback
 
-Read `CLAUDE.md` (etiquette) and the archive.org table in `docs/plan.md` first.
+Read `CLAUDE.md` (etiquette) and the archive.org table in `docs/dev/plan.md` first.
 
 Deliverables:
 - `handlers/archive_org.py`: advancedsearch (filters: mediatype, collection, year, language, creator), scrape API for deep paging, metadata, file download with Range resume and md5 verify, "all of format X" (Original, VBR MP3, PDF, EPUB, DjVu), collections. Use `ia` as a subprocess where it helps (AGPL). Skip restricted, lending and stream-only items with a clear reason. Max 2 parallel per host, contact User-Agent, metadata cache.
