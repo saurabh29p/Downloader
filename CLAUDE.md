@@ -29,7 +29,7 @@ v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-u
 
 Open-source release (one PR per phase, stacked branches `release/os-NN-*`):
 - [x] OS Phase 1 — pivot from commercial to open source
-- [ ] OS Phase 2 — license, legal and community files
+- [x] OS Phase 2 — license, legal and community files
 - [ ] OS Phase 3 — Darkroom theme
 - [ ] OS Phase 4 — safer defaults for strangers
 - [ ] OS Phase 5 — documentation
@@ -59,7 +59,7 @@ Update this checklist at the end of every phase.
 
 Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), gallery-dl (image galleries), internetarchive `ia` (archive.org), httpx (direct files with Range resume), git + GitHub REST (code), huggingface_hub (AI resources), optional OCRmyPDF/Tesseract, optional libtorrent. aria2 and cobalt are **not** used in v1.
 
-**License rule:** `ia` is AGPL and gallery-dl is GPL. Call them as **separate CLI processes** (subprocess), not imported libraries, unless the project is relicensed GPL-compatible.
+**License rule:** AnyGet is MIT (`LICENSE`). `ia` is AGPL (not used) and gallery-dl is GPL: call GPL/AGPL tools only as **separate CLI processes** (subprocess), never imported. mutagen (GPL, pulled in by `yt-dlp[default]`) is the one copyleft package loaded in-process; `THIRD_PARTY_NOTICES.md` explains it. Run `make notices` after dependency changes and read the flags it prints. Python projects declare `license = "MIT"` (PEP 639, hatchling ≥ 1.27): never add `License ::` classifiers next to it (the build fails).
 
 ## Repository layout
 
@@ -111,6 +111,7 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `make gen` | regenerate `packages/shared` from the API's OpenAPI schema |
 | `make lint` / `make typecheck` / `make test` | ruff+eslint+prettier / mypy+tsc / pytest+vitest |
 | `make check` | lint + typecheck + test (run before every commit) |
+| `make notices` | regenerate the dependency tables in `THIRD_PARTY_NOTICES.md` (after changing dependencies) |
 | `make e2e` | Playwright end-to-end + axe (starts a fixture file server on :8200, api on :8100, production web build on :3100) |
 | `pnpm --filter @anyget/web lighthouse <url>` | Lighthouse budgets against a running production build (`CHROME_PATH` for the browser) |
 | `make up` / `make down` / `make logs` | Docker Compose |
@@ -352,6 +353,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - RTL: wrap LTR values (sizes, speeds, hosts) with `isolate()` from `lib/format.ts`; don't rely on `<bdi>` auto-direction for strings that mix Arabic with numbers (Chrome resolves them as LTR).
 - Live updates: one EventSource in `JobEventsBridge` writes into the TanStack Query `["jobs"]` cache; refetches are merged by `updated_at` (`mergeJobs`) so they never undo a newer live event. It refetches the list on every (re)connect, so a job that changed between the list request and the connection is not left stale.
 - The shadcn registry may be unreachable from sandboxes; components in `components/ui` are written by hand in shadcn style.
+- The repository URL lives in `lib/project.ts` (`REPO_URL`): Legal links the LICENSE, Help links `#support-anyget` in the README. Keep that README heading if you rename sections.
 - User-facing hints for keys and accounts link to `/connections#<site>` (a library's `key_setting` minus `_key` is its Connections id), never to env variable names or `.env`; env names belong only under Settings → Advanced and the self-hosted sign-in.
 - `<summary>` must not be `flex` (that hides the disclosure arrow): use `min-h-11 cursor-pointer content-center`.
 - Lighthouse in containers needs `--disable-gpu --disable-dev-shm-usage` (in `scripts/lighthouse.mjs`, which also retries a failed trace). Axe in e2e checks Downloads while it is empty; Lighthouse with seeded jobs catches row-level issues.

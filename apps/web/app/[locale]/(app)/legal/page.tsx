@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
 import type { Locale } from "@/i18n/routing";
+import { REPO_URL } from "@/lib/project";
 
 export async function generateMetadata({
   params,
@@ -16,6 +17,7 @@ export async function generateMetadata({
 }
 
 const RULES = ["personal", "drm", "shadow", "bypass", "copyright", "cookies", "etiquette"] as const;
+const DISCLAIMER = ["personal", "never", "responsible", "warranty", "trademarks"] as const;
 
 /** The rules AnyGet follows (from CLAUDE.md). Server-rendered: no client JavaScript. */
 export default function LegalPage({ params }: { params: Promise<{ locale: Locale }> }) {
@@ -36,7 +38,27 @@ export default function LegalPage({ params }: { params: Promise<{ locale: Locale
           </li>
         ))}
       </ul>
-      <p className="text-sm text-muted-foreground">{t("disclaimer")}</p>
+      <section className="flex flex-col gap-2" aria-labelledby="legal-disclaimer">
+        <h2 id="legal-disclaimer" className="text-lg font-semibold">
+          {t("disclaimerTitle")}
+        </h2>
+        <ul className="list-disc space-y-1 ps-5 text-sm text-muted-foreground">
+          {DISCLAIMER.map((key) => (
+            <li key={key}>
+              {t.rich(`disclaimer.${key}`, {
+                link: (chunks) => (
+                  <a
+                    href={`${REPO_URL}/blob/main/LICENSE`}
+                    className="font-medium text-primary underline underline-offset-4"
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
+            </li>
+          ))}
+        </ul>
+      </section>
     </article>
   );
 }

@@ -4,6 +4,20 @@ version = "1.0.0"
 description = "AnyGet core: paste any public link, get the file."
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Saurabh Singh and AnyGet contributors" }]
+keywords = ["downloader", "yt-dlp", "archive.org", "self-hosted", "public-domain"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Multimedia :: Video",
+]
 dependencies = [
     "fastapi>=0.162,<0.163",
     "uvicorn[standard]>=0.54",
@@ -43,7 +57,7 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
