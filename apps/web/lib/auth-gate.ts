@@ -12,10 +12,16 @@ export function isGated(pathname: string, locales: readonly string[]): boolean {
   return !OPEN_PAGES.has(page);
 }
 
+const SAME_SITE = "http://anyget.invalid";
+
 /** A same-site path to return to after signing in ("/" when missing or unsafe). */
 export function safeNext(next: string | null | undefined): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("\\")) return "/";
-  return next;
+  // Control characters are refused: the URL parser deletes tabs and newlines, so
+  // "/\t/evil.example" would become "//evil.example", another site.
+  if (!next || !next.startsWith("/") || /[\\\u0000-\u001f\u007f]/.test(next)) return "/";
+  const url = new URL(next, SAME_SITE);
+  if (url.origin !== SAME_SITE) return "/"; // "//host" and anything else that leaves the site
+  return url.pathname + url.search + url.hash;
 }
 
 export function loginPath(locale: string, next: string): string {

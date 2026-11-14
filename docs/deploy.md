@@ -56,7 +56,7 @@ account. No domain? Use [Tailscale](tailscale.md) instead.
 
    ```sh
    ANYGET_ACCESS_TEAM_DOMAIN=myteam.cloudflareaccess.com
-   ANYGET_ACCESS_AUD=4714c1358e65fe4b408ad6d432a5f878f08194bdb4752441fd56faefa9b2b6f2
+   ANYGET_ACCESS_AUD=<the 64-character AUD tag you copied>
    ```
 
 AnyGet checks the signed `Cf-Access-Jwt-Assertion` header on every API request that

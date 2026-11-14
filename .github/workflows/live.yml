@@ -20,11 +20,18 @@ permissions:
 jobs:
   live:
     name: Live tests (Docker, ffmpeg + Deno)
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'live-tests'
+    # The label only works for branches of this repository: a pull request from a fork
+    # never runs this job (it would run the fork's code next to the cookies secret).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'live-tests' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - name: Build the test image
         run: docker compose --profile test build api-test
       - name: Tool versions

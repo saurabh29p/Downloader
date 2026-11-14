@@ -184,3 +184,51 @@ def test_library_files_may_be_framed_by_the_site(make_client: Any, env_settings:
     response = client.get(f"/api/library/{item['id']}/file")
     assert response.headers["x-frame-options"] == "SAMEORIGIN"
     assert response.headers["content-security-policy"] == "sandbox"
+
+
+def test_oversized_bodies_are_refused(make_client: Any) -> None:
+    # Bodies are read into memory before validation: anything past MAX_BODY is refused.
+    from anyget.core.auth import MAX_BODY
+
+    client = make_client()
+    big = b'{"urls": ["' + b"a" * (MAX_BODY + 10) + b'"]}'
+    response = client.post("/api/jobs", content=big, headers={"Content-Type": "application/json"})
+    assert response.status_code == 413
+    assert response.json()["code"] == "too_large"
+    assert client.get("/api/jobs").json() == []  # nothing was queued
+    bad = client.post("/api/jobs", content=b"{}", headers={"Content-Length": "lots"})
+    assert bad.status_code == 413
+
+
+async def test_chunked_bodies_stop_at_the_limit() -> None:
+    # Chunked bodies have no Content-Length: the app sees a disconnect past the limit.
+    from anyget.core.auth import limited_receive
+
+    chunks = [b"x" * 1000] * 10
+    sent = 0
+
+    async def receive() -> dict[str, Any]:
+        nonlocal sent
+        sent += 1
+        return {"type": "http.request", "body": chunks[sent - 1], "more_body": sent < 10}
+
+    wrapped = limited_receive(receive, limit=3500)
+    seen = [await wrapped() for _ in range(4)]
+    assert [m["type"] for m in seen] == ["http.request"] * 3 + ["http.disconnect"]
+    assert sent == 4  # the rest of the body is never read
+
+
+def test_symlinks_out_of_the_downloads_folder_are_never_served(
+    make_client: Any, env_settings: Path
+) -> None:
+    client = make_client()
+    root = env_settings / "downloads"
+    root.mkdir(parents=True, exist_ok=True)
+    secret = env_settings / "outside.txt"
+    secret.write_text("not for the library")
+    (root / "notes.txt").symlink_to(secret)  # a file link that leaves the downloads folder
+    client.post("/api/library/scan")
+    for item in client.get("/api/library").json()["items"]:
+        response = client.get(f"/api/library/{item['id']}/file")
+        assert response.status_code == 404
+        assert "not for the library" not in response.text

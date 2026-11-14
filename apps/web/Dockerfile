@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 # AnyGet web: Next.js standalone on Node 24. Build context is the repo root.
-FROM node:24-slim AS base
+# Base images are pinned by digest (multi-arch index); Dependabot proposes updates.
+FROM node:24-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54 AS base
 ENV PNPM_HOME=/pnpm PATH="/pnpm:$PATH" NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable
 WORKDIR /repo
@@ -23,7 +24,7 @@ RUN pnpm --filter @anyget/web build \
 
 # The standalone server is plain JavaScript (no native modules: sharp is left out in
 # next.config.ts), so the runtime can use the smaller Alpine image.
-FROM node:24-alpine AS runtime
+FROM node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS runtime
 # API_URL is also read at run time (the sign-in gate in proxy.ts and the sign-in page);
 # without it they would look for the API on 127.0.0.1:8000 inside this container.
 ARG API_URL=http://api:8000

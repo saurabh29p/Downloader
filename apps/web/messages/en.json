@@ -238,7 +238,11 @@
     "missing_fields": "Fill in every field first (for example the key).",
     "not_connected": "Connect the site first.",
     "server_unavailable": "AnyGet's server isn't answering. Check that it is running, then try again.",
-    "http": "AnyGet's server gave an unexpected answer. Try again."
+    "http": "AnyGet's server gave an unexpected answer. Try again.",
+    "too_large": "That request was too large for AnyGet to accept.",
+    "starting": "AnyGet is still starting. Try again in a few seconds.",
+    "auth_expired": "Your sign-in has expired. Reload the page to sign in again.",
+    "auth_unavailable": "AnyGet can't check your sign-in right now. Try again in a minute."
   },
   "Downloads": {
     "title": "Downloads",

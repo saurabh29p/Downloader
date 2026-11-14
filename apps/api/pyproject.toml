@@ -33,7 +33,7 @@ dependencies = [
     "gallery-dl==1.32.19",
     "img2pdf==0.6.3",
     "defusedxml==0.7.1",
-    "pyjwt[crypto]==2.10.1",
+    "pyjwt[crypto]==2.15.1",
     "argon2-cffi>=25.1",
 ]
 

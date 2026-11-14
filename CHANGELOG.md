@@ -20,6 +20,16 @@ action from people who run AnyGet, so semantic versioning calls for a new major 
 A `2.0.0` heading existed here earlier but was never tagged, so the number is free to use.
 The package versions are now 2.0.0.
 
+### Security
+- **Open redirect after sign-in fixed:** a `?next=` link with a tab or newline (`/%09/evil.example`) sent people to another site after signing in, because the URL parser deletes those characters. The sign-in page now refuses control characters and checks that the address stays on AnyGet.
+- **SSRF guard:** IPv6 addresses that wrap a private IPv4 address are now refused too: NAT64 (`64:ff9b::7f00:1`, `64:ff9b::a9fe:a9fe`), IPv4-translated (`::ffff:0:a.b.c.d`), IPv4-compatible (`::a.b.c.d`) and site-local (`fec0::/10`).
+- **Request size limit:** the API refuses bodies over 4 MiB (`413 too_large`) before reading them; chunked bodies are cut off at the limit.
+- **Dependencies:** PyJWT 2.10.1 → 2.15.1 (17 advisories, used to check Cloudflare Access sign-ins); pdfjs-dist 5.7 → 6.4 (GHSA-hq66-cqwq-w95j, script execution from a malicious PDF; AnyGet's viewer was not exposed, but it now uses the fixed version).
+- **CI and supply chain:** every GitHub Action is pinned to a full commit SHA; workflows get least-privilege permissions; checkouts don't keep the token; the release workflow uses only `docker buildx` and `gh` (no third-party actions); the live tests never run for pull requests from forks. New jobs: secret scan over the full history (gitleaks, pinned by digest) and dependency audits (`pnpm audit`, `pip-audit`). CodeQL for Python and JavaScript/TypeScript (runs once the repository is public). Dependabot for npm, uv, Actions and Docker.
+- Docker base images (Python, Node, Deno, uv, cloudflared) are pinned by digest.
+- The docs no longer show a realistic-looking Cloudflare Access AUD tag (a public example value, not a credential); `.gitleaksignore` lists that one reviewed historical finding.
+- Every error the sign-in layer can return (`too_large`, `starting`, `auth_expired`, `auth_unavailable`) has a message in English, Hindi and Arabic.
+
 ### Performance
 - **About 10 KB less JavaScript on every page** (gzip, first load): Downloads with jobs 169.3 → 159.6 KB, Home 168.2 → 157.7 KB, the lightest pages 162.2 → 152.5 KB. Every page now has at least 10 KB of headroom under the 170 KB budget. TanStack Query was replaced by a small cache with the same API (`lib/query.tsx`, with its own tests).
 - **Phones:** Lighthouse performance 92–98 → 98–100 on Home, Downloads, Library, Search and Settings; main-thread blocking time 170–339 ms → 80–165 ms. Home's layout shift 0.043 → 0.003.
