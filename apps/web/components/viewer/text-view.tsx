@@ -132,8 +132,8 @@ export function TextView({ id, size }: { id: string; size: number }) {
                   key={i}
                   className={
                     markIndex === at
-                      ? "bg-saffron text-saffron-foreground"
-                      : "bg-saffron/30 text-foreground"
+                      ? "bg-signal text-signal-foreground"
+                      : "bg-signal/30 text-foreground"
                   }
                 >
                   {part}

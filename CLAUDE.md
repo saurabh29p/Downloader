@@ -30,7 +30,7 @@ v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-u
 Open-source release (one PR per phase, stacked branches `release/os-NN-*`):
 - [x] OS Phase 1 — pivot from commercial to open source
 - [x] OS Phase 2 — license, legal and community files
-- [ ] OS Phase 3 — Darkroom theme
+- [x] OS Phase 3 — Darkroom theme
 - [ ] OS Phase 4 — safer defaults for strangers
 - [ ] OS Phase 5 — documentation
 - [ ] OS Phase 6 — correctness and bugs
@@ -323,8 +323,8 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Web CSP lives in `next.config.ts` (production only; dev needs eval) and covers pages, not `/api/*`. Images may come from any https host (thumbnails); scripts are same-origin plus `'unsafe-inline'` for the theme/PWA inline scripts and Next's bootstrap.
 - Backups (`anyget/backup.py`) use SQLite's online backup API; restore uses `tarfile` `filter="data"` plus its own path checks, and removes stale `-wal`/`-shm` files.
 
-### Reading Room UI gotchas
-- Tokens live in `styles/globals.css`. `--primary` is indigo (links, buttons, focus). `--saffron` is a fill with ink text (`Button variant="saffron"`, badges, the rail marker); saffron *text* uses `--saffron-ink`. Section tints (`--tint-<id>`) are decoration only. Use them through a `--tint` variable with type hints: `bg-(color:--tint)`, `text-(color:--tint)`, `border-(color:--tint)/40` (a bare `text-(--x)` means font size).
+### Darkroom UI gotchas (formerly "Reading Room")
+- Tokens live in `styles/globals.css`. Palette is "Darkroom": `--primary` is deep teal (links, buttons, focus). `--signal` is the safelight-red accent (renamed from `--saffron`), a fill with `--signal-foreground` text (white in light, near-black in dark) (`Button variant="signal"`, badges, the rail marker); signal-red *text* uses `--signal-ink`. Section tints (`--tint-<id>`) are decoration only and must stay visibly apart from the signal red (Movies is raspberry for that reason). Use them through a `--tint` variable with type hints: `bg-(color:--tint)`, `text-(color:--tint)`, `border-(color:--tint)/40` (a bare `text-(--x)` means font size).
 - CSS-only pieces (no JS): `.index-card` / `.index-card-head` / `.call-number`, `.stamp`, and the rotating hints (`.hint-host` textarea + `.hint-rotator` spans, 5 items, 4 s each; first one shown under reduced motion).
 - Shell: `MainNav variant="rail" | "bar"` (`components/shell/nav-links.tsx`). The rail's "Jump to…" button dispatches `PALETTE_EVENT`. `DropAnywhere` hands drops to Home's paste box (`lib/drop.ts`: an event on Home, `sessionStorage` elsewhere). Shell icons that only the shell uses are inline SVGs (`components/ui/icons.tsx`).
 - Home's paste box: plain text → `/search?q=…&section=<mode>`; one link → step indicator (`data-testid="link-steps"`, `data-step`) → preview. "Continue" cards keep `data-testid="job-row"`. Server status is on Help (`api-status`); e2e waits for it there before pressing Ctrl+K.
@@ -356,6 +356,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - The repository URL lives in `lib/project.ts` (`REPO_URL`): Legal links the LICENSE, Help links `#support-anyget` in the README. Keep that README heading if you rename sections.
 - User-facing hints for keys and accounts link to `/connections#<site>` (a library's `key_setting` minus `_key` is its Connections id), never to env variable names or `.env`; env names belong only under Settings → Advanced and the self-hosted sign-in.
 - `<summary>` must not be `flex` (that hides the disclosure arrow): use `min-h-11 cursor-pointer content-center`.
+- `e2e/axe-all.spec.ts` runs axe with **all** rules (WCAG + best practices) on every page, light and dark, after seeding jobs; add new pages to its list.
 - Lighthouse in containers needs `--disable-gpu --disable-dev-shm-usage` (in `scripts/lighthouse.mjs`, which also retries a failed trace). Axe in e2e checks Downloads while it is empty; Lighthouse with seeded jobs catches row-level issues.
 - E2E downloads come from `e2e/fixture-server.mjs` (Range, Content-MD5, `?slow=1`), reachable because Playwright starts the API with `ANYGET_NET_ALLOWLIST=127.0.0.1:8200`.
 

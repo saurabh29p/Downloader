@@ -7,6 +7,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 The v2 work and the open-source release: owner sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room look, in-app previews and the audio player. (The `2.0.0` heading that was here was never tagged; this release gets its version when it is tagged.)
 
+### Changed (Darkroom theme)
+- **New colours, "Darkroom":** cool fog grey and deep teal in light mode, near-black teal in dark mode, with a safelight red for active states, badges and the main buttons. Replaces the cream, indigo and saffron palette. Every text pair still meets WCAG AA.
+- App icons, favicon, extension icons, the PWA theme colour and the browser bar colour use the new teal. The service worker cache version is bumped so installed apps pick up the new icons.
+- The accent tokens are renamed from `--saffron*` to `--signal*` (`Button variant="signal"`), Home's kicker reads "Your darkroom · private, legal, no ads" (en, hi, ar), and the Movies tint is raspberry so it no longer looks like the red accent. The light browser bar is teal like the manifest.
+- axe runs on every page in light and dark, on phone and desktop, with all rules (`e2e/axe-all.spec.ts`), after seeding a finished and a failed download. Contact sheets of every page: `docs/images/darkroom/`.
+
 ### Changed (open source)
 - **AnyGet is free, open-source software (MIT)**, run by each user on their own machine. The paid-product plan was dropped: its docs and prompts are gone, and the Legal page says AnyGet is free and open source (en, hi, ar).
 - Build history moved under `docs/dev/` (`docs/dev/plan.md`, `docs/dev/prompts/`).

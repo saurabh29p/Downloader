@@ -64,7 +64,7 @@ export function DropAnywhere() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-xl border-2 border-dashed border-saffron bg-background/85 font-serif text-2xl"
+      className="pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-xl border-2 border-dashed border-signal bg-background/85 font-serif text-2xl"
     >
       {t("dropHere")}
     </div>

@@ -4,47 +4,49 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * "The Reading Room" design tokens: Paper (light, default) and Ink (dark).
+ * "Darkroom" design tokens: Fog (light, default) and Night (dark).
+ * Deep teal is the primary (links, buttons, focus); "signal" is the safelight
+ * red accent (active states, badges, the main call to action).
  * Dark follows the system (prefers-color-scheme) or an explicit .dark class.
- * Text pairs meet WCAG AA: saffron is a fill (with ink text on it); saffron
- * text uses --saffron-ink. Section tints are decoration only (never text).
+ * Text pairs meet WCAG AA: signal is a fill (with --signal-foreground text
+ * on it: white in light, near-black in dark); signal text uses --signal-ink. Section tints are decoration only (never text).
  * Spacing uses Tailwind's 4px grid.
  */
 :root {
   --radius: 0.5rem;
-  --background: #f6f1e7;
-  --foreground: #1c1a17;
-  --card: #fffdf8;
-  --card-foreground: #1c1a17;
-  --popover: #fffdf8;
-  --popover-foreground: #1c1a17;
-  --primary: #2b3a67;
-  --primary-foreground: #fffdf8;
-  --secondary: #efe7d8;
-  --secondary-foreground: #1c1a17;
-  --muted: #efe7d8;
-  --muted-foreground: #6b645a;
-  --accent: #ede4d3;
-  --accent-foreground: #1c1a17;
-  --destructive: #b23a3a;
-  --success: #366f4d;
-  --border: #e3dacb;
-  --input: #9a8d78;
-  --ring: #2b3a67;
-  --saffron: #e8772e;
-  --saffron-foreground: #1c1a17;
-  --saffron-ink: #a84f12;
-  --rail: #efe7d8;
-  --rule: #c9d6e8;
-  --rule-red: #d9a49a;
+  --background: #edf0ee;
+  --foreground: #14201f;
+  --card: #f8faf9;
+  --card-foreground: #14201f;
+  --popover: #f8faf9;
+  --popover-foreground: #14201f;
+  --primary: #0e5a5c;
+  --primary-foreground: #ffffff;
+  --secondary: #e1e6e3;
+  --secondary-foreground: #14201f;
+  --muted: #e1e6e3;
+  --muted-foreground: #556360;
+  --accent: #dce3e0;
+  --accent-foreground: #14201f;
+  --destructive: #b42318;
+  --success: #2f6b46;
+  --border: #cdd5d1;
+  --input: #7c8a86;
+  --ring: #0e5a5c;
+  --signal: #d2452b;
+  --signal-foreground: #ffffff;
+  --signal-ink: #b3361f;
+  --rail: #e1e6e3;
+  --rule: #bfd3d2;
+  --rule-red: #e3a79a;
 
   /* Section tints (stripes, drawer labels, art), the same in both themes. */
-  --tint-movies: #c2412d;
+  --tint-movies: #a12d63; /* raspberry: kept apart from the signal red */
   --tint-books: #8a5a2b;
   --tint-music: #6d3fa0;
   --tint-video: #1f6f8b;
   --tint-declassified: #3a3a3a;
-  --tint-more: #2b3a67;
+  --tint-more: #0e5a5c;
   --tint-maps: #4e7a3a;
   --tint-newspapers: #5a5a5a;
   --tint-photos: #b5832a;
@@ -57,7 +59,7 @@
     "Fraunces Variable", "Noto Naskh Arabic", "Noto Sans Devanagari", Georgia, "Times New Roman",
     serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --shadow-card: 0 1px 0 rgb(28 26 23 / 0.04), 0 2px 8px rgb(28 26 23 / 0.06);
+  --shadow-card: 0 1px 0 rgb(20 32 31 / 0.05), 0 2px 8px rgb(20 32 31 / 0.07);
   /* Motion */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --duration-fast: 120ms;
@@ -68,69 +70,69 @@
   --rail-width: 14rem;
 }
 
-/* Ink: an explicit choice (.dark, set by the theme script) or the system setting. */
+/* Night: an explicit choice (.dark, set by the theme script) or the system setting. */
 :root.dark {
-  --background: #16140f;
-  --foreground: #ede6d8;
-  --card: #1e1b16;
-  --card-foreground: #ede6d8;
-  --popover: #1e1b16;
-  --popover-foreground: #ede6d8;
-  --primary: #7c8cd6;
-  --primary-foreground: #16140f;
-  --secondary: #26221b;
-  --secondary-foreground: #ede6d8;
-  --muted: #26221b;
-  --muted-foreground: #a69c8c;
-  --accent: #2a261f;
-  --accent-foreground: #ede6d8;
-  --destructive: #e57373;
-  --success: #6fb98a;
-  --border: #2e2a23;
-  --input: #7a6f5f;
-  --ring: #7c8cd6;
-  --saffron: #f0883e;
-  --saffron-foreground: #16140f;
-  --saffron-ink: #f0883e;
-  --rail: #121212;
-  --rule: #2b3346;
-  --rule-red: #5a2f2a;
+  --background: #0d1517;
+  --foreground: #e6ecea;
+  --card: #142023;
+  --card-foreground: #e6ecea;
+  --popover: #142023;
+  --popover-foreground: #e6ecea;
+  --primary: #5fc4bc;
+  --primary-foreground: #0d1517;
+  --secondary: #1a272a;
+  --secondary-foreground: #e6ecea;
+  --muted: #1a272a;
+  --muted-foreground: #98a8a4;
+  --accent: #1e2d30;
+  --accent-foreground: #e6ecea;
+  --destructive: #f07167;
+  --success: #6fc08f;
+  --border: #23353a;
+  --input: #5e726e;
+  --ring: #5fc4bc;
+  --signal: #ff6a4a;
+  --signal-foreground: #0d1517;
+  --signal-ink: #ff7a5c;
+  --rail: #0a1113;
+  --rule: #1f3a3d;
+  --rule-red: #5a2a22;
   --tint-declassified: #9a9a9a;
   --tint-newspapers: #a3a3a3;
-  --tint-more: #7c8cd6;
+  --tint-more: #5fc4bc;
   --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light):not(.dark) {
-    --background: #16140f;
-    --foreground: #ede6d8;
-    --card: #1e1b16;
-    --card-foreground: #ede6d8;
-    --popover: #1e1b16;
-    --popover-foreground: #ede6d8;
-    --primary: #7c8cd6;
-    --primary-foreground: #16140f;
-    --secondary: #26221b;
-    --secondary-foreground: #ede6d8;
-    --muted: #26221b;
-    --muted-foreground: #a69c8c;
-    --accent: #2a261f;
-    --accent-foreground: #ede6d8;
-    --destructive: #e57373;
-    --success: #6fb98a;
-    --border: #2e2a23;
-    --input: #7a6f5f;
-    --ring: #7c8cd6;
-    --saffron: #f0883e;
-    --saffron-foreground: #16140f;
-    --saffron-ink: #f0883e;
-    --rail: #121212;
-    --rule: #2b3346;
-    --rule-red: #5a2f2a;
+    --background: #0d1517;
+    --foreground: #e6ecea;
+    --card: #142023;
+    --card-foreground: #e6ecea;
+    --popover: #142023;
+    --popover-foreground: #e6ecea;
+    --primary: #5fc4bc;
+    --primary-foreground: #0d1517;
+    --secondary: #1a272a;
+    --secondary-foreground: #e6ecea;
+    --muted: #1a272a;
+    --muted-foreground: #98a8a4;
+    --accent: #1e2d30;
+    --accent-foreground: #e6ecea;
+    --destructive: #f07167;
+    --success: #6fc08f;
+    --border: #23353a;
+    --input: #5e726e;
+    --ring: #5fc4bc;
+    --signal: #ff6a4a;
+    --signal-foreground: #0d1517;
+    --signal-ink: #ff7a5c;
+    --rail: #0a1113;
+    --rule: #1f3a3d;
+    --rule-red: #5a2a22;
     --tint-declassified: #9a9a9a;
     --tint-newspapers: #a3a3a3;
-    --tint-more: #7c8cd6;
+    --tint-more: #5fc4bc;
     --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.25);
   }
 }
@@ -155,9 +157,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-saffron: var(--saffron);
-  --color-saffron-foreground: var(--saffron-foreground);
-  --color-saffron-ink: var(--saffron-ink);
+  --color-signal: var(--signal);
+  --color-signal-foreground: var(--signal-foreground);
+  --color-signal-ink: var(--signal-ink);
   --color-rail: var(--rail);
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
@@ -216,7 +218,7 @@
   }
 }
 
-/* ----- Reading Room pieces (CSS only, so they cost no JavaScript) ------------ */
+/* ----- Darkroom pieces (CSS only, so they cost no JavaScript) ---------------- */
 @layer components {
   /* A library index card: a red rule under the heading and a punched hole. */
   .index-card {

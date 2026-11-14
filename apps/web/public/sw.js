@@ -1,7 +1,7 @@
 /* AnyGet service worker: makes the app installable and keeps the app shell's static
    files (scripts, styles, fonts, icons) for fast and offline starts.
    It never caches API answers or downloads: those always come from your server. */
-const VERSION = "anyget-static-v1";
+const VERSION = "anyget-static-v2";
 const STATIC = /^\/(_next\/static\/|icons\/|favicon\.png$)/;
 
 self.addEventListener("install", () => self.skipWaiting());

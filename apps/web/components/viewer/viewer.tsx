@@ -171,7 +171,7 @@ function Body({
         <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
           <p className="text-muted-foreground">{t("audioHint")}</p>
           <Button
-            variant="saffron"
+            variant="signal"
             onClick={() => {
               playItem(item);
               onClose();
