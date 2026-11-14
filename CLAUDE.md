@@ -31,7 +31,7 @@ Open-source release (one PR per phase, stacked branches `release/os-NN-*`):
 - [x] OS Phase 1 — pivot from commercial to open source
 - [x] OS Phase 2 — license, legal and community files
 - [x] OS Phase 3 — Darkroom theme
-- [ ] OS Phase 4 — safer defaults for strangers
+- [x] OS Phase 4 — safer defaults for strangers
 - [ ] OS Phase 5 — documentation
 - [ ] OS Phase 6 — correctness and bugs
 - [ ] OS Phase 7 — performance
@@ -222,7 +222,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 | 10 Deploy and release | Worldwide access | cloudflared service, Access JWT check, deploy + Tailscale docs, backups, v1.0.0 | `https://dl.<domain>` opens after email code |
 
 ## Gotchas
-- `API_URL` is read when the web app is **built** (Next.js rewrites are baked in). Compose builds with `http://api:8000`; local dev uses `http://127.0.0.1:8000`.
+- `API_URL` is read when the web app is **built** (Next.js rewrites are baked in) **and at run time** (the sign-in gate in `proxy.ts` and the sign-in page's `authStatus`). Compose builds with `http://api:8000` and the web image's runtime stage sets the same `ENV`; local dev uses `http://127.0.0.1:8000`. A `next start` without `API_URL` silently skips the sign-in redirect.
 - Next.js 16 uses `proxy.ts` (formerly `middleware.ts`) for next-intl locale routing. Keep `api` and `healthz` excluded from its matcher.
 - `/healthz` on web is liveness only; `/api/health` goes through the rewrite to FastAPI.
 - If Playwright's bundled Chromium is missing, set `PW_CHROMIUM_PATH=/path/to/chrome`.
@@ -340,7 +340,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - Job list sync: `lib/jobs-sync.ts` journals stream events and `useJobs`'s queryFn reconciles each response with events after its start; the bridge doesn't write a partial list before the first response. Downloads hides counts until data exists.
 - Downloads is near the 170 KB budget: it uses plain async handlers, not `useMutation` (TanStack's mutation code costs ~1 KB there).
 - Job rows (`components/jobs/job-item.tsx`): titles are `h2` (right under the Downloads `h1`). Only `upstream` errors show the server's text inline; every other code shows its translated message with the raw text under Details (`wrap-anywhere`, so long paths never widen the page on phones).
-- Retention (`library/retention.py`): `retention_days` (0 off), grace via the `_retention_since` state row (`SettingsStore.get_state/set_state`), `added_at` not mtime, skips active jobs/`keep`/symlinks, refuses when the data dir is inside the downloads dir. The scheduler starts only in the API (`Services.start(recover=True)`). Never run `--apply` against real files in tests or demos.
+- Retention (`library/retention.py`): `retention_days` (default 0 = off; strangers' files are never removed unless they opt in), grace via the `_retention_since` state row (`SettingsStore.get_state/set_state`), `added_at` not mtime, skips active jobs/`keep`/symlinks, refuses when the data dir is inside the downloads dir. The scheduler starts only in the API (`Services.start(recover=True)`). Never run `--apply` against real files in tests or demos.
 - AI issues: `LlmUnavailable.code` → `OpenRouter.last_issue` → `Brain.issue()` → `/api/llm.issue` and the stream's `done.ai_issue`. TMDB 401/403 → `bad_key`, 429 → `rate_limited`.
 
 ### Frontend gotchas
@@ -355,7 +355,10 @@ Personal use only. Download only what the user owns, what is public domain or op
 - The shadcn registry may be unreachable from sandboxes; components in `components/ui` are written by hand in shadcn style.
 - The repository URL lives in `lib/project.ts` (`REPO_URL`): Legal links the LICENSE, Help links `#support-anyget` in the README. Keep that README heading if you rename sections.
 - User-facing hints for keys and accounts link to `/connections#<site>` (a library's `key_setting` minus `_key` is its Connections id), never to env variable names or `.env`; env names belong only under Settings → Advanced and the self-hosted sign-in.
-- `<summary>` must not be `flex` (that hides the disclosure arrow): use `min-h-11 cursor-pointer content-center`.
+- `<summary>` must not be `flex` (that hides the disclosure arrow): use `min-h-11 cursor-pointer content-center`. Likewise a `<li>` that is `flex` loses its bullet or number: space list items with `space-y-*` on the list.
+- Home's first-run hint (`components/home/first-run-hint.tsx`) is server-rendered; Hide is a plain form POST to `/<locale>/hide-hint` (route handler) that sets the `anyget_hint` cookie. Redirects from route handlers use a **relative** `Location`: `request.url` can name another host (`next start -H 127.0.0.1` reports `localhost`) and the cookie would be lost.
+- The sign-in page shows `OwnerSetup` (exact `anyget hash-password` steps) when `/api/auth/me` says `login_required` and not `owner_configured`.
+- `.env.example` must list every `Settings` field and load to the defaults (`tests/test_env_example.py`). List settings read from env as comma-separated strings need the `_split_csv` validator.
 - `e2e/axe-all.spec.ts` runs axe with **all** rules (WCAG + best practices) on every page, light and dark, after seeding jobs; add new pages to its list.
 - Lighthouse in containers needs `--disable-gpu --disable-dev-shm-usage` (in `scripts/lighthouse.mjs`, which also retries a failed trace). Axe in e2e checks Downloads while it is empty; Lighthouse with seeded jobs catches row-level issues.
 - E2E downloads come from `e2e/fixture-server.mjs` (Range, Content-MD5, `?slow=1`), reachable because Playwright starts the API with `ANYGET_NET_ALLOWLIST=127.0.0.1:8200`.

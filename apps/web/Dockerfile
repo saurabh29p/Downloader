@@ -18,7 +18,10 @@ ENV API_URL=$API_URL
 RUN pnpm --filter @anyget/web build
 
 FROM node:24-slim AS runtime
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+# API_URL is also read at run time (the sign-in gate in proxy.ts and the sign-in page);
+# without it they would look for the API on 127.0.0.1:8000 inside this container.
+ARG API_URL=http://api:8000
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000 API_URL=$API_URL
 WORKDIR /app
 COPY --from=build --chown=node:node /repo/apps/web/.next/standalone ./
 COPY --from=build --chown=node:node /repo/apps/web/.next/static ./apps/web/.next/static

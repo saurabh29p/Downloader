@@ -19,6 +19,7 @@ NOW = datetime(2026, 11, 20, 12, 0, tzinfo=UTC)
 
 @pytest.fixture
 async def services(settings: Settings) -> AsyncIterator[Services]:
+    settings.retention_days = 7  # these tests cover retention switched on (default: off)
     svc = Services.build(settings)
     yield svc
     await svc.stop()
@@ -49,8 +50,9 @@ def _start(services: Services, days_ago: float) -> None:
     )
 
 
-def test_default_is_seven_days_and_first_run_only_starts_the_grace(services: Services) -> None:
-    assert services.settings.retention_days == 7
+def test_off_by_default_and_first_run_only_starts_the_grace(services: Services) -> None:
+    # Strangers' files are never removed unless they switch retention on.
+    assert Settings.model_fields["retention_days"].default == 0
     _add(services, "old.mp4", age_days=30)
     first = services.retention.run(now=NOW)
     assert first.removed == [] and first.starts_at == NOW + timedelta(days=7)
@@ -138,6 +140,9 @@ def test_off_mode_and_overlapping_folders(services: Services, tmp_path: Path) ->
 
 def test_retention_api(env_settings: Path) -> None:
     with TestClient(create_app()) as client:
+        status = client.get("/api/retention").json()
+        assert status["days"] == 0 and status["enabled"] is False  # off by default
+        assert client.put("/api/settings", json={"retention_days": 7}).status_code == 200
         status = client.get("/api/retention").json()
         assert status["days"] == 7 and status["enabled"] is True and status["blocked"] is None
         dry = client.post("/api/retention/run").json()
