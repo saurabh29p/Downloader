@@ -12,6 +12,12 @@ def archive_key(extractor: str, source_id: str | None) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "_", raw)[:120]
 
 
+def kind_key(key: str, audio_only: bool) -> str:
+    """Audio-only downloads have their own archive: saving a video must not block its MP3
+    (and the other way round). Video keeps the plain key, so older archives still work."""
+    return f"{key}-audio" if audio_only else key
+
+
 def archive_path(data_dir: Path, key: str) -> Path:
     folder = data_dir / "archives"
     folder.mkdir(parents=True, exist_ok=True)

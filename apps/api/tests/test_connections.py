@@ -68,9 +68,16 @@ def test_cookies_are_kept_per_site_and_encrypted(client: TestClient, env_setting
     assert SECRET in text and "reddit" not in text and "bank.example" not in text
 
     wrong = client.put("/api/connections/vimeo", json={"cookies": COOKIES})
-    assert wrong.status_code == 400 and wrong.json()["code"] == "invalid_connection"
+    # Each problem has its own code, so the app can say what is wrong in plain words.
+    assert wrong.status_code == 400 and wrong.json()["code"] == "cookies_wrong_site"
     bad = client.put("/api/connections/youtube", json={"cookies": "not a cookies file"})
-    assert bad.status_code == 400
+    assert bad.status_code == 400 and bad.json()["code"] == "not_cookies_txt"
+    empty = client.put(
+        "/api/connections/youtube", json={"cookies": "# Netscape HTTP Cookie File\n"}
+    )
+    assert empty.json()["code"] == "no_cookies"
+    keyless = client.put("/api/connections/tmdb", json={"fields": {}})
+    assert keyless.json()["code"] == "missing_fields"
 
     assert client.delete("/api/connections/youtube").status_code == 204
     assert services.connections.cookies_for("youtube.com") == ("", None)

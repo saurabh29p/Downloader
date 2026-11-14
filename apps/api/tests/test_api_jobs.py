@@ -71,6 +71,15 @@ def test_probe_blocked(client: TestClient, url: str) -> None:
     assert response.json()["code"] == "blocked_url"
 
 
+def test_unreachable_site_is_a_network_error(client: TestClient) -> None:
+    # A site that resets the connection used to escape as a 500 "Internal Server Error".
+    with respx.mock(assert_all_called=False) as mock:
+        mock.route(host="down.test").mock(side_effect=httpx.ConnectError("connection reset"))
+        response = client.post("/api/probe", json={"url": "https://down.test/file.bin"})
+    assert response.status_code == 502
+    assert response.json() == {"code": "network", "message": "network error: connection reset"}
+
+
 def test_probe_web_page_lists_links(client: TestClient) -> None:
     response = client.post("/api/probe", json={"url": "https://files.test/page"})
     assert response.status_code == 200

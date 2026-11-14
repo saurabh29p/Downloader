@@ -60,7 +60,8 @@ describe("JobRow", () => {
   it("keeps raw server text of unexpected errors under Details", () => {
     const raw = "[Errno 2] No such file or directory: '/data/downloads/.anyget-x.part'";
     renderRow({ state: "failed", error_code: "internal", error: raw });
-    expect(screen.getByText("Something went wrong. Try again.")).toBeInTheDocument();
+    // `internal` now has its own words (it used to fall back to the generic message).
+    expect(screen.getByText(/Something went wrong inside AnyGet/)).toBeInTheDocument();
     const details = screen.getByText(raw).closest("details");
     expect(details).not.toBeNull();
     expect(details).not.toHaveAttribute("open");

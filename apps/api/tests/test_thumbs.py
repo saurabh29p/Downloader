@@ -95,5 +95,29 @@ def test_thumb_endpoint(env_settings: Path) -> None:
         assert notes["thumbnail"] is None
         response = client.get(photo["thumbnail"])
         assert response.status_code == 200 and response.headers["content-type"] == "image/webp"
-        assert client.get(f"/api/library/{notes['id']}/thumb").status_code == 404
+        # "No picture" is an empty 204 (not an error the browser logs); unknown ids stay 404.
+        assert client.get(f"/api/library/{notes['id']}/thumb").status_code == 204
+        assert client.get("/api/library/no-such-item/thumb").status_code == 404
+    get_settings.cache_clear()
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_audio_without_cover_stops_offering_a_thumbnail(env_settings: Path) -> None:
+    import wave
+
+    get_settings.cache_clear()
+    root = env_settings / "downloads"
+    root.mkdir(parents=True, exist_ok=True)
+    with wave.open(str(root / "tone.wav"), "wb") as w:  # a WAV has no cover art
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(8000)
+        w.writeframes(b"\0\0" * 800)
+    with TestClient(create_app()) as client:
+        client.post("/api/library/scan")
+        (item,) = client.get("/api/library").json()["items"]
+        assert item["thumbnail"] == f"/api/library/{item['id']}/thumb"  # not known yet
+        assert client.get(item["thumbnail"]).status_code == 204
+        (item,) = client.get("/api/library").json()["items"]
+        assert item["thumbnail"] is None  # known now: the cards don't ask again
     get_settings.cache_clear()

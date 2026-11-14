@@ -61,5 +61,29 @@ def test_items_with_own_options_and_archive_skip(client: TestClient, settings: S
     assert [s["code"] for s in body["skipped"]] == ["already_downloaded"]
 
 
+def test_audio_of_saved_playlist_items_is_queued(client: TestClient, settings: Settings) -> None:
+    archive_path(settings.data_dir, "youtubetab-PL2").write_text("youtube saved00002\n")
+    items = [
+        {
+            "url": "https://www.youtube.com/watch?v=saved00002",
+            "options": {"archive_id": "youtube saved00002"},
+        }
+    ]
+    audio = {"preset": "audio", "audio_format": "mp3", "archive": "youtubetab-PL2"}
+    body = client.post("/api/jobs", json={"items": items, "options": audio}).json()
+    assert len(body["jobs"]) == 1 and body["skipped"] == []
+
+
+def test_same_link_with_different_options_is_not_dropped(client: TestClient) -> None:
+    url = "https://www.youtube.com/watch?v=aaaaaaaaaaa"
+    items = [
+        {"url": url, "options": {"preset": "720"}},
+        {"url": url, "options": {"preset": "audio", "audio_format": "mp3"}},
+        {"url": url, "options": {"preset": "720"}},  # a true duplicate: one job only
+    ]
+    body = client.post("/api/jobs", json={"items": items}).json()
+    assert sorted(j["options"]["preset"] for j in body["jobs"]) == ["720", "audio"]
+
+
 def test_create_needs_urls_or_items(client: TestClient) -> None:
     assert client.post("/api/jobs", json={}).status_code == 422

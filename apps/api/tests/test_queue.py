@@ -1,4 +1,5 @@
 import asyncio
+import errno
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
@@ -29,7 +30,7 @@ class GateHandler:
         self.gate = asyncio.Event()
         self.running = 0
         self.max_running = 0
-        self.fail_with: HandlerError | None = None
+        self.fail_with: Exception | None = None
 
     def can_handle(self, url: str) -> bool:
         return "gate.test" in url
@@ -156,6 +157,16 @@ async def test_handler_error_marks_failed(svc: Services, gate: GateHandler) -> N
     svc.queue.retry(job.id)
     await svc.queue.wait_idle()
     assert svc.store.get(job.id).state == JobState.done  # type: ignore[union-attr]
+
+
+async def test_full_disk_has_its_own_error(svc: Services, gate: GateHandler) -> None:
+    # Not "something went wrong": say the disk is full, so the user can free space and retry.
+    gate.fail_with = OSError(errno.ENOSPC, "No space left on device")
+    gate.gate.set()
+    job = svc.queue.submit("https://a.gate.test/big")
+    await svc.queue.wait_idle()
+    failed = svc.store.get(job.id)
+    assert failed is not None and failed.error_code == "disk_full"
 
 
 async def test_blocked_url_fails_cleanly(svc: Services) -> None:

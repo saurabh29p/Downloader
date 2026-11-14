@@ -193,6 +193,8 @@ def local_server() -> Iterator[int]:
     thread.start()
     yield server.server_address[1]
     server.shutdown()
+    server.server_close()  # shutdown() stops the loop; this closes the listening socket
+    thread.join(timeout=5)
 
 
 async def test_backend_refuses_private_ip(fake_dns: FakeDNS) -> None:

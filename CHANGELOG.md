@@ -20,6 +20,19 @@ action from people who run AnyGet, so semantic versioning calls for a new major 
 A `2.0.0` heading existed here earlier but was never tagged, so the number is free to use.
 The package versions are now 2.0.0.
 
+### Fixed (correctness)
+- **Saving a video no longer blocks its MP3** (and the other way round): audio-only downloads keep their own download archive (`<key>-audio.txt`), for single links, playlists and watches. Existing archives keep working for video.
+- **The same link with different options** (for example the video and its MP3 in one request) is no longer dropped as a duplicate.
+- **An unreachable site** (connection refused or reset, DNS failure, time-out) now answers "Couldn't reach the server" (`network`, HTTP 502) instead of a 500 "Internal Server Error" when a link is checked.
+- **Flickr and other albums** are named after the album, not after their first photo.
+- **Wikimedia Commons** titles use spaces instead of underscores.
+- **A full disk** fails the download with its own message ("The disk is full… press Try again"); the partial file is kept so Try again continues.
+- **Thumbnails:** a file with no picture answers 204 (no content) instead of an error, and the library stops asking for it after the first try.
+- **Connections:** every refusal has its own plain message (not a cookies.txt file, empty file, cookies for another site, missing key, site not connected) in English, Hindi and Arabic, instead of "Something went wrong".
+- **AnyGet's server down:** the website says "AnyGet's server isn't answering" instead of a generic error.
+- Every error code the API can return now has a translation in every language; a test (`tests/test_error_translations.py`) keeps it that way.
+- Tests close their local HTTP servers properly (no more "unclosed socket" warnings); a new test resumes a download past 4 GiB.
+
 ### Docs (open source)
 - **README rewritten for newcomers:** what AnyGet does and won't do, screenshots (light and dark), a three-command Docker quick start, phone use, configuration, keeping yt-dlp up to date, backups, the command line, FAQ, acknowledgements.
 - **`docs/README.md` index** and new pages: install (Docker on Windows/WSL2, macOS, Linux, Raspberry Pi; from source; updating; removing), user guide, phone, configuration, troubleshooting, API (with examples), architecture (with a diagram) and plugins. `docs/setup.md` is now the development setup.

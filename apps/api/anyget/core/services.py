@@ -118,7 +118,7 @@ class Services:
         plugins = load_plugins(registry, net, settings)
         router = Router(registry, net)
         queue = DownloadQueue(settings, store, bus, router)
-        library = LibraryIndex(db, settings.downloads_dir)
+        library = LibraryIndex(db, settings.downloads_dir, settings.data_dir)
         queue.on_done.append(library.add_job)
         watches = WatchService(db, net, router, queue)
         retention = Retention(db, settings, settings_store, library)

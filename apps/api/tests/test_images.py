@@ -86,6 +86,7 @@ async def test_commons_page_downloads_the_original(net: Net, settings: Settings)
     page = "https://commons.wikimedia.org/wiki/File:Taj_Mahal_(Edited).jpeg"
     probe = await handler.probe(page)
     assert probe.extra["kind"] == "image" and probe.extra["license"] == "CC BY-SA 4.0"
+    assert probe.title == "Taj Mahal (Edited)"  # spaces, as Commons shows it; the file keeps _
     assert probe.choices[0].ext == "jpeg" and probe.size == len(JPEG)
     assert probe.thumbnail and probe.thumbnail.endswith("640px-Taj.jpeg")
 
