@@ -17,6 +17,7 @@ import { CheckRow, ChoicePill } from "@/components/media/choice";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "@/i18n/navigation";
 import { createJobs, probeUrl } from "@/lib/api";
 import { listLibraries } from "@/lib/api-books";
 import { errorMessage } from "@/lib/errors";
@@ -101,7 +102,18 @@ function LibraryCard({ library }: { library: Library }) {
       {library.key_configured === false && (
         <p className="flex items-center gap-1 text-sm text-muted-foreground">
           <KeyRoundIcon className="size-4" aria-hidden="true" />
-          {t("needsKey", { env: `ANYGET_${(library.key_setting ?? "").toUpperCase()}` })}
+          <span>
+            {t.rich("needsKey", {
+              link: (chunks) => (
+                <Link
+                  href={`/connections#${(library.key_setting ?? "").replace(/_key$/, "")}`}
+                  className="font-medium text-primary underline underline-offset-4"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </span>
         </p>
       )}
       <a

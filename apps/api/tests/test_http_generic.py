@@ -201,6 +201,18 @@ async def test_short_body_is_incomplete(handler: HttpGenericHandler, tmp_path: P
 
 
 @respx.mock
+async def test_empty_file_is_saved(handler: HttpGenericHandler, tmp_path: Path) -> None:
+    # A 0-byte file is a real file (an empty .keep, a placeholder): save it, don't crash.
+    respx.head(URL).mock(return_value=httpx.Response(200, headers={"Content-Length": "0"}))
+    get = respx.get(URL).mock(return_value=httpx.Response(200, content=b""))
+    result = await handler.download(job(tmp_path), {}, lambda _p: None)
+    assert get.called
+    assert result.paths[0].name == "archive.bin"
+    assert result.paths[0].read_bytes() == b""
+    assert not part_path(tmp_path / "out", "job1").exists()
+
+
+@respx.mock
 async def test_existing_file_gets_new_name(handler: HttpGenericHandler, tmp_path: Path) -> None:
     out = tmp_path / "out"
     out.mkdir()

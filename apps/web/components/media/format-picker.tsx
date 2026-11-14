@@ -175,7 +175,7 @@ export function FormatPicker({ value, onChange, extra }: Props) {
           ))}
           {extra.auto_captions.length > 0 && (
             <details className="text-sm">
-              <summary className="flex min-h-11 cursor-pointer items-center">
+              <summary className="min-h-11 cursor-pointer content-center">
                 {t("autoCaptions", { count: extra.auto_captions.length })}
               </summary>
               <div className="grid max-h-56 grid-cols-1 overflow-y-auto ps-2 sm:grid-cols-2">

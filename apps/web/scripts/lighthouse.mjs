@@ -31,21 +31,29 @@ let failed = false;
 for (const formFactor of ["mobile", "desktop"]) {
   for (const page of pages) {
     const file = join(out, `${formFactor}${page.replaceAll("/", "_")}.json`);
-    execFileSync(
-      "pnpm",
-      [
-        "dlx",
-        "lighthouse@13.6.0",
-        base + page,
-        "--quiet",
-        "--output=json",
-        `--output-path=${file}`,
-        "--only-categories=performance,accessibility,best-practices",
-        "--chrome-flags=--headless=new --no-sandbox",
-        ...(formFactor === "desktop" ? ["--preset=desktop"] : []),
-      ],
-      { stdio: ["ignore", "ignore", "inherit"] },
-    );
+    const args = [
+      "dlx",
+      "lighthouse@13.6.0",
+      base + page,
+      "--quiet",
+      "--output=json",
+      `--output-path=${file}`,
+      "--only-categories=performance,accessibility,best-practices",
+      // --disable-gpu / --disable-dev-shm-usage: without them Chrome in containers
+      // (Docker, cloud sandboxes) often fails to record the trace (NO_NAVSTART).
+      "--chrome-flags=--headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage",
+      ...(formFactor === "desktop" ? ["--preset=desktop"] : []),
+    ];
+    // A failed trace is a Lighthouse/Chrome hiccup, not a score: try that page again.
+    for (let attempt = 1; ; attempt++) {
+      try {
+        execFileSync("pnpm", args, { stdio: ["ignore", "ignore", "inherit"] });
+        break;
+      } catch (error) {
+        if (attempt === 3) throw error;
+        console.error(`Lighthouse run failed for ${formFactor} ${page}; trying again.`);
+      }
+    }
     const report = JSON.parse(readFileSync(file, "utf8"));
     const scores = Object.fromEntries(
       Object.entries(report.categories).map(([key, value]) => [key, value.score]),

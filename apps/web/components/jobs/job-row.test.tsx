@@ -46,10 +46,29 @@ describe("JobRow", () => {
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
+  it("titles each row with an h2 (the list sits right under the page's h1)", () => {
+    renderRow({ state: "done" });
+    expect(screen.getByRole("heading", { level: 2, name: "report.pdf" })).toBeInTheDocument();
+  });
+
   it("explains failures and offers retry", () => {
     renderRow({ state: "failed", error_code: "blocked_url", error: "10.0.0.1 is private" });
     expect(screen.getByText(/private or local network/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try again: report.pdf" })).toBeEnabled();
+  });
+
+  it("keeps raw server text of unexpected errors under Details", () => {
+    const raw = "[Errno 2] No such file or directory: '/data/downloads/.anyget-x.part'";
+    renderRow({ state: "failed", error_code: "internal", error: raw });
+    expect(screen.getByText("Something went wrong. Try again.")).toBeInTheDocument();
+    const details = screen.getByText(raw).closest("details");
+    expect(details).not.toBeNull();
+    expect(details).not.toHaveAttribute("open");
+  });
+
+  it("shows the server's own words inline for upstream errors", () => {
+    renderRow({ state: "failed", error_code: "upstream", error: "the server answered 503" });
+    expect(screen.getByText("the server answered 503").closest("details")).toBeNull();
   });
 
   it("resumes paused jobs", () => {

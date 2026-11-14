@@ -78,7 +78,7 @@
       }
     },
     "sectionsHeading": "The catalogue",
-    "kicker": "Your reading room · free, personal, legal",
+    "kicker": "Your reading room · private, legal, no ads",
     "go": "Search",
     "modeLabel": "Search in",
     "modeAll": "All",
@@ -211,7 +211,7 @@
     "borrow_only": "This item can only be borrowed from archive.org's lending library. AnyGet does not get around that.",
     "rate_limited": "The site's limit for anonymous requests was reached. Try again later, or add your own API token.",
     "in_copyright": "This is in copyright, so it is not legally downloadable. Borrow or buy it instead.",
-    "needs_key": "This source needs a free API key. Add it to your .env file.",
+    "needs_key": "This source needs a free API key. Add it on the Connections page.",
     "tool_missing": "The tool for this conversion is not installed on this computer.",
     "forbidden": "The site refused the download (403). Signing in with your own account usually fixes this; updating yt-dlp can help too.",
     "not_a_file": "The link opened a web page instead of the file, so nothing was saved.",
@@ -284,7 +284,7 @@
     "check": "Check link",
     "needLink": "Paste a link first.",
     "notMedia": "That link isn't a video site. Use the Home page for direct file links.",
-    "cookiesHint": "Signed in to a site with your own account? <link>Add your cookies.txt in Settings</link> so downloads work the same as in your browser.",
+    "cookiesHint": "Signed in to a site with your own account? <link>Connect your account in Connections</link> so downloads work the same as in your browser.",
     "legal": "Only download your own videos, Creative Commons or other content you are allowed to save. Members-only, paid, DRM and region-blocked videos are never bypassed.",
     "quality": "Quality",
     "best": "Best",
@@ -470,7 +470,7 @@
     "placeholder": "https://github.com/owner/repo",
     "find": "Find files",
     "needUrl": "Enter a link first.",
-    "hosts": "Works with GitHub, GitLab, Codeberg, Bitbucket and gists. Add ANYGET_GITHUB_TOKEN for higher GitHub limits."
+    "hosts": "Works with GitHub, GitLab, Codeberg, Bitbucket and gists. Add a GitHub token in Connections for higher GitHub limits."
   },
   "Images": {
     "title": "Image galleries",
@@ -529,6 +529,7 @@
     "buyAt": "Buy: {place}",
     "sourcesSummary": "{ok} of {total} sources answered",
     "sourceFound": "{count, plural, =0 {nothing found} one {# found} other {# found}}",
+    "addKey": "Add a key in Connections",
     "sourceStatus": {
       "needs_key": "needs a free key",
       "timeout": "took too long",
@@ -563,7 +564,7 @@
       "page": "Web page files",
       "link": "Read on site"
     },
-    "needsKey": "Search needs a free key: {env}",
+    "needsKey": "Search needs a free key. <link>Add it in Connections</link>",
     "visit": "Visit",
     "itemLabel": "Library item link",
     "itemHint": "Works with Gallica, Library of Congress, NDL Japan, Europeana, Qatar Digital Library and any IIIF manifest.",
@@ -797,7 +798,7 @@
   },
   "Legal": {
     "title": "Legal and fair use",
-    "intro": "AnyGet is a personal tool. These rules are built into it and cannot be turned off.",
+    "intro": "These rules are built into AnyGet on every plan and cannot be turned off.",
     "rules": {
       "personal": {
         "title": "Personal use",
