@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
 import { SectionsGrid } from "@/components/sections/sections-grid";
+import { TOOLS, ToolsList } from "@/components/shell/tools-list";
 import type { Locale } from "@/i18n/routing";
 import { MAIN_SECTIONS, MORE_SECTIONS } from "@/lib/sections";
 
@@ -34,6 +35,15 @@ export default function SectionsPage({ params }: { params: Promise<{ locale: Loc
         </h2>
         <SectionsGrid ids={MORE_SECTIONS} headingId="more-heading" />
       </section>
+      <nav id="tools" className="flex scroll-mt-8 flex-col gap-3" aria-labelledby="tools-heading">
+        <div className="flex flex-col gap-1">
+          <h2 id="tools-heading" className="text-lg font-semibold">
+            {t("tools.title")}
+          </h2>
+          <p className="max-w-prose text-sm text-muted-foreground">{t("tools.text")}</p>
+        </div>
+        <ToolsList items={TOOLS} />
+      </nav>
     </div>
   );
 }

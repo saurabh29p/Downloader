@@ -36,7 +36,7 @@ Open-source release (one PR per phase, stacked branches `release/os-NN-*`):
 - [x] OS Phase 6 — correctness and bugs
 - [x] OS Phase 7 — performance
 - [x] OS Phase 8 — security review and hardening
-- [ ] OS Phase 9 — final polish
+- [x] OS Phase 9 — final polish
 
 Update this checklist at the end of every phase.
 
@@ -115,6 +115,7 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `make check` | lint + typecheck + test (run before every commit) |
 | `make notices` | regenerate the dependency tables in `THIRD_PARTY_NOTICES.md` (after changing dependencies) |
 | `make cli-docs` | regenerate `docs/cli.md` from the Typer CLI (after changing a command) |
+| `uv run anyget update-engine [--check]` | update yt-dlp into the data folder (used after a restart) |
 | `make e2e` | Playwright end-to-end + axe (starts a fixture file server on :8200, api on :8100, production web build on :3100) |
 | `pnpm --filter @anyget/web lighthouse <url>` | Lighthouse budgets against a running production build (`CHROME_PATH` for the browser) |
 | `make up` / `make down` / `make logs` | Docker Compose |
@@ -130,7 +131,7 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `uv run --extra desktop anyget watch-clipboard [--auto]` | offer copied links as downloads (desktop) |
 | `make extension` | build the browser extension zips (`apps/extension/dist/`) |
 | `make backup` / `make restore FILE=…` | back up / restore `data/` (stop AnyGet before restoring) |
-| `git tag vX.Y.Z && git push origin vX.Y.Z` | release: images to ghcr.io + GitHub release (`.github/workflows/release.yml`) |
+| `git tag vX.Y.Z && git push origin vX.Y.Z` | release: amd64 + arm64 images to ghcr.io (native runners, one multi-arch tag) + GitHub release with CHANGELOG notes, generated notes and extension zips (`.github/workflows/release.yml`) |
 | `cd examples/anyget-plugin-example && uv run pytest` | example plugin tests (also part of `make test`) |
 
 ## Architecture rules
@@ -236,6 +237,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - CI supply chain: every `uses:` is pinned to a full commit SHA with the version in a comment. This session can't read other repositories, so a new action's SHA comes from this repo's own job logs ("Download action repository 'x@vN' (SHA:…)" in Set up job). `release.yml` uses only `docker buildx` and `gh`. Secret scan: `secrets` job (gitleaks image pinned by digest, full history, `.gitleaksignore` for reviewed findings). `audit` job: `pnpm audit --prod --audit-level=high` and `pip-audit --strict` on both uv projects. CodeQL steps run only when the repository is public. Never add `pull_request_target`; `live.yml` skips fork PRs.
 - `ANYGET_NET_ALLOWLIST=host:port,…` lets tests/e2e reach local fixture servers. Never set it in normal use.
 - Docker images: the API mounts uv only for `uv sync` and sets `UV_NO_CACHE=1`, so neither uv nor its wheel cache is in the image. **No `--mount=type=cache` in the API Dockerfile**: Railway's builder refuses cache mounts without service-specific ids; the web runtime is `node:24-alpine` and the build stage deletes sharp from the standalone output (images are `unoptimized`; don't add `next/image` without putting sharp back). Debian's ffmpeg pulls ~200 MB of Mesa/LLVM through libavdevice → SDL2; a static ffmpeg would remove it (owner decision, not done).
+- **yt-dlp updates** (`core/engine.py`, Settings → Advanced, `anyget update-engine`): wheels from PyPI through `Net`, SHA-256 checked, unzipped into `data/engine/<version>/` (no pip, no venv writes), accepted only if a fresh process imports it with `net_guard.install()` (which raises unless every module in `YTDLP_MODULES` gets hooked). `engine.activate()` runs first in `Services.build`, before anything imports `yt_dlp`, and only uses the update when it is newer than the bundled yt-dlp. Never import `yt_dlp` at module level.
 - uvicorn runs with `--timeout-graceful-shutdown 3` (Dockerfile, `make dev`, e2e): SSE streams never end, so without it a stop waits for every open tab and the tabs never reconnect to the new process. Keep it in any new launcher.
 - The API container starts as root only to match `PUID`/`PGID` (default 1000; `make up` passes your ids) and make `/data` and `/downloads` writable, then drops to the `anyget` user (`apps/api/docker-entrypoint.sh`). Without it, Docker-created bind-mount folders are root-owned and SQLite cannot open.
 - `ANYGET_PROXY` is the only proxy used (env `HTTP(S)_PROXY` is ignored on purpose). With a proxy, only the pre-flight DNS check runs.
@@ -335,7 +337,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 ### Darkroom UI gotchas (formerly "Reading Room")
 - Tokens live in `styles/globals.css`. Palette is "Darkroom": `--primary` is deep teal (links, buttons, focus). `--signal` is the safelight-red accent (renamed from `--saffron`), a fill with `--signal-foreground` text (white in light, near-black in dark) (`Button variant="signal"`, badges, the rail marker); signal-red *text* uses `--signal-ink`. Section tints (`--tint-<id>`) are decoration only and must stay visibly apart from the signal red (Movies is raspberry for that reason). Use them through a `--tint` variable with type hints: `bg-(color:--tint)`, `text-(color:--tint)`, `border-(color:--tint)/40` (a bare `text-(--x)` means font size).
 - CSS-only pieces (no JS): `.index-card` / `.index-card-head` / `.call-number`, `.stamp`, and the rotating hints (`.hint-host` textarea + `.hint-rotator` spans, 5 items, 4 s each; first one shown under reduced motion).
-- Shell: `MainNav variant="rail" | "bar"` (`components/shell/nav-links.tsx`). The rail's "Jump to…" button dispatches `PALETTE_EVENT`. `DropAnywhere` hands drops to Home's paste box (`lib/drop.ts`: an event on Home, `sessionStorage` elsewhere). Shell icons that only the shell uses are inline SVGs (`components/ui/icons.tsx`).
+- Shell: `MainNav variant="rail" | "bar"` (`components/shell/nav-links.tsx`): the same five items in both (Home, Sections, Downloads, Library, Settings); the rail adds a small **More** group (Tools → `/sections#tools`, Watches, Connections). Other pages are listed by `components/shell/tools-list.tsx` (server-rendered) on Home (`SOURCES`) and on Sections (`TOOLS`, `#tools`). Never move a page's URL without a redirect. The rail's "Jump to…" button dispatches `PALETTE_EVENT`. `DropAnywhere` hands drops to Home's paste box (`lib/drop.ts`: an event on Home, `sessionStorage` elsewhere). Shell icons that only the shell uses are inline SVGs (`components/ui/icons.tsx`).
 - Home's paste box: plain text → `/search?q=…&section=<mode>`; one link → step indicator (`data-testid="link-steps"`, `data-step`) → preview. "Continue" cards keep `data-testid="job-row"`. Server status is on Help (`api-status`); e2e waits for it there before pressing Ctrl+K.
 - `withUndo(message, undoLabel, commit, undo)` (`lib/toast.ts`): hide optimistically, commit when the toast ends.
 - Library full text: `library/fulltext.py` (`library_text` FTS5 table; an empty body means "checked"). Scans index older items. Search queries are quoted terms (`fts_query`), never raw FTS syntax. Section/licence come from job options `section` / `licence` (validated); otherwise the section is derived from the kind.

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from anyget.connections.migrate import migrate_v1
 from anyget.connections.store import ConnectionStore
+from anyget.core import engine
 from anyget.core.auth import AccessVerifier, RateLimiter
 from anyget.core.db import Database
 from anyget.core.events import EventBus
@@ -103,6 +104,9 @@ class Services:
     @classmethod
     def build(cls, settings: Settings, net: Net | None = None) -> "Services":
         settings.downloads_dir.mkdir(parents=True, exist_ok=True)
+        # An updated yt-dlp in data/engine (Settings → Advanced) goes first on sys.path,
+        # before anything imports yt_dlp.
+        engine.activate(settings.data_dir)
         db = Database(settings)
         db.create_all()
         settings_store = SettingsStore(db, settings)

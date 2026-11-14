@@ -97,7 +97,8 @@ test("keyboard only: paste, Enter, Enter", async ({ page }, testInfo) => {
   const name = uniqueName(testInfo, "keys");
   await page.goto("/en");
   const input = page.getByLabel("Search or paste links");
-  for (let i = 0; i < 15 && !(await input.evaluate((el) => el === document.activeElement)); i++) {
+  // Tab through the rail (main links, then the More group) into the page.
+  for (let i = 0; i < 25 && !(await input.evaluate((el) => el === document.activeElement)); i++) {
     await page.keyboard.press("Tab");
   }
   await expect(input).toBeFocused();

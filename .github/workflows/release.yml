@@ -1,8 +1,9 @@
 name: Release
 
-# Push a tag like v2.0.0: builds and pushes the Docker images to GitHub Container
-# Registry, builds the browser extension, and publishes a GitHub release with the
-# CHANGELOG section for that version.
+# Push a tag like v2.0.0: builds the Docker images for amd64 and arm64 and pushes them
+# to GitHub Container Registry (one multi-arch tag per version, plus latest), builds the
+# browser extension, and publishes a GitHub release: the CHANGELOG section for that
+# version, then GitHub's generated notes (merged pull requests), with the extension zips.
 #
 # No third-party actions here: images are built with the runner's own docker buildx and
 # the release is made with the GitHub CLI (gh). The only actions are GitHub's and pnpm's,
@@ -16,22 +17,21 @@ permissions: {}
 
 jobs:
   images:
-    name: Docker images (ghcr.io)
-    runs-on: ubuntu-latest
+    name: Docker image ${{ matrix.image.name }} (${{ matrix.platform.arch }})
+    # Native runners for each architecture (ARM runners are free for public
+    # repositories): no emulation, so the arm64 build is as fast as the amd64 one.
+    runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
       packages: write
     strategy:
       matrix:
-        include:
-          - name: api
-            context: apps/api
-            file: apps/api/Dockerfile
-            target: runtime
-          - name: web
-            context: .
-            file: apps/web/Dockerfile
-            target: ""
+        platform:
+          - { arch: amd64, runner: ubuntu-latest }
+          - { arch: arm64, runner: ubuntu-24.04-arm }
+        image:
+          - { name: api, context: apps/api, file: apps/api/Dockerfile, target: runtime }
+          - { name: web, context: ., file: apps/web/Dockerfile, target: "" }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -44,27 +44,57 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: echo "$TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-      - name: Build and push
+      - name: Build and push (one architecture)
         env:
-          IMAGE: ghcr.io/${{ steps.meta.outputs.owner }}/anyget-${{ matrix.name }}
+          IMAGE: ghcr.io/${{ steps.meta.outputs.owner }}/anyget-${{ matrix.image.name }}
           VERSION: ${{ steps.meta.outputs.version }}
-          CONTEXT: ${{ matrix.context }}
-          FILE: ${{ matrix.file }}
-          TARGET: ${{ matrix.target }}
+          ARCH: ${{ matrix.platform.arch }}
+          CONTEXT: ${{ matrix.image.context }}
+          FILE: ${{ matrix.image.file }}
+          TARGET: ${{ matrix.image.target }}
         run: |
           docker buildx build "$CONTEXT" --file "$FILE" ${TARGET:+--target "$TARGET"} \
+            --platform "linux/$ARCH" \
             --build-arg API_URL=http://api:8000 \
             --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
             --label "org.opencontainers.image.version=$VERSION" \
-            --tag "$IMAGE:$VERSION" --tag "$IMAGE:latest" \
+            --label "org.opencontainers.image.licenses=MIT" \
+            --tag "$IMAGE:$VERSION-$ARCH" \
             --push
+      - if: always()
+        run: docker logout ghcr.io
+
+  manifests:
+    name: Multi-arch tags (amd64 + arm64)
+    runs-on: ubuntu-latest
+    needs: images
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        name: [api, web]
+    steps:
+      - name: Log in to ghcr.io
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+      - name: One tag for both architectures (version and latest)
+        env:
+          NAME: ${{ matrix.name }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/anyget-$NAME"
+          version="${GITHUB_REF_NAME#v}"
+          docker buildx imagetools create \
+            --tag "$image:$version" --tag "$image:latest" \
+            "$image:$version-amd64" "$image:$version-arm64"
+          docker buildx imagetools inspect "$image:$version"
       - if: always()
         run: docker logout ghcr.io
 
   release:
     name: GitHub release
     runs-on: ubuntu-latest
-    needs: images
+    needs: manifests
     permissions:
       contents: write
     steps:
@@ -93,4 +123,4 @@ jobs:
         run: >-
           gh release create "$GITHUB_REF_NAME" apps/extension/dist/*.zip
           --repo "$GITHUB_REPOSITORY" --title "AnyGet ${GITHUB_REF_NAME#v}"
-          --notes-file notes.md --verify-tag
+          --notes-file notes.md --generate-notes --verify-tag

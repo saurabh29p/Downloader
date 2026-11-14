@@ -20,6 +20,7 @@ $ anyget [OPTIONS] COMMAND [ARGS]...
 
 * `version`: Show the AnyGet version.
 * `llm-models`: Check AnyGet&#x27;s OpenRouter model IDs...
+* `update-engine`: Update yt-dlp (sites change often) without...
 * `gen-key`: Print a new key for ANYGET_SECRETS_KEY...
 * `hash-password`: Print an argon2 hash for...
 * `health`: Check that the AnyGet API is running.
@@ -60,6 +61,24 @@ $ anyget llm-models [OPTIONS]
 
 **Options**:
 
+* `--help`: Show this message and exit.
+
+## `anyget update-engine`
+
+Update yt-dlp (sites change often) without a new AnyGet image.
+
+Downloads the latest yt-dlp from PyPI into the data folder, checks its SHA-256 and that
+AnyGet&#x27;s network guard still covers it, and uses it after AnyGet restarts.
+
+**Usage**:
+
+```console
+$ anyget update-engine [OPTIONS]
+```
+
+**Options**:
+
+* `--check`: Only show the versions, change nothing.
 * `--help`: Show this message and exit.
 
 ## `anyget gen-key`

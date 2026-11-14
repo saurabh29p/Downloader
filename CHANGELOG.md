@@ -20,6 +20,20 @@ action from people who run AnyGet, so semantic versioning calls for a new major 
 A `2.0.0` heading existed here earlier but was never tagged, so the number is free to use.
 The package versions are now 2.0.0.
 
+### Added (final polish)
+- **Update yt-dlp from Settings** (Settings → Advanced → yt-dlp) and from the command line (`anyget update-engine`, `--check` to only compare). AnyGet downloads the latest yt-dlp and its matching yt-dlp-ejs from PyPI into the data folder, checks each file against PyPI's SHA-256, and checks in a separate process that its network guard still covers the new version. If any check fails, nothing changes. The update is used after a restart; a newer AnyGet image always wins over an older update.
+- **Multi-arch releases:** a version tag now builds the API and web images for amd64 and arm64 on native runners and publishes one multi-arch tag per version (plus `latest`). Release notes are the CHANGELOG section followed by GitHub's generated notes, and the extension zips are attached.
+- A social preview image for the repository (`docs/images/social-preview.png`, 1280×640, Darkroom colours).
+
+### Changed (final polish)
+- **Simpler menu:** the rail and the phone bar show the five main places (Home, Sections, Downloads, Library, Settings). Tools, Watches and Connections are under **More** in the rail, and the Sections page has a **Tools** part with every other page (phones too). No address changed, so bookmarks keep working.
+- Plain words: the Manuscripts section no longer says "IIIF", and Hindi uses one name for Sections ("सेक्शन") everywhere.
+- The network guard refuses to run yt-dlp when it can't hook every networking module, instead of carrying on unguarded after a yt-dlp change.
+- `.editorconfig` states the 100-character line length that Prettier and ruff use.
+
+### Removed (final polish)
+- Unused code, each checked with knip / vulture and a search of the whole repository: `components/ui/textarea.tsx`, `universalSearch`, `epubPreview` and the `SearchTab` type in the web app; `site_or_none` and `net_guard.is_installed` in the API.
+
 ### Security
 - **Open redirect after sign-in fixed:** a `?next=` link with a tab or newline (`/%09/evil.example`) sent people to another site after signing in, because the URL parser deletes those characters. The sign-in page now refuses control characters and checks that the address stays on AnyGet.
 - **SSRF guard:** IPv6 addresses that wrap a private IPv4 address are now refused too: NAT64 (`64:ff9b::7f00:1`, `64:ff9b::a9fe:a9fe`), IPv4-translated (`::ffff:0:a.b.c.d`), IPv4-compatible (`::a.b.c.d`) and site-local (`fec0::/10`).

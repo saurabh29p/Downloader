@@ -7,8 +7,10 @@ shows the technical one.
 ## Downloads
 
 **A site that used to work now fails.** Sites change often; update yt-dlp first (see the
-[README](../README.md#keep-yt-dlp-up-to-date)). Settings → Advanced → yt-dlp → Check for
-updates shows the installed and latest versions. Still failing? Open a
+[README](../README.md#keep-yt-dlp-up-to-date)): Settings → Advanced → yt-dlp → Check for
+updates, then **Update yt-dlp** and restart AnyGet (or `anyget update-engine`). If the update
+says it didn't pass the safety check, the current yt-dlp keeps working; wait for a new AnyGet
+release. Still failing? Open a
 ["Site stopped working" issue](https://github.com/saurabh29p/Downloader/issues/new/choose).
 
 **YouTube says "Sign in to confirm you're not a bot" or asks you to sign in.** YouTube limits

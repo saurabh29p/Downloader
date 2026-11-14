@@ -7,19 +7,10 @@ import { FirstRunHint } from "@/components/home/first-run-hint";
 import { RecentJobs } from "@/components/jobs/recent-jobs";
 import { PasteBox } from "@/components/paste/paste-box";
 import { SectionsGrid } from "@/components/sections/sections-grid";
+import { SOURCES, ToolsList } from "@/components/shell/tools-list";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import { MAIN_SECTIONS } from "@/lib/sections";
-
-// Server-rendered (no client JS): pages that aren't in the nav.
-const SOURCES = [
-  { href: "/books", key: "books" },
-  { href: "/libraries", key: "libraries" },
-  { href: "/archive", key: "archive" },
-  { href: "/wayback", key: "wayback" },
-  { href: "/code", key: "code" },
-  { href: "/images", key: "images" },
-] as const;
 
 const TRY = ["a", "b", "c", "d", "e", "f"] as const;
 
@@ -86,16 +77,7 @@ export default function HomePage({ params }: { params: Promise<{ locale: Locale 
         <h2 id="sources-heading" className="text-2xl font-semibold">
           {t("sources")}
         </h2>
-        <ul className="grid grid-cols-1 gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
-          {SOURCES.map(({ href, key }) => (
-            <li key={href} className="border-b border-dashed">
-              <Link href={href} className="flex min-h-11 flex-col py-2.5 hover:text-primary">
-                <span className="font-medium">{t(`source.${key}.title`)}</span>
-                <span className="text-sm text-muted-foreground">{t(`source.${key}.text`)}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <ToolsList items={SOURCES} />
       </nav>
 
       <p className="text-sm text-muted-foreground md:hidden">{tShell("legal")}</p>

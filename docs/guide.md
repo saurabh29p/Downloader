@@ -1,5 +1,16 @@
 # User guide
 
+## Finding your way
+
+The menu has the five places you use most: **Home** (paste a link or search), **Sections**,
+**Downloads**, **Library** and **Settings**. On a computer they are in the left rail; on a
+phone, in the bar at the bottom.
+
+Everything else is one click away: under **More** in the rail (Tools, Watches, Connections),
+in the **Tools** part of the Sections page (books, world libraries, archive.org, Wayback,
+code, images, watches, connections), and in the quick menu (**Ctrl+K** or **⌘K**). Their
+addresses never changed, so old bookmarks keep working.
+
 ## Paste a link
 
 Paste one link, many links (one per line), or a `.txt` list into the box on **Home**, or drop
@@ -10,7 +21,8 @@ shows what is behind it:
   and other formats), subtitles, and whether to add the cover and tags. Playlists and
   channels list their items so you can pick some or all.
 - **archive.org items, code repositories, galleries and web pages:** pick the files you want.
-- **Library items** (IIIF): every page at full size, or one merged PDF.
+- **Library items** (digitised books and manuscripts from libraries): every page at full
+  size, or one merged PDF.
 - **Direct file links** download as they are, with resume if the connection drops.
 
 Press **Download**. The **Downloads** page shows live progress, and each download can be

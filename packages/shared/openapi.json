@@ -3586,6 +3586,17 @@
       },
       "YtDlpVersion": {
         "properties": {
+          "bundled": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bundled"
+          },
           "command": {
             "title": "Command",
             "type": "string"
@@ -3612,9 +3623,25 @@
             ],
             "title": "Latest"
           },
+          "restart_needed": {
+            "default": false,
+            "title": "Restart Needed",
+            "type": "boolean"
+          },
           "update_available": {
             "title": "Update Available",
             "type": "boolean"
+          },
+          "updated": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated"
           }
         },
         "required": [
@@ -7477,7 +7504,7 @@
     },
     "/api/settings/ytdlp": {
       "get": {
-        "description": "Compare the installed yt-dlp with PyPI. AnyGet never updates itself.",
+        "description": "Compare the yt-dlp in use with the latest on PyPI.",
         "operationId": "checkYtDlp",
         "responses": {
           "200": {
@@ -7492,6 +7519,78 @@
           }
         },
         "summary": "Ytdlp Version",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/api/settings/ytdlp/update": {
+      "post": {
+        "description": "Install the latest yt-dlp into the data folder (SHA-256 checked, guard checked).\nIt is used after AnyGet restarts.",
+        "operationId": "updateYtDlp",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YtDlpVersion"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Blocked or invalid link"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Action does not fit the job state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Link not supported"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The remote server failed"
+          }
+        },
+        "summary": "Update Ytdlp",
         "tags": [
           "settings"
         ]
