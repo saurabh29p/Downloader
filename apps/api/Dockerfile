@@ -9,6 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_NO_CACHE=1 \
     PATH="/opt/venv/bin:$PATH"
 
 # OCR is always on with English, Hindi and Arabic (OCRmyPDF + Tesseract), and poppler
@@ -29,14 +30,13 @@ COPY --from=deno /deno /usr/local/bin/deno
 
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
-# uv is mounted only for these steps, so its ~50 MB binary is not in the image; its
-# download cache is kept between builds (faster rebuilds after a dependency change).
-RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-project
+# uv is mounted only for these steps, so its ~50 MB binary is not in the image, and
+# UV_NO_CACHE keeps its download cache (~200 MB of wheels) out of the layer. No cache
+# mounts: Railway's builder refuses them without service-specific ids.
+RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv uv sync --frozen --no-dev --no-install-project
 COPY anyget ./anyget
 COPY README.md ./
-RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv uv sync --frozen --no-dev
 
 RUN useradd --create-home --uid 1000 anyget \
     && mkdir -p /downloads /data && chown anyget:anyget /downloads /data
@@ -59,8 +59,7 @@ CMD ["uvicorn", "anyget.main:app", "--host", "0.0.0.0", "--port", "8000", "--pro
 
 # ---- test image: production image + dev tools + tests (used by `make live`) ----
 FROM base AS test
-RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
+RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv uv sync --frozen
 COPY tests ./tests
 ENV PYTEST_ADDOPTS="-p no:cacheprovider"
 HEALTHCHECK NONE
