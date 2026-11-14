@@ -41,7 +41,7 @@ Keep the volume mounted at `/data`: the database, thumbnails and keys live there
 | Variable | What it does |
 |---|---|
 | `ANYGET_DOWNLOADS_DIR` | Where files are saved. If it is not set, the image uses `/downloads`. Check where your Railway volume is mounted: files are kept across deploys only if this folder is on the volume (for example `/data/downloads` with the volume at `/data`). |
-| `ANYGET_RETENTION_DAYS` | Remove downloaded files after this many days (`0` = keep forever; the code's default is `7`). **Set `0` for the first deploy** (see "Retention" below). |
+| `ANYGET_RETENTION_DAYS` | Remove downloaded files after this many days. The default `0` keeps them forever (see "Retention" below). |
 | `ANYGET_API_TOKEN` | A long random string for the CLI and the browser extension (Bearer token). |
 | `OPENROUTER_API_KEY` | The optional AI helper (or add it on the Connections page). |
 | `ANYGET_LLM_DAILY_LIMIT` | AI calls per day (default `500`; `0` turns AI off). |
@@ -61,11 +61,12 @@ Don't set `ANYGET_NET_ALLOWLIST` (tests only) or `ANYGET_AUTH_MODE` (the default
 It is read at build time for the `/api` rewrite and at run time to check whether sign-in
 is on. Nothing else is needed on Vercel. Redeploy after changing it.
 
-## 4. Retention (read before deploying this version)
+## 4. Retention (optional cleanup of old files)
 
-**First deploy: set `ANYGET_RETENTION_DAYS=0` on Railway before you deploy.** Cleanup is
-then off: nothing is ever removed. Switch it on later (Railway variable or Settings →
-Downloads) once you have checked where files are stored and what the policy would remove.
+Cleanup is **off by default** (`ANYGET_RETENTION_DAYS=0`): nothing is ever removed. A
+hosted AnyGet often has little disk, so you may want it on. Switch it on (Railway variable
+or Settings → Downloads) once you have checked where files are stored and what the policy
+would remove; `uv run anyget cleanup` lists what would go without deleting anything.
 
 When it is on, cleanup runs once a day in the API: downloaded files AnyGet saved more than
 N days ago are removed. Safety:

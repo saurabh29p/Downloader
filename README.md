@@ -47,13 +47,17 @@ Open a file from **Downloads** or the **Library**:
 
 ## How long files are kept
 
-Downloaded files are removed after **7 days** by default (`ANYGET_RETENTION_DAYS`, or Settings → Downloads; `0` keeps them forever).
+Downloaded files are **kept forever** by default. To have old files removed, set a number of days in Settings → Downloads (or `ANYGET_RETENTION_DAYS`; `0` turns cleanup off again).
 
-- The first removals happen 7 days after the policy is switched on, so turning it on never deletes old files at once.
+- The first removals happen that many days after you switch it on, so turning it on never deletes old files at once.
 - Files tagged `keep`, and downloads still running, are never removed.
 - Only files AnyGet saved and indexed are considered; nothing outside the downloads folder is touched.
 - The Library keeps an entry for each removed file, with **Download again**.
 - Preview a cleanup with `uv run anyget cleanup` (it lists, deletes nothing); `--apply` runs it.
+
+## Torrents (off by default)
+
+Magnet links and `.torrent` files are **off by default**. Torrent peers are other people's computers, outside AnyGet's network guard, so use them only for files you may share (Linux images, public-domain films, Creative Commons releases). To allow them when you run AnyGet from source, install the optional engine (`cd apps/api && uv sync --extra torrent`; the Docker image does not include it) and switch them on in Settings → Advanced.
 
 ## Common commands
 
