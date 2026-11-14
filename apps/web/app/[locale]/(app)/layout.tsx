@@ -17,7 +17,7 @@ function Wordmark() {
       href="/"
       className="inline-flex h-11 items-center gap-1.5 font-serif text-xl font-semibold tracking-tight"
     >
-      <span aria-hidden="true" className="size-2.5 rounded-full bg-saffron" />
+      <span aria-hidden="true" className="size-2.5 rounded-full bg-signal" />
       AnyGet
     </Link>
   );

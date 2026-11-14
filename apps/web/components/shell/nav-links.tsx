@@ -75,7 +75,7 @@ export function MainNav({ variant }: { variant: "rail" | "bar" }) {
                       : "relative flex flex-1 flex-col items-center justify-center gap-1 text-xs text-muted-foreground",
                     current &&
                       (rail
-                        ? "bg-card font-medium shadow-card before:absolute before:inset-y-2 before:start-0 before:w-1 before:rounded-full before:bg-saffron"
+                        ? "bg-card font-medium shadow-card before:absolute before:inset-y-2 before:start-0 before:w-1 before:rounded-full before:bg-signal"
                         : "font-medium text-foreground"),
                   )}
                 >
@@ -84,7 +84,7 @@ export function MainNav({ variant }: { variant: "rail" | "bar" }) {
                   {key === "downloads" && active > 0 && (
                     <span
                       className={cn(
-                        "min-w-5 rounded-full bg-saffron px-1 text-center text-xs leading-5 text-saffron-foreground tabular-nums",
+                        "min-w-5 rounded-full bg-signal px-1 text-center text-xs leading-5 text-signal-foreground tabular-nums",
                         rail ? "ms-auto" : "absolute start-[calc(50%+0.5rem)] top-1.5",
                       )}
                     >

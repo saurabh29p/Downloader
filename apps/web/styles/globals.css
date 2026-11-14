@@ -5,11 +5,11 @@
 
 /*
  * "Darkroom" design tokens: Fog (light, default) and Night (dark).
- * Deep teal is the primary (links, buttons, focus); "saffron" is the safelight
- * red accent (the token keeps its old name so components don't change).
+ * Deep teal is the primary (links, buttons, focus); "signal" is the safelight
+ * red accent (active states, badges, the main call to action).
  * Dark follows the system (prefers-color-scheme) or an explicit .dark class.
- * Text pairs meet WCAG AA: saffron is a fill (with --saffron-foreground text
- * on it: white in light, near-black in dark); saffron text uses --saffron-ink. Section tints are decoration only (never text).
+ * Text pairs meet WCAG AA: signal is a fill (with --signal-foreground text
+ * on it: white in light, near-black in dark); signal text uses --signal-ink. Section tints are decoration only (never text).
  * Spacing uses Tailwind's 4px grid.
  */
 :root {
@@ -33,15 +33,15 @@
   --border: #cdd5d1;
   --input: #7c8a86;
   --ring: #0e5a5c;
-  --saffron: #d2452b;
-  --saffron-foreground: #ffffff;
-  --saffron-ink: #b3361f;
+  --signal: #d2452b;
+  --signal-foreground: #ffffff;
+  --signal-ink: #b3361f;
   --rail: #e1e6e3;
   --rule: #bfd3d2;
   --rule-red: #e3a79a;
 
   /* Section tints (stripes, drawer labels, art), the same in both themes. */
-  --tint-movies: #c2412d;
+  --tint-movies: #a12d63; /* raspberry: kept apart from the signal red */
   --tint-books: #8a5a2b;
   --tint-music: #6d3fa0;
   --tint-video: #1f6f8b;
@@ -91,9 +91,9 @@
   --border: #23353a;
   --input: #5e726e;
   --ring: #5fc4bc;
-  --saffron: #ff6a4a;
-  --saffron-foreground: #0d1517;
-  --saffron-ink: #ff7a5c;
+  --signal: #ff6a4a;
+  --signal-foreground: #0d1517;
+  --signal-ink: #ff7a5c;
   --rail: #0a1113;
   --rule: #1f3a3d;
   --rule-red: #5a2a22;
@@ -124,9 +124,9 @@
     --border: #23353a;
     --input: #5e726e;
     --ring: #5fc4bc;
-    --saffron: #ff6a4a;
-    --saffron-foreground: #0d1517;
-    --saffron-ink: #ff7a5c;
+    --signal: #ff6a4a;
+    --signal-foreground: #0d1517;
+    --signal-ink: #ff7a5c;
     --rail: #0a1113;
     --rule: #1f3a3d;
     --rule-red: #5a2a22;
@@ -157,9 +157,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-saffron: var(--saffron);
-  --color-saffron-foreground: var(--saffron-foreground);
-  --color-saffron-ink: var(--saffron-ink);
+  --color-signal: var(--signal);
+  --color-signal-foreground: var(--signal-foreground);
+  --color-signal-ink: var(--signal-ink);
   --color-rail: var(--rail);
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
@@ -218,7 +218,7 @@
   }
 }
 
-/* ----- Reading Room pieces (CSS only, so they cost no JavaScript) ------------ */
+/* ----- Darkroom pieces (CSS only, so they cost no JavaScript) ---------------- */
 @layer components {
   /* A library index card: a red rule under the heading and a punched hole. */
   .index-card {

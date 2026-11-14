@@ -43,7 +43,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#edf0ee" },
+    // Teal like the manifest's theme_color, so an installed app keeps one bar colour.
+    { media: "(prefers-color-scheme: light)", color: "#0e5a5c" },
     { media: "(prefers-color-scheme: dark)", color: "#0d1517" },
   ],
 };

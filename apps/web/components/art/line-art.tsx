@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /**
- * The Reading Room line art: small single-stroke drawings in currentColor.
+ * Darkroom line art: small single-stroke drawings in currentColor.
  * Server-rendered only (no client JS); always decorative (aria-hidden).
  */
 const PATHS: Record<string, ReactNode> = {
