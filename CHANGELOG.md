@@ -5,9 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-11-13
+The v2 work and the open-source release: owner sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room look, in-app previews and the audio player. (The `2.0.0` heading that was here was never tagged; this release gets its version when it is tagged.)
 
-The v2 release: owner sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room look, in-app previews and the audio player.
+### Changed (open source)
+- **AnyGet is free, open-source software (MIT)**, run by each user on their own machine. The paid-product plan was dropped: its docs and prompts are gone, and the Legal page says AnyGet is free and open source (en, hi, ar).
+- Build history moved under `docs/dev/` (`docs/dev/plan.md`, `docs/dev/prompts/`).
+- The hosting guide (`docs/hosted.md`) uses placeholder names and addresses (`anyget.example.com`) instead of one private deployment.
 
 ### Fixed (v2 Phase 7 — polish)
 - **Empty files** (0 bytes) are saved instead of failing with an internal error.
@@ -20,13 +23,8 @@ The v2 release: owner sign-in, Connections, universal search, Sections, the opti
   - The Code page and the "needs a key" error say "Connections" instead of `ANYGET_GITHUB_TOKEN` or a `.env` file.
 - **Lighthouse script** (`pnpm --filter @anyget/web lighthouse`) works in containers: Chrome gets `--disable-gpu --disable-dev-shm-usage`, and a page whose trace fails to record is retried up to 3 times.
 
-### Changed (v3 Phase 1 — product wording)
-- Home's tagline reads "private, legal, no ads" (it said "free"). The Legal page says the rules apply on every plan, and the README describes the coming desktop and Android apps. The personal-use rules are unchanged.
-
-### Docs (v3 launch plan)
-- `docs/business-plan.md`: how AnyGet is sold (desktop app + Android app, free tier, Plus $19/year, Lifetime $39, Pro $79, no ads), who it is for, how people adopt it, costs and break-even, mobile, distribution, launch and legal risks, and the owner's checklist.
-- `prompts/v3-phase-01…07`: one build prompt per launch phase (finish v2, licences and plan limits, desktop app, phone, website and checkout, opt-in telemetry and support, beta and launch).
-- `CLAUDE.md`: v3 checklist and "Commercial rules".
+### Changed (polish)
+- Home's tagline reads "private, legal, no ads". The personal-use rules are unchanged.
 
 ### Added (previews, audio player, retention, honest AI states)
 - **Open files in AnyGet** (Downloads and Library): the server checks a file's real type (first bytes, not only the name) and AnyGet picks a viewer:
@@ -312,6 +310,5 @@ First release: everything below, plus worldwide access.
 - Live progress could be dropped by the browser after a page refresh (stale timestamps); job times are now always sent as UTC.
 - API container could not create its database when Docker created the `data` folder as root (CI Docker job). The container now adopts `PUID`/`PGID` and fixes folder ownership before dropping privileges.
 
-[Unreleased]: https://github.com/saurabh29p/Downloader/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/saurabh29p/Downloader/compare/v1.0.0...v2.0.0
+[Unreleased]: https://github.com/saurabh29p/Downloader/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/saurabh29p/Downloader/releases/tag/v1.0.0
