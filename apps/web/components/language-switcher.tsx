@@ -18,6 +18,7 @@ export function LanguageSwitcher() {
   return (
     <NativeSelect
       aria-label={t("language")}
+      className="lang-select"
       value={current}
       icon={<Globe />}
       onChange={(event) => router.replace(pathname, { locale: event.target.value as Locale })}

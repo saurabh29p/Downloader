@@ -37,7 +37,7 @@ export default defineConfig({
     },
     {
       // Fresh data every run; the allowlist lets the API reach only the fixture server.
-      command: `rm -rf .e2e && uv run --project ../api uvicorn anyget.main:app --host 127.0.0.1 --port ${apiPort}`,
+      command: `rm -rf .e2e && uv run --project ../api uvicorn anyget.main:app --host 127.0.0.1 --port ${apiPort} --timeout-graceful-shutdown 3`,
       url: `http://127.0.0.1:${apiPort}/api/health`,
       env: {
         ANYGET_DATA_DIR: ".e2e/data",

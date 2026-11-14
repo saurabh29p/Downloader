@@ -29,3 +29,20 @@ def test_adds_new_columns_to_an_old_database(settings: Settings) -> None:
     job = store.update("old", note="already_downloaded", files=["a.srt"])
     assert job is not None and job.note == "already_downloaded" and job.files == ["a.srt"]
     db.create_all()  # running again is a no-op
+
+
+def test_adds_new_indexes_to_an_old_database(settings: Settings) -> None:
+    db = Database(settings)
+    db.create_all()
+    path = settings.data_dir / "anyget.db"
+    with sqlite3.connect(path) as conn:  # a database from before the composite indexes
+        conn.execute("DROP INDEX ix_job_user_created")
+        conn.execute("DROP INDEX ix_library_item_user_added")
+    db.create_all()
+    with sqlite3.connect(path) as conn:
+        indexes = conn.execute("SELECT name FROM sqlite_master WHERE type='index'")
+        names = {row[0] for row in indexes}
+        query = "SELECT * FROM job WHERE user_id = 'owner' ORDER BY created_at DESC"
+        plan = " ".join(str(row[3]) for row in conn.execute(f"EXPLAIN QUERY PLAN {query}"))
+    assert {"ix_job_user_created", "ix_library_item_user_added"} <= names
+    assert "ix_job_user_created" in plan  # the Downloads list uses it (no sort step)

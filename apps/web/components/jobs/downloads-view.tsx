@@ -2,7 +2,7 @@
 
 import { InboxIcon, RefreshCwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@/lib/query";
 import { useMemo, useState } from "react";
 
 import { JobRow } from "@/components/jobs/job-row";

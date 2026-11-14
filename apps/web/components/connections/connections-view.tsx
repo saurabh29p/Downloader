@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@/lib/query";
 import { ExternalLinkIcon, Loader2Icon, UploadIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useId, useState, type ChangeEvent, type FormEvent } from "react";

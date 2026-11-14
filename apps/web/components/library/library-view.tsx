@@ -1,7 +1,7 @@
 "use client";
 
 import type { LibraryItem } from "@anyget/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@/lib/query";
 import {
   EyeIcon,
   FileArchiveIcon,

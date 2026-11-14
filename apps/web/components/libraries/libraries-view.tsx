@@ -1,7 +1,7 @@
 "use client";
 
 import type { Library, ProbeResult } from "@anyget/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@/lib/query";
 import {
   DownloadIcon,
   ExternalLinkIcon,

@@ -35,6 +35,7 @@ class Database:
 
         SQLModel.metadata.create_all(self.engine)
         self._add_missing_columns()
+        self._add_missing_indexes()
 
     def _add_missing_columns(self) -> None:
         """Tiny additive migration: new nullable columns on existing tables."""
@@ -57,6 +58,14 @@ class Database:
                             f'CREATE INDEX IF NOT EXISTS "ix_{table.name}_{column.name}" '
                             f'ON "{table.name}" ("{column.name}")'
                         )
+
+    def _add_missing_indexes(self) -> None:
+        """Indexes added in a later version: `create_all` makes them only with a new table.
+        Creating an index never changes data, and `checkfirst` skips existing ones."""
+        with self.engine.begin() as conn:
+            for table in SQLModel.metadata.sorted_tables:
+                for index in table.indexes:
+                    index.create(conn, checkfirst=True)
 
     @contextmanager
     def session(self) -> Iterator[Session]:

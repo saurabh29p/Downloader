@@ -52,12 +52,14 @@
   --tint-photos: #b5832a;
   --tint-manuscripts: #7a3e2b;
 
+  /* --font-inter / --font-fraunces: the preloaded Latin files (next/font in the root
+     layout); the Fontsource families after them cover every other subset. */
   --font-sans:
-    "Inter Variable", "Noto Sans", "Noto Sans Arabic", "Noto Naskh Arabic", "Noto Sans Devanagari",
-    "Noto Sans CJK SC", "Noto Sans JP", system-ui, sans-serif;
+    var(--font-inter), "Inter Variable", "Noto Sans", "Noto Sans Arabic", "Noto Naskh Arabic",
+    "Noto Sans Devanagari", "Noto Sans CJK SC", "Noto Sans JP", system-ui, sans-serif;
   --font-serif:
-    "Fraunces Variable", "Noto Naskh Arabic", "Noto Sans Devanagari", Georgia, "Times New Roman",
-    serif;
+    var(--font-fraunces), "Fraunces Variable", "Noto Naskh Arabic", "Noto Sans Devanagari", Georgia,
+    "Times New Roman", serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --shadow-card: 0 1px 0 rgb(20 32 31 / 0.05), 0 2px 8px rgb(20 32 31 / 0.07);
   /* Motion */
@@ -196,6 +198,18 @@
   }
   body {
     @apply bg-background font-sans text-foreground antialiased;
+  }
+  /* The language menu names each language in its own script. Measuring the menu with the
+     full font stack made every page download the Devanagari and Arabic fonts (~100 KB),
+     so other scripts use the system's fonts here; the page's own script keeps its Noto. */
+  .lang-select {
+    font-family: var(--font-inter), "Inter Variable", system-ui, sans-serif;
+  }
+  .lang-select:lang(hi) {
+    font-family: var(--font-inter), "Inter Variable", "Noto Sans Devanagari", system-ui, sans-serif;
+  }
+  .lang-select:lang(ar) {
+    font-family: var(--font-inter), "Inter Variable", "Noto Naskh Arabic", system-ui, sans-serif;
   }
   /* Headings are set in the serif (Fraunces; Noto for Arabic and Devanagari). */
   h1,

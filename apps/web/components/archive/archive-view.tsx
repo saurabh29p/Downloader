@@ -1,7 +1,7 @@
 "use client";
 
 import type { ArchiveHit } from "@anyget/shared";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@/lib/query";
 import { Loader2Icon, SearchIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import dynamic from "next/dynamic";

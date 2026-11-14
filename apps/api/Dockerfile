@@ -26,14 +26,17 @@ RUN apt-get update \
        fi \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=deno /deno /usr/local/bin/deno
-COPY --from=uv /uv /usr/local/bin/uv
 
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --no-install-project
+# uv is mounted only for these steps, so its ~50 MB binary is not in the image; its
+# download cache is kept between builds (faster rebuilds after a dependency change).
+RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
 COPY anyget ./anyget
 COPY README.md ./
-RUN uv sync --frozen --no-dev
+RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 RUN useradd --create-home --uid 1000 anyget \
     && mkdir -p /downloads /data && chown anyget:anyget /downloads /data
@@ -48,11 +51,16 @@ ENV ANYGET_DOWNLOADS_DIR=/downloads \
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=5 \
     CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=2)"]
-CMD ["uvicorn", "anyget.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+# --timeout-graceful-shutdown: live-update streams (SSE) never finish on their own, so
+# without it a stop waits for every open browser tab (Docker kills it after 10 s) and
+# the tabs keep talking to the old process instead of reconnecting.
+CMD ["uvicorn", "anyget.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", \
+     "--timeout-graceful-shutdown", "3"]
 
 # ---- test image: production image + dev tools + tests (used by `make live`) ----
 FROM base AS test
-RUN uv sync --frozen
+RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen
 COPY tests ./tests
 ENV PYTEST_ADDOPTS="-p no:cacheprovider"
 HEALTHCHECK NONE

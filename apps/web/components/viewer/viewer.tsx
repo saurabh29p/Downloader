@@ -1,7 +1,7 @@
 "use client";
 
 import type { LibraryItem } from "@anyget/shared";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@/lib/query";
 import { DownloadIcon, ExternalLinkIcon, PlayIcon, XIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";

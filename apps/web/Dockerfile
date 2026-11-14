@@ -15,9 +15,15 @@ COPY apps/web apps/web
 # Rewrites are baked in at build time: inside Compose the API is reachable as http://api:8000.
 ARG API_URL=http://api:8000
 ENV API_URL=$API_URL
-RUN pnpm --filter @anyget/web build
+# sharp (Next's image optimizer and its libvips builds, ~38 MB) comes in through Next's
+# own server trace; images are unoptimized (next.config.ts), so it is never loaded.
+RUN pnpm --filter @anyget/web build \
+    && rm -rf apps/web/.next/standalone/node_modules/.pnpm/@img+* \
+              apps/web/.next/standalone/node_modules/.pnpm/sharp@*
 
-FROM node:24-slim AS runtime
+# The standalone server is plain JavaScript (no native modules: sharp is left out in
+# next.config.ts), so the runtime can use the smaller Alpine image.
+FROM node:24-alpine AS runtime
 # API_URL is also read at run time (the sign-in gate in proxy.ts and the sign-in page);
 # without it they would look for the API on 127.0.0.1:8000 inside this container.
 ARG API_URL=http://api:8000

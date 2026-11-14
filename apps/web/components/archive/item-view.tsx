@@ -1,7 +1,7 @@
 "use client";
 
 import type { ArchiveFile } from "@anyget/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@/lib/query";
 import { ArrowLeftIcon, DownloadIcon, ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -26,8 +26,10 @@ export function ItemView({ identifier, onBack }: { identifier: string; onBack: (
   const queryClient = useQueryClient();
   const item = useQuery({
     queryKey: ["archive-item", identifier],
-    queryFn: () => archiveItem(identifier),
-    select: (data) => ({ ...data, files: data.files ?? [], collections: data.collections ?? [] }),
+    queryFn: async () => {
+      const data = await archiveItem(identifier);
+      return { ...data, files: data.files ?? [], collections: data.collections ?? [] };
+    },
   });
   const [selected, setSelected] = useState<Set<string>>(new Set());
 

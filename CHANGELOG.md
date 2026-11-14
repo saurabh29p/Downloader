@@ -20,6 +20,17 @@ action from people who run AnyGet, so semantic versioning calls for a new major 
 A `2.0.0` heading existed here earlier but was never tagged, so the number is free to use.
 The package versions are now 2.0.0.
 
+### Performance
+- **About 10 KB less JavaScript on every page** (gzip, first load): Downloads with jobs 169.3 → 159.6 KB, Home 168.2 → 157.7 KB, the lightest pages 162.2 → 152.5 KB. Every page now has at least 10 KB of headroom under the 170 KB budget. TanStack Query was replaced by a small cache with the same API (`lib/query.tsx`, with its own tests).
+- **Phones:** Lighthouse performance 92–98 → 98–100 on Home, Downloads, Library, Search and Settings; main-thread blocking time 170–339 ms → 80–165 ms. Home's layout shift 0.043 → 0.003.
+- **Fonts:** the Latin Inter and Fraunces files are preloaded. Pages no longer download the Devanagari and Arabic fonts (~100 KB) just to show the language menu; those fonts load only on pages that use them.
+- **Library list with 5,000 items:** typical response 187 → 44 ms. One light query for filters and counts, and full rows only for the page shown. New indexes for the Downloads and Library lists are added to existing databases at start.
+- **Docker images:** web 422 → 278 MB (Alpine runtime, without the unused image optimizer), API 1,961 → 1,683 MB (uv and its download cache are no longer saved in the image).
+
+### Fixed (performance)
+- **Stopping or restarting AnyGet with a browser tab open** took 10 s (Docker had to kill it), and the tab never noticed the restart. Live-update streams no longer hold up shutdown (3 s at most), and Downloads reconnects and catches up.
+- The Library item sheet keeps a fixed space for its picture, so it no longer jumps when the picture loads.
+
 ### Fixed (correctness)
 - **Saving a video no longer blocks its MP3** (and the other way round): audio-only downloads keep their own download archive (`<key>-audio.txt`), for single links, playlists and watches. Existing archives keep working for video.
 - **The same link with different options** (for example the video and its MP3 in one request) is no longer dropped as a duplicate.

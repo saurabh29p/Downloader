@@ -1,7 +1,7 @@
 "use client";
 
 import type { BookFormat, BookHit } from "@anyget/shared";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@/lib/query";
 import { BookOpenIcon, DownloadIcon, ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Job } from "@anyget/shared";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@/lib/query";
 import { WandSparklesIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";

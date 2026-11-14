@@ -46,7 +46,7 @@ Notes:
 
 <!-- generated:start (make notices) -->
 
-### npm (production dependencies of every workspace: 190)
+### npm (production dependencies of every workspace: 188)
 
 | Package | Version | Licence | Note |
 |---|---|---|---|
@@ -171,8 +171,6 @@ Notes:
 | @swc/counter | 0.1.3 | Apache-2.0 |  |
 | @swc/helpers | 0.5.23 | Apache-2.0 |  |
 | @swc/types | 0.1.28 | Apache-2.0 |  |
-| @tanstack/query-core | 5.105.3 | MIT |  |
-| @tanstack/react-query | 5.105.3 | MIT |  |
 | @types/node | 24.19.2 | MIT |  |
 | @types/react | 19.3.0 | MIT |  |
 | @types/react-dom | 19.3.0 | MIT |  |

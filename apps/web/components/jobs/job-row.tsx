@@ -1,7 +1,7 @@
 "use client";
 
 import type { Job } from "@anyget/shared";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@/lib/query";
 import {
   CircleXIcon,
   DownloadIcon,

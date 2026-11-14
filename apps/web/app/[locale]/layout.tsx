@@ -9,6 +9,7 @@ import "@fontsource/noto-naskh-arabic/arabic-600.css";
 import "@/styles/globals.css";
 
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -18,6 +19,26 @@ import { dirFor, routing } from "@/i18n/routing";
 import { Providers } from "@/lib/providers";
 import { pwaScript } from "@/lib/pwa";
 import { themeScript } from "@/lib/theme";
+
+// The Latin files the first paint needs, preloaded (next/font adds the <link rel=preload>).
+// Same Fontsource files; the Fontsource CSS above still serves every other subset, and the
+// script fonts load only when a page shows those characters.
+const inter = localFont({
+  src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
+  weight: "100 900",
+  variable: "--font-inter",
+  display: "swap",
+  // No metric-matched Arial in between: it would also win for Latin Extended letters
+  // (ő, ș…) that Fontsource's "Inter Variable" serves after this file.
+  adjustFontFallback: false,
+});
+const fraunces = localFont({
+  src: "../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2",
+  weight: "100 900",
+  variable: "--font-fraunces",
+  display: "swap",
+  adjustFontFallback: false,
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -61,7 +82,12 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} dir={dirFor(locale)} suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={dirFor(locale)}
+      className={`${inter.variable} ${fraunces.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         {/* Static theme script (no user input); runs before paint to avoid a flash. */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />

@@ -5,7 +5,7 @@ from typing import Literal
 from uuid import uuid4
 
 from pydantic import BaseModel
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, Index
 from sqlmodel import Field, SQLModel
 
 Kind = Literal["video", "audio", "image", "pdf", "epub", "text", "archive", "other"]
@@ -25,6 +25,8 @@ def _now() -> datetime:
 
 class LibraryItem(SQLModel, table=True):
     __tablename__ = "library_item"
+    # The Library list: one user's items, newest first.
+    __table_args__ = (Index("ix_library_item_user_added", "user_id", "added_at"),)
 
     id: str = Field(default_factory=lambda: uuid4().hex, primary_key=True)
     rel_path: str = Field(index=True, unique=True)

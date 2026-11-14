@@ -1,7 +1,7 @@
 "use client";
 
 import type { Snapshot } from "@anyget/shared";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@/lib/query";
 import { DownloadIcon, ExternalLinkIcon, Loader2Icon, SearchIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useId, useState, type FormEvent } from "react";

@@ -1,7 +1,7 @@
 "use client";
 
 import type { SettingsUpdate, SettingsView } from "@anyget/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@/lib/query";
 import { Loader2Icon, SaveIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
