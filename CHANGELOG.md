@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Changed (Darkroom theme)
+- **New colours, "Darkroom":** cool fog grey and deep teal in light mode, near-black teal in dark mode, with a safelight red for active states, badges and the main buttons. Replaces the cream, indigo and saffron palette. Every text pair still meets WCAG AA.
+- App icons, favicon, extension icons, the PWA theme colour and the browser bar colour use the new teal. The service worker cache version is bumped so installed apps pick up the new icons.
+
 ## [2.0.0] - 2026-11-13
 
 The v2 release: owner sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room look, in-app previews and the audio player.
