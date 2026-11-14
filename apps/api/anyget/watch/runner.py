@@ -24,6 +24,7 @@ from anyget.core.router import Router
 from anyget.core.users import OWNER_ID
 from anyget.handlers.archive_org import ArchiveOrgHandler, parse_item_url, scrape
 from anyget.handlers.base import HandlerError
+from anyget.handlers.ytdlp_support.archive import archive_path, contains, kind_key
 from anyget.watch.models import Watch, WatchIn, WatchOut, WatchRunResult
 
 log = logging.getLogger("anyget.watch")
@@ -161,10 +162,20 @@ class WatchService:
         probe = await handler.probe(watch.url, {"max_entries": MAX_LIST})
         extra = probe.extra
         folder = probe.title
+        # The probe's "saved" is about the video. An audio-only watch checks its own archive:
+        # a video saved before must not stop it from saving the MP3.
+        audio_archive = None
+        if watch.options.get("preset") == "audio" and isinstance(extra.get("archive"), str):
+            audio_archive = archive_path(
+                self.net.settings.data_dir, kind_key(str(extra["archive"]), True)
+            )
         entries = []
         for entry in extra.get("entries") or []:
             if entry.get("live"):
                 continue  # unfinished streams: try again on a later run
+            saved = bool(entry.get("saved"))
+            if audio_archive is not None:
+                saved = contains(audio_archive, str(entry["archive_id"]))
             entries.append(
                 Entry(
                     id=str(entry["archive_id"]),
@@ -175,7 +186,7 @@ class WatchService:
                         "archive": extra.get("archive"),
                         "archive_id": entry["archive_id"],
                     },
-                    saved=bool(entry.get("saved")),
+                    saved=saved,
                 )
             )
         return entries

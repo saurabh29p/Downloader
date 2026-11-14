@@ -4360,6 +4360,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description This file has no picture */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Blocked or invalid link */
             400: {
                 headers: {

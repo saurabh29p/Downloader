@@ -387,6 +387,28 @@ async def test_download_skips_archived(
     assert result.paths == [] and result.note == "already_downloaded"
 
 
+async def test_saved_video_does_not_block_its_audio(
+    handler: YtDlpHandler, fake_ydl: type[FakeYDL], settings: Settings
+) -> None:
+    # Video and audio-only are separate downloads: asking for the MP3 of a saved video must
+    # download it, not end "already downloaded" with no file.
+    key = archive_key("Youtube", None)
+    archive_path(settings.data_dir, key).write_text("youtube aqz-KE-bpKQ\n")
+    fake_ydl.on_download = simulate_download()
+    job = JobContext(id="ja", url=VIDEO_URL, output_dir=settings.downloads_dir)
+    result = await handler.download(job, {"preset": "audio"}, lambda _p: None)
+    assert result.note != "already_downloaded" and result.paths
+    params = fake_ydl.instances[-1].params
+    assert params["download_archive"].endswith(f"{key}-audio.txt")
+    # ...and a second audio request of the same video is the one that is skipped.
+    again = await handler.download(
+        JobContext(id="jb", url=VIDEO_URL, output_dir=settings.downloads_dir),
+        {"preset": "audio"},
+        lambda _p: None,
+    )
+    assert again.paths == [] and again.note == "already_downloaded"
+
+
 async def test_download_date_window(
     handler: YtDlpHandler, fake_ydl: type[FakeYDL], settings: Settings
 ) -> None:

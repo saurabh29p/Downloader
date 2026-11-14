@@ -398,7 +398,15 @@ async def test_civitai_and_kaggle(net: Net, settings: Settings) -> None:
 
 GALLERY_DUMP = json.dumps(
     [
-        [2, {"category": "flickr", "album": {"title": "x"}, "title": "Colour photos 1940s"}],
+        # Real shape (gallery-dl 1.32, Flickr album): `title` is the first photo's own title.
+        [
+            2,
+            {
+                "category": "flickr",
+                "album": {"id": "1", "title": "Colour photos 1940s"},
+                "title": "Woman at a lathe",
+            },
+        ],
         [
             3,
             "https://live.staticflickr.com/1/a_o.jpg",
@@ -415,6 +423,8 @@ def test_parse_dump() -> None:
     assert [i["name"] for i in items] == ["a.jpg", "b.jpg"]
     with pytest.raises(HandlerError):
         parse_dump(json.dumps([[-1, {"message": "HTTP 404"}]]))
+    post = json.dumps([[2, {"category": "reddit", "title": "My trip"}]])
+    assert parse_dump(post)[0] == "My trip"  # no container: the post's own title
 
 
 @respx.mock

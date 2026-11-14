@@ -56,6 +56,18 @@ def gallery_hosts() -> frozenset[str]:
     return frozenset(hosts)
 
 
+def _gallery_title(meta: dict[str, Any]) -> str:
+    """The album's name, not its first photo's: gallery-dl puts each photo's own `title`
+    next to the container (Flickr: `album` = {"title": …}), so containers win."""
+    for key in ("album", "gallery", "set", "collection", "board"):
+        value = meta.get(key)
+        if isinstance(value, dict) and value.get("title"):
+            return str(value["title"])
+        if isinstance(value, str) and value:
+            return value
+    return str(meta.get("title") or meta.get("category") or "")
+
+
 def parse_dump(text: str) -> tuple[str, list[dict[str, Any]]]:
     """gallery-dl -J output → (title, items)."""
     try:
@@ -73,14 +85,7 @@ def parse_dump(text: str) -> tuple[str, list[dict[str, Any]]]:
                 "upstream", str(error.get("message") or "gallery-dl could not read this")
             )
         if message[0] == 2 and len(message) > 1 and isinstance(message[1], dict) and not title:
-            meta = message[1]
-            title = str(
-                meta.get("title")
-                or meta.get("album")
-                or meta.get("gallery")
-                or meta.get("category")
-                or ""
-            )
+            title = _gallery_title(message[1])
         if message[0] == 3 and len(message) > 2 and isinstance(message[2], dict):
             meta = message[2]
             name = str(meta.get("filename") or meta.get("id") or len(items) + 1)
@@ -95,7 +100,7 @@ def parse_dump(text: str) -> tuple[str, list[dict[str, Any]]]:
                 }
             )
             if not title:
-                title = str(meta.get("title") or meta.get("album") or meta.get("category") or "")
+                title = _gallery_title(meta)
     return title, items[:MAX_ITEMS]
 
 

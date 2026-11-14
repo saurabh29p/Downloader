@@ -63,9 +63,8 @@ def _site(site_id: str) -> Site:
 
 
 def _bad(exc: Exception) -> HTTPException:
-    return HTTPException(
-        status.HTTP_400_BAD_REQUEST, {"code": "invalid_connection", "message": str(exc)}
-    )
+    code = exc.code if isinstance(exc, ConnectionValueError) else "invalid_connection"
+    return HTTPException(status.HTTP_400_BAD_REQUEST, {"code": code, "message": str(exc)})
 
 
 @router.get("/connections", operation_id="listConnections")
@@ -86,10 +85,12 @@ async def put_connection(
             store.save_fields(user, site, body.fields, body.proxy)
         elif body.cookies is None and body.fields is None and "proxy" in body.model_fields_set:
             if not store.set_proxy(user, site, body.proxy):
-                raise ConnectionValueError("connect the site first, then add a proxy")
+                raise ConnectionValueError(
+                    "connect the site first, then add a proxy", "not_connected"
+                )
         else:
             wanted = "a cookies.txt file" if site.kind == "cookies" else "the key"
-            raise ConnectionValueError(f"{site.label} needs {wanted}")
+            raise ConnectionValueError(f"{site.label} needs {wanted}", "missing_fields")
     except ConnectionValueError as exc:
         raise _bad(exc) from exc
     return store.view(user)
@@ -103,7 +104,11 @@ async def import_cookies(body: CookiesImport, services: ServicesDep, user: UserD
     except ConnectionValueError as exc:
         raise _bad(exc) from exc
     if not imported:
-        raise _bad(ConnectionValueError("this file has no cookies for the sites listed here"))
+        raise _bad(
+            ConnectionValueError(
+                "this file has no cookies for the sites listed here", "cookies_wrong_site"
+            )
+        )
     return ImportResult(imported=imported, view=services.connections.view(user))
 
 
@@ -136,7 +141,7 @@ async def test_connection(site_id: SiteId, services: ServicesDep, user: UserDep)
     store = services.connections
     view = next(v for v in store.view(user).sites if v.id == site_id)
     if view.status == "not_connected":
-        raise _bad(ConnectionValueError(f"{site.label} is not connected"))
+        raise _bad(ConnectionValueError(f"{site.label} is not connected", "not_connected"))
     if site.kind == "cookies":
         # No request is made: the cookies' own expiry date tells whether they still work.
         ok = view.status == "connected"

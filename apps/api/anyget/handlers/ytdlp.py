@@ -39,7 +39,13 @@ from anyget.handlers.base import (
     ProgressCallback,
     work_dir,
 )
-from anyget.handlers.ytdlp_support.archive import archive_id, archive_key, archive_path, contains
+from anyget.handlers.ytdlp_support.archive import (
+    archive_id,
+    archive_key,
+    archive_path,
+    contains,
+    kind_key,
+)
 from anyget.handlers.ytdlp_support.errors import map_error
 from anyget.handlers.ytdlp_support.formats import (
     available_presets,
@@ -436,7 +442,7 @@ class YtDlpHandler:
                 raise HandlerError("live_not_finished", "the live stream has not finished yet")
 
             extractor = str(info.get("extractor_key") or "generic")
-            key = opts.archive or archive_key(extractor, None)
+            key = kind_key(opts.archive or archive_key(extractor, None), opts.audio_only)
             archive_file = archive_path(self.settings.data_dir, key)
             if contains(archive_file, archive_id(extractor, str(info.get("id")))):
                 return DownloadResult(paths=[], note="already_downloaded")

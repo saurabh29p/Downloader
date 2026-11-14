@@ -26,9 +26,12 @@ class _Hello(BaseHTTPRequestHandler):
 @pytest.fixture
 def local_port() -> Iterator[int]:
     server = ThreadingHTTPServer(("127.0.0.1", 0), _Hello)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
     yield server.server_address[1]
     server.shutdown()
+    server.server_close()  # shutdown() stops the loop; this closes the listening socket
+    thread.join(timeout=5)
 
 
 @pytest.fixture(autouse=True)

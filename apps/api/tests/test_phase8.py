@@ -18,6 +18,7 @@ from anyget.core.jobs import JobState
 from anyget.core.services import Services
 from anyget.core.settings import Settings
 from anyget.handlers.base import HandlerError, Probe
+from anyget.handlers.ytdlp_support.archive import archive_path
 from anyget.library.epub import epub_preview
 from anyget.library.kinds import kind_of
 from anyget.main import create_app
@@ -324,6 +325,21 @@ async def test_watch_queues_only_new_items(services: Services) -> None:
 
     with pytest.raises(HandlerError):
         await services.watches.create(WatchIn(url="https://channel.test/watch?v=1"))
+
+
+async def test_audio_watch_uses_the_audio_archive(services: Services) -> None:
+    # A video saved before must not stop an audio-only watch from saving its MP3.
+    fake = FakeMedia()
+    services.registry.register(fake, 1)
+    fake.entries = [entry(2, saved=True), entry(1)]
+    audio_archive = archive_path(services.settings.data_dir, "fake-chan-audio")
+    audio_archive.write_text("fake v1\n")  # v1's audio was saved earlier
+    watch = await services.watches.create(
+        WatchIn(url="https://channel.test/@c", initial=5, options={"preset": "audio"})
+    )
+    result = await services.watches.run(watch.id)
+    queued = [services.store.get(j).url for j in result.job_ids]  # type: ignore[union-attr]
+    assert queued == ["https://channel.test/watch?v=2"]
 
 
 @respx.mock

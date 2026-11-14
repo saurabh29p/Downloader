@@ -24,7 +24,7 @@ from anyget.library.fulltext import FullText
 from anyget.library.kinds import kind_of
 from anyget.library.models import LICENCES, LibraryItem, LibraryItemOut, LibraryPage, Licence
 from anyget.library.thumbs import KINDS as THUMB_KINDS
-from anyget.library.thumbs import PILLOW_SUFFIXES
+from anyget.library.thumbs import PILLOW_SUFFIXES, thumb_path
 
 SKIP_PREFIXES = (".anyget-", ".")
 SKIP_SUFFIXES = (".part", ".tmp", ".ytdl")
@@ -96,9 +96,10 @@ def thumbnail_url(item: LibraryItem) -> str | None:
 
 
 class LibraryIndex:
-    def __init__(self, db: Database, downloads_dir: Path) -> None:
+    def __init__(self, db: Database, downloads_dir: Path, data_dir: Path | None = None) -> None:
         self.db = db
         self.root = downloads_dir
+        self.data_dir = data_dir  # where thumbnails are cached (data/thumbs)
         self.text = FullText(db.engine)
 
     # ----- paths -----------------------------------------------------------
@@ -245,6 +246,18 @@ class LibraryIndex:
 
     # ----- reading ---------------------------------------------------------
 
+    def _thumbnail(self, item: LibraryItem) -> str | None:
+        url = thumbnail_url(item)
+        # Once AnyGet knows a file has no picture (an audio file without cover art), the
+        # cards stop asking for one.
+        known_empty = (
+            url is not None
+            and url.endswith("/thumb")
+            and self.data_dir is not None
+            and thumb_path(self.data_dir, item.id).with_suffix(".none").exists()
+        )
+        return None if known_empty else url
+
     def out(self, item: LibraryItem, snippet: str | None = None) -> LibraryItemOut:
         try:
             missing = not self.path_of(item).is_file()
@@ -256,7 +269,7 @@ class LibraryIndex:
             **data,
             missing=missing or expired,
             expired=expired,
-            thumbnail=None if expired else thumbnail_url(item),
+            thumbnail=None if expired else self._thumbnail(item),
             section=section_of(item),
             licence=licence_of(item),
             source=source_of(item),
