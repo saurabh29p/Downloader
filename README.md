@@ -95,4 +95,39 @@ Extra sites can be added as Python packages: see [examples/anyget-plugin-example
 
 ## Status
 
-Version 2.0.0 (see `CHANGELOG.md`): sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room UI, previews, the audio player and retention.
+The latest release is 1.0.0. Everything since (sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room UI, previews, the audio player and retention) is listed under **Unreleased** in `CHANGELOG.md` and goes into the next release.
+
+## Contributing
+
+Contributions are welcome: read [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[Code of Conduct](CODE_OF_CONDUCT.md). Found a security problem? Please follow
+[SECURITY.md](SECURITY.md) and report it privately.
+
+## Support AnyGet
+
+AnyGet is free and has no ads. If it saves you time, you can support its development:
+
+<!-- TODO(owner): replace the placeholders below (and in .github/FUNDING.yml) before the repository is public. -->
+- GitHub Sponsors: `<github-sponsors-username>`
+- Buy Me a Coffee: `<bmc-username>`
+- Ko-fi: `<kofi-username>`
+- Other: `<optional crypto or other donation page URL>`
+
+Starring the repository, reporting bugs and fixing a site that broke help just as much.
+
+## License
+
+AnyGet is released under the [MIT License](LICENSE). It uses many other open-source
+projects; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for their licences.
+
+## Disclaimer
+
+- AnyGet is for personal use. Download only what you own, what is public domain or openly
+  licensed, or what the site's terms allow.
+- It does not and will not remove DRM, get around paywalls, logins, region blocks or
+  lending limits, or use shadow libraries.
+- You are responsible for what you download, and for following the law where you live and
+  each site's terms.
+- AnyGet is provided "as is", without warranty of any kind (see [LICENSE](LICENSE)). The
+  authors are not affiliated with any site AnyGet can download from; all trademarks belong
+  to their owners.

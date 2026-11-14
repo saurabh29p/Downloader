@@ -12,6 +12,12 @@ The v2 work and the open-source release: owner sign-in, Connections, universal s
 - Build history moved under `docs/dev/` (`docs/dev/plan.md`, `docs/dev/prompts/`).
 - The hosting guide (`docs/hosted.md`) uses placeholder names and addresses (`anyget.example.com`) instead of one private deployment.
 
+### Added (open source: license and community)
+- `LICENSE` (MIT); `"license": "MIT"` in every `package.json` and `license = "MIT"` (PEP 639) in the Python projects.
+- `THIRD_PARTY_NOTICES.md`: what AnyGet runs or ships and under which licence, plus generated npm/PyPI tables (`make notices`, `scripts/third_party_notices.py`). Two copyleft packages are flagged: gallery-dl (run only as a separate process) and mutagen (GPL-2.0-or-later, loaded in-process by yt-dlp; see the notes).
+- `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), issue forms (bug, site stopped working, feature) and a pull request template.
+- A disclaimer on the Legal page (en, hi, ar) and in the README; a "Support the project" link on Help; `.github/FUNDING.yml` and a README "Support AnyGet" section with placeholders for the owner.
+
 ### Fixed (v2 Phase 7 — polish)
 - **Empty files** (0 bytes) are saved instead of failing with an internal error.
 - **Downloads on phones:** a long technical error no longer pushes the page sideways. Unexpected errors show a plain message with the server's text under Details; only "the server answered …" stays inline.

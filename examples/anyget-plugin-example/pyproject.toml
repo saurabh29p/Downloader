@@ -3,6 +3,11 @@ name = "anyget-plugin-example"
 version = "0.1.0"
 description = "Example AnyGet plugin: download xkcd comics (CC BY-NC 2.5) by link."
 requires-python = ">=3.12"
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = ["anyget>=1.0"]
 
 # This is what makes it a plugin: AnyGet loads the factory named here.

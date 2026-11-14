@@ -790,6 +790,7 @@
       }
     },
     "legalLink": "Read the legal and fair use rules",
+    "supportLink": "Support the project",
     "statusTitle": "Server status",
     "playbackTitle": "Listening and watching",
     "playbackText": "Audio plays in a small player at the bottom of the screen and keeps playing while you move between AnyGet's pages. On phones, playback can also continue with the screen locked or in another app where the browser allows it: Android Chrome usually does; iPhone Safari usually does in a Safari tab, and less reliably for the app added to the Home Screen. AnyGet doesn't use tricks to keep audio alive, so your phone's battery settings may stop it.",
@@ -829,7 +830,14 @@
         "text": "AnyGet limits parallel downloads per site, backs off when a site asks it to slow down, and identifies itself honestly."
       }
     },
-    "disclaimer": "You are responsible for what you download. When in doubt, check the site's terms and your local law."
+    "disclaimerTitle": "Disclaimer",
+    "disclaimer": {
+      "personal": "AnyGet is for personal use. Download only what you own, what is public domain or openly licensed, or what the site's terms allow.",
+      "never": "It does not and will not remove DRM, get around paywalls, logins, region blocks or lending limits, or use shadow libraries.",
+      "responsible": "You are responsible for what you download, and for following the law where you live and each site's terms.",
+      "warranty": "AnyGet is provided “as is”, without warranty of any kind. See the <link>MIT License</link>.",
+      "trademarks": "The authors are not affiliated with any site AnyGet can download from. All trademarks belong to their owners."
+    }
   },
   "Share": {
     "title": "Nothing to download",

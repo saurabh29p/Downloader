@@ -1,0 +1,65 @@
+name: Bug report
+description: Something in AnyGet does not work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. A site that stopped downloading? Use **Site stopped working** instead.
+        **Never paste cookies, keys, passwords or private links.** Security problems go to SECURITY.md, not here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+      placeholder: "I pasted a link to …, pressed Download, and …"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Paste …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AnyGet version
+      description: "Open /api/version on your AnyGet (e.g. http://127.0.0.1:3000/api/version), or give the release / commit you run."
+      placeholder: "e.g. 2.1.0 or commit abc1234"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How do you run AnyGet?
+      options:
+        - Docker Compose (make up)
+        - From source (make dev)
+        - Hosted (e.g. Railway + Vercel)
+        - Termux (Android)
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and browser
+      placeholder: "e.g. Windows 11 + WSL2, Chrome 140 / Android 15, Firefox"
+    validations:
+      required: true
+  - type: input
+    id: site
+    attributes:
+      label: Which site? (the site's name, not your private link)
+      placeholder: "e.g. archive.org, a public YouTube video, Gallica"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: "From `make logs` or the terminal. Remove cookies, keys, tokens, passwords and private links first."
+      render: text

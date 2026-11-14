@@ -7,7 +7,7 @@ export PUID ?= $(shell id -u)
 export PGID ?= $(shell id -g)
 
 .DEFAULT_GOAL := help
-.PHONY: help setup dev dev-api dev-web gen gen-api gen-check lint format typecheck test check e2e live build up down logs ps up-public backup restore extension release-check
+.PHONY: notices help setup dev dev-api dev-web gen gen-api gen-check lint format typecheck test check e2e live build up down logs ps up-public backup restore extension release-check
 
 help: ## Show this help
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -65,6 +65,9 @@ extension: ## Build the browser extension (apps/extension/dist/*.zip)
 	pnpm --filter @anyget/extension build
 
 check: lint typecheck test ## lint + typecheck + test
+
+notices: ## Regenerate the dependency tables in THIRD_PARTY_NOTICES.md
+	uv run --project $(API) python scripts/third_party_notices.py
 
 e2e: ## Playwright + axe (starts api and web itself)
 	pnpm e2e
