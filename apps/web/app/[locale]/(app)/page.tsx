@@ -42,7 +42,7 @@ export default function HomePage({ params }: { params: Promise<{ locale: Locale 
             </h1>
             <p className="max-w-prose text-lg text-muted-foreground">{t("subtitle")}</p>
           </div>
-          <LineArt name="lamp" className="hidden size-28 shrink-0 text-saffron-ink lg:block" />
+          <LineArt name="lamp" className="hidden size-28 shrink-0 text-signal-ink lg:block" />
         </div>
         <PasteBox />
       </section>

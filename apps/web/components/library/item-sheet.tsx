@@ -125,12 +125,12 @@ export function ItemSheet({
               />
             )}
             {item.kind === "audio" ? (
-              <Button variant="saffron" onClick={() => playTrack(trackOf(item))}>
+              <Button variant="signal" onClick={() => playTrack(trackOf(item))}>
                 <PlayIcon aria-hidden="true" />
                 {t("play")}
               </Button>
             ) : VIEWABLE.has(item.kind) ? (
-              <Button variant="saffron" onClick={() => onOpen(item)} data-testid="sheet-open">
+              <Button variant="signal" onClick={() => onOpen(item)} data-testid="sheet-open">
                 <EyeIcon aria-hidden="true" />
                 {t("open")}
               </Button>

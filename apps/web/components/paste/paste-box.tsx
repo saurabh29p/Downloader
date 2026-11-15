@@ -211,7 +211,7 @@ export function PasteBox() {
           </span>
           <Button
             type="submit"
-            variant="saffron"
+            variant="signal"
             disabled={busy}
             className="mt-2 w-full sm:absolute sm:end-3 sm:bottom-3 sm:mt-0 sm:w-auto"
           >
@@ -323,7 +323,7 @@ export function PasteBox() {
                     className={cn(
                       "size-2 rounded-full",
                       state === "done" && "bg-success",
-                      state === "now" && "animate-pulse bg-saffron",
+                      state === "now" && "animate-pulse bg-signal",
                       state === "next" && "bg-border",
                     )}
                   />

@@ -11,7 +11,7 @@ function Item({ item, closeLabel }: { item: Toast; closeLabel: string }) {
         "pointer-events-auto flex animate-in items-start gap-3 rounded-md border border-s-4 bg-popover p-3 text-popover-foreground shadow-lg fade-in-0 slide-in-from-bottom-2",
         item.kind === "success" && "border-s-success",
         item.kind === "error" && "border-s-destructive",
-        item.kind === "info" && "border-s-saffron",
+        item.kind === "info" && "border-s-signal",
       )}
       data-testid="toast"
     >

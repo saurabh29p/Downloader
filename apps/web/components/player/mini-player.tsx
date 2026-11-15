@@ -187,7 +187,7 @@ export function MiniPlayer({ track }: { track: Track }) {
           onClick={() => (el.paused ? void el.play() : el.pause())}
           aria-label={el.paused ? t("play") : t("pause")}
           disabled={failed}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-saffron text-saffron-foreground disabled:opacity-50"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-signal text-signal-foreground disabled:opacity-50"
         >
           {el.paused ? (
             <PlayIcon className="size-5" aria-hidden="true" />
