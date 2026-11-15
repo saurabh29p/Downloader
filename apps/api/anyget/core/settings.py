@@ -49,9 +49,10 @@ class Settings(BaseSettings):
     # Watches (scheduled checks for new items) run only in the API server.
     watch_enabled: bool = True
     # Retention: downloaded files older than this many days are removed (their library
-    # entry stays, marked "removed", with Download again). 0 turns cleanup off. The first
-    # cleanup happens this many days after retention is switched on (a grace period).
-    retention_days: int = Field(default=7, ge=0, le=3650)
+    # entry stays, marked "removed", with Download again). 0 (the default) keeps files
+    # forever. The first cleanup happens this many days after retention is switched on
+    # (a grace period).
+    retention_days: int = Field(default=0, ge=0, le=3650)
     # Plugins (extra handlers from installed packages) to load; "*" loads all.
     plugins: Annotated[list[str], NoDecode] = Field(default_factory=list)
     # Torrents (magnet links, .torrent files) need the optional libtorrent and are off
@@ -140,7 +141,15 @@ class Settings(BaseSettings):
     universal_sources: Annotated[list[str], NoDecode] = Field(default_factory=list)
     gutendex_url: str = "https://gutendex.com"
 
-    @field_validator("net_allowlist", "book_sources", "universal_sources", "plugins", mode="before")
+    @field_validator(
+        "net_allowlist",
+        "book_sources",
+        "universal_sources",
+        "plugins",
+        "llm_router_models",
+        "llm_summary_models",
+        mode="before",
+    )
     @classmethod
     def _split_csv(cls, value: Any) -> Any:
         if isinstance(value, str):

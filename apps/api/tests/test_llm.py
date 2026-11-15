@@ -81,6 +81,15 @@ def test_model_lists_and_free_mode(settings: Settings) -> None:
     assert router_models(settings) == ["c/d:free"]
 
 
+def test_model_lists_from_env_are_comma_separated(monkeypatch: pytest.MonkeyPatch) -> None:
+    # .env.example documents these as comma separated; a bare list type made start-up fail.
+    monkeypatch.setenv("ANYGET_LLM_ROUTER_MODELS", "google/gemma-4-31b-it:free, openai/gpt-5-nano")
+    monkeypatch.setenv("ANYGET_LLM_SUMMARY_MODELS", "")
+    loaded = Settings(_env_file=None)
+    assert loaded.llm_router_models == ["google/gemma-4-31b-it:free", "openai/gpt-5-nano"]
+    assert loaded.llm_summary_models == []
+
+
 @respx.mock
 async def test_router_plan_request_shape_and_privacy(brain: Brain) -> None:
     route = respx.post(API).mock(return_value=reply(ROUTER_OK))

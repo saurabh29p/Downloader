@@ -43,6 +43,26 @@ export async function loginRequired(apiUrl: string, now = Date.now()): Promise<b
   }
 }
 
+/** Uncached: does this AnyGet need a sign-in, and is an owner set? null when unreachable. */
+export async function authStatus(
+  apiUrl: string,
+): Promise<{ loginRequired: boolean; ownerConfigured: boolean } | null> {
+  try {
+    const response = await fetch(`${apiUrl}/api/auth/me`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!response.ok) return null;
+    const me = (await response.json()) as { login_required?: boolean; owner_configured?: boolean };
+    return {
+      loginRequired: me.login_required === true,
+      ownerConfigured: me.owner_configured === true,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function resetLoginCache() {
   cached = undefined;
 }

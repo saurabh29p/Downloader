@@ -7,6 +7,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 The v2 work and the open-source release: owner sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room look, in-app previews and the audio player. (The `2.0.0` heading that was here was never tagged; this release gets its version when it is tagged.)
 
+### Changed (safer defaults)
+- **Files are kept forever by default** (`ANYGET_RETENTION_DAYS=0`). Cleanup of old files is opt-in in Settings → Downloads; Help, the README and the hosting guide say so.
+- **A public AnyGet without an owner explains itself:** the sign-in page shows the exact setup steps (`anyget hash-password`, the three variables, restart) instead of a form that can only fail. Requests are still refused until an owner is set.
+- **First-run hint on Home:** three safe examples to try (a public-domain book on archive.org, a public-domain picture on Wikimedia Commons, a Creative Commons video), with a Hide button. Server-rendered, works without JavaScript, and remembered with a cookie.
+- `.env.example` documents every setting in one line each, grouped (Basics, Downloads, Hosting and sign-in, Connections, AI helper, Advanced), with safe defaults; a test checks that every setting is listed and that copying the file changes nothing.
+- The README says torrents are off by default (and how to turn them on).
+
+### Fixed (safer defaults)
+- **Docker:** the web image now sets `API_URL` at run time too. Without it, the sign-in redirect looked for the API inside the web container and pages opened without a sign-in (the API still refused their requests).
+- `ANYGET_LLM_ROUTER_MODELS` / `ANYGET_LLM_SUMMARY_MODELS` are read as comma-separated lists, as documented. Before, setting them stopped AnyGet from starting.
+
 ### Changed (Darkroom theme)
 - **New colours, "Darkroom":** cool fog grey and deep teal in light mode, near-black teal in dark mode, with a safelight red for active states, badges and the main buttons. Replaces the cream, indigo and saffron palette. Every text pair still meets WCAG AA.
 - App icons, favicon, extension icons, the PWA theme colour and the browser bar colour use the new teal. The service worker cache version is bumped so installed apps pick up the new icons.

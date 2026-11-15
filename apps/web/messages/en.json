@@ -104,6 +104,14 @@
       "d": "JFK assassination records",
       "e": "Old maps of Delhi",
       "f": "Apollo 11 photos"
+    },
+    "firstRun": {
+      "title": "New here? Try a public-domain example",
+      "text": "Pick one to see how AnyGet works. Each is free to download.",
+      "book": "A book: Alice's Adventures in Wonderland (archive.org)",
+      "image": "A picture: The Great Wave by Hokusai (Wikimedia Commons)",
+      "video": "A video: What is PeerTube? (Creative Commons, Framatube)",
+      "hide": "Hide"
     }
   },
   "Preview": {
@@ -795,7 +803,7 @@
     "playbackTitle": "Listening and watching",
     "playbackText": "Audio plays in a small player at the bottom of the screen and keeps playing while you move between AnyGet's pages. On phones, playback can also continue with the screen locked or in another app where the browser allows it: Android Chrome usually does; iPhone Safari usually does in a Safari tab, and less reliably for the app added to the Home Screen. AnyGet doesn't use tricks to keep audio alive, so your phone's battery settings may stop it.",
     "retentionTitle": "How long files are kept",
-    "retentionText": "By default, downloaded files are removed after 7 days (Settings → Downloads; 0 keeps them). The first removals happen 7 days after the policy is switched on. Files tagged “keep”, and downloads still running, are never removed. The Library keeps an entry for each removed file with Download again."
+    "retentionText": "By default, downloaded files are kept forever. In Settings → Downloads you can have them removed after a number of days; the first removals happen that many days after you switch it on. Files tagged “keep”, and downloads still running, are never removed. The Library keeps an entry for each removed file with Download again."
   },
   "Legal": {
     "title": "Legal and fair use",
@@ -853,11 +861,18 @@
     "signingIn": "Signing in…",
     "wrong": "Wrong email or password.",
     "limited": "Too many attempts. Wait a minute, then try again.",
-    "noOwner": "No sign-in is set up yet. Set ANYGET_OWNER_EMAIL and ANYGET_OWNER_PASSWORD_HASH on the server.",
+    "noOwner": "No sign-in is set up yet. Set ANYGET_OWNER_EMAIL and ANYGET_OWNER_PASSWORD_HASH (make the hash with anyget hash-password), then restart the API.",
     "network": "AnyGet could not be reached. Try again.",
     "account": "Account",
     "signedInAs": "Signed in as",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "setupTitle": "Set up the owner sign-in",
+    "setupText": "This AnyGet can be reached from the internet, so it refuses every request until an owner is set. On the computer or server that runs the API:",
+    "setupHash": "Make a password hash (the password needs at least 10 characters):",
+    "setupHashSource": "or, when you run AnyGet from source:",
+    "setupVars": "Set these variables for the API. The session secret is any long random string; in a .env file used by Docker Compose, write each $ of the hash as $$.",
+    "setupRestart": "Restart the API, then reload this page and sign in.",
+    "setupGuide": "Step-by-step guide"
   },
   "Connections": {
     "title": "Connections",

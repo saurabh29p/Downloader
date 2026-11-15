@@ -4,8 +4,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
 import { LoginForm } from "@/components/auth/login-form";
+import { OwnerSetup } from "@/components/auth/owner-setup";
 import type { Locale } from "@/i18n/routing";
-import { safeNext } from "@/lib/auth-gate";
+import { authStatus, safeNext } from "@/lib/auth-gate";
 
 export async function generateMetadata({
   params,
@@ -28,6 +29,7 @@ export default function LoginPage({
   const { next } = use(searchParams);
   setRequestLocale(locale);
   const t = useTranslations("Login");
+  const status = use(authStatus(process.env.API_URL ?? "http://127.0.0.1:8000"));
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background px-4 py-10">
       <div className="flex w-full max-w-sm flex-col gap-6 rounded-xl border bg-card p-6 shadow-sm">
@@ -35,7 +37,12 @@ export default function LoginPage({
           <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <LoginForm next={safeNext(next ?? `/${locale}`)} />
+        {/* A public AnyGet without an owner refuses everything: say how to set one up. */}
+        {status?.loginRequired && !status.ownerConfigured ? (
+          <OwnerSetup locale={locale} />
+        ) : (
+          <LoginForm next={safeNext(next ?? `/${locale}`)} />
+        )}
       </div>
     </main>
   );

@@ -3,6 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
 import { LineArt } from "@/components/art/line-art";
+import { FirstRunHint } from "@/components/home/first-run-hint";
 import { RecentJobs } from "@/components/jobs/recent-jobs";
 import { PasteBox } from "@/components/paste/paste-box";
 import { SectionsGrid } from "@/components/sections/sections-grid";
@@ -45,6 +46,7 @@ export default function HomePage({ params }: { params: Promise<{ locale: Locale 
           <LineArt name="lamp" className="hidden size-28 shrink-0 text-signal-ink lg:block" />
         </div>
         <PasteBox />
+        <FirstRunHint locale={locale} />
       </section>
 
       <section aria-labelledby="sections-heading" className="flex flex-col gap-4">
