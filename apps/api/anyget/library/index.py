@@ -10,10 +10,12 @@ import contextlib
 import hashlib
 import os
 from collections.abc import Iterable
+from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 from urllib.parse import urlsplit
 
+import sqlalchemy
 from sqlmodel import col, func, or_, select
 
 from anyget.core.db import Database
@@ -57,19 +59,57 @@ SECTION_BY_KIND = {
 }
 
 
-def section_of(item: LibraryItem) -> str | None:
+class _Facets(Protocol):
+    """What the derived fields need: a LibraryItem or a row of its columns."""
+
+    @property
+    def kind(self) -> str: ...
+    @property
+    def section(self) -> str | None: ...
+    @property
+    def source_url(self) -> str | None: ...
+    @property
+    def licence(self) -> str | None: ...
+
+
+def section_of(item: _Facets) -> str | None:
     return item.section or SECTION_BY_KIND.get(item.kind)
 
 
-def source_of(item: LibraryItem) -> str | None:
+@lru_cache(maxsize=1024)
+def _host_of(netloc: str) -> str | None:
+    return (urlsplit(f"//{netloc}").hostname or "").removeprefix("www.") or None
+
+
+def source_of(item: _Facets) -> str | None:
     if not item.source_url:
         return None
-    host = urlsplit(item.source_url).hostname or ""
-    return host.removeprefix("www.") or None
+    # Cached by the netloc (every item has its own URL, but hosts repeat); the netloc
+    # ends where urlsplit ends it, at the first "/", "?" or "#".
+    rest = item.source_url.partition("//")[2]
+    for stop in "/?#":
+        rest = rest.split(stop, 1)[0]
+    return _host_of(rest)
 
 
-def licence_of(item: LibraryItem) -> Licence:
+def licence_of(item: _Facets) -> Licence:
     return next((lic for lic in LICENCES if lic == item.licence), "unknown")
+
+
+# The columns a library search filters and facets on: loaded as plain rows, not ORM
+# objects (5,000 items took ~190 ms as objects, loaded twice). Full rows are loaded
+# only for the page that is shown.
+_SEARCH_COLUMNS = (
+    col(LibraryItem.id),
+    col(LibraryItem.title),
+    col(LibraryItem.rel_path),
+    col(LibraryItem.kind),
+    col(LibraryItem.tags),
+    col(LibraryItem.duplicate_of),
+    col(LibraryItem.section),
+    col(LibraryItem.source_url),
+    col(LibraryItem.licence),
+)
 
 
 def _job_meta(job: Job) -> tuple[str | None, str | None]:
@@ -301,36 +341,39 @@ class LibraryIndex:
         section, source host and licence."""
         snippets = self.text.search(q) if q and q.strip() else {}
         with self.db.session() as session:
-            query = select(LibraryItem)
+            query = sqlalchemy.select(*_SEARCH_COLUMNS).order_by(col(LibraryItem.added_at).desc())
             if user_id is not None:
-                query = query.where(LibraryItem.user_id == user_id)
-            mine = list(session.exec(query).all())
+                query = query.where(col(LibraryItem.user_id) == user_id)
+            mine = list(session.execute(query).all())
+            rows = mine
             if q and q.strip():
-                like = f"%{q.strip()}%"
-                matches = [
-                    col(LibraryItem.title).ilike(like),
-                    col(LibraryItem.rel_path).ilike(like),
+                # Plain substring, any case (Unicode-aware; `%` and `_` are not wildcards).
+                needle = q.strip().casefold()
+                rows = [
+                    r
+                    for r in rows
+                    if needle in r.title.casefold()
+                    or needle in r.rel_path.casefold()
+                    or r.id in snippets
                 ]
-                if snippets:
-                    matches.append(col(LibraryItem.id).in_(list(snippets)))
-                query = query.where(or_(*matches))
             if kind:
-                query = query.where(LibraryItem.kind == kind)
+                rows = [r for r in rows if r.kind == kind]
             if duplicates is True:
-                query = query.where(col(LibraryItem.duplicate_of).is_not(None))
-            rows = list(session.exec(query.order_by(col(LibraryItem.added_at).desc())).all())
-        # JSON column and derived fields: filter in Python (thousands of rows, not millions).
-        if tag:
-            rows = [r for r in rows if tag in (r.tags or [])]
-        if section:
-            rows = [r for r in rows if section_of(r) == section]
-        if source:
-            rows = [r for r in rows if source_of(r) == source]
-        if licence:
-            rows = [r for r in rows if licence_of(r) == licence]
+                rows = [r for r in rows if r.duplicate_of is not None]
+            if tag:
+                rows = [r for r in rows if tag in (r.tags or [])]
+            if section:
+                rows = [r for r in rows if section_of(r) == section]
+            if source:
+                rows = [r for r in rows if source_of(r) == source]
+            if licence:
+                rows = [r for r in rows if licence_of(r) == licence]
+            ids = [r.id for r in rows[offset : offset + limit]]
+            full = session.exec(select(LibraryItem).where(col(LibraryItem.id).in_(ids))).all()
+        by_id = {item.id: item for item in full}
         return LibraryPage(
             total=len(rows),
-            items=[self.out(r, snippets.get(r.id)) for r in rows[offset : offset + limit]],
+            items=[self.out(by_id[i], snippets.get(i)) for i in ids if i in by_id],
             tags=sorted({t for r in mine for t in r.tags or []}),
             sections=sorted({s for r in mine if (s := section_of(r))}),
             sources=sorted({s for r in mine if (s := source_of(r))}),

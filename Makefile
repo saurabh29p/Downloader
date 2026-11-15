@@ -21,7 +21,7 @@ dev: ## Run api (:8000) and web (:3000) with reload
 	@trap 'kill 0' EXIT; $(MAKE) dev-api & $(MAKE) dev-web & wait
 
 dev-api:
-	cd $(API) && uv run uvicorn anyget.main:app --reload --host 127.0.0.1 --port 8000
+	cd $(API) && uv run uvicorn anyget.main:app --reload --host 127.0.0.1 --port 8000 --timeout-graceful-shutdown 3
 
 dev-web:
 	pnpm --filter @anyget/web dev

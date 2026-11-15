@@ -1,7 +1,7 @@
 "use client";
 
 import type { Watch } from "@anyget/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@/lib/query";
 import {
   Loader2Icon,
   PauseIcon,

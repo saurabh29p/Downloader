@@ -6,7 +6,7 @@ from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, computed_field, field_validator
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, Index
 from sqlmodel import Field, SQLModel, col, select
 
 from anyget.core.db import Database
@@ -37,6 +37,9 @@ def _new_id() -> str:
 
 
 class Job(SQLModel, table=True):
+    # The Downloads list: one user's jobs, newest first.
+    __table_args__ = (Index("ix_job_user_created", "user_id", "created_at"),)
+
     id: str = Field(default_factory=_new_id, primary_key=True)
     url: str
     handler: str | None = None

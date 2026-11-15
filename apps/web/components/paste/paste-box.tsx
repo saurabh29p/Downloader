@@ -1,7 +1,7 @@
 "use client";
 
 import type { ProbeResult } from "@anyget/shared";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@/lib/query";
 import dynamic from "next/dynamic";
 import { ArrowRightIcon, ClipboardPasteIcon, FileTextIcon, Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";

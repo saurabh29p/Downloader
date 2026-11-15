@@ -34,7 +34,7 @@ Open-source release (one PR per phase, stacked branches `release/os-NN-*`):
 - [x] OS Phase 4 — safer defaults for strangers
 - [x] OS Phase 5 — documentation (release planned as 2.0.0)
 - [x] OS Phase 6 — correctness and bugs
-- [ ] OS Phase 7 — performance
+- [x] OS Phase 7 — performance
 - [ ] OS Phase 8 — security review and hardening
 - [ ] OS Phase 9 — final polish
 
@@ -48,7 +48,7 @@ Update this checklist at the end of every phase.
 | React / TypeScript | 19.x / 5.9.x | TS 7 is out; stay on 5.x until Next.js documents support |
 | Tailwind CSS | 4.3.x | CSS-first config, `@tailwindcss/postcss` |
 | shadcn CLI | 4.x | `pnpm dlx shadcn@latest add <component>` from `apps/web` |
-| TanStack Query / next-intl | 5.x / 4.x | RTL via logical CSS properties |
+| next-intl | 4.x | RTL via logical CSS properties; server state is our own `lib/query.tsx` (TanStack-style API) |
 | Vitest / Playwright | 5.x / 1.64.x | plus `@axe-core/playwright` |
 | Node / pnpm | 24 LTS / 10 | Next.js needs Node 20.9+ |
 | Python / FastAPI | 3.12 / 0.162.x | yt-dlp needs Python 3.11+ |
@@ -192,7 +192,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 
 ## Frontend rules
 - Next.js App Router, TypeScript strict, Tailwind 4 tokens in `styles/globals.css` (color, type scale, 4px grid, radius, shadow, motion; light + dark, system default).
-- Fonts (self-hosted via Fontsource): Fraunces headings, Inter UI, JetBrains Mono file facts, Noto Sans Devanagari / Noto Naskh Arabic (unicode-range, loaded only when used), Noto Sans fallbacks for CJK.
+- Fonts (self-hosted via Fontsource): Fraunces headings, Inter UI, JetBrains Mono file facts, Noto Sans Devanagari / Noto Naskh Arabic (unicode-range, loaded only when used), Noto Sans fallbacks for CJK. The Latin Inter and Fraunces files are also loaded with `next/font/local` in the root layout (`--font-inter`, `--font-fraunces`) so they are preloaded (HTTP `Link` header); Fontsource's CSS serves every other subset.
 - shadcn/ui parts (button, dialog, drawer, tabs, table, toast, command palette) plus custom paste box, format picker, job row, file picker, previewers.
 - Every screen has loading skeletons, helpful empty states, and error states with retry.
 - WCAG 2.2 AA: keyboard, focus rings, labels, `aria-live` progress, contrast, reduced motion. axe must be clean.
@@ -233,6 +233,8 @@ Personal use only. Download only what the user owns, what is public domain or op
 
 - All outgoing HTTP goes through `core/net.Net` (never a bare `httpx` client): it re-checks every redirect hop and its connection pool refuses private IPs at connect time (`GuardedBackend`). Legacy IPv4 forms (`2130706433`, `0x7f.1`) are treated as IPs.
 - `ANYGET_NET_ALLOWLIST=host:port,…` lets tests/e2e reach local fixture servers. Never set it in normal use.
+- Docker images: the API mounts uv only for `uv sync` and sets `UV_NO_CACHE=1`, so neither uv nor its wheel cache is in the image. **No `--mount=type=cache` in the API Dockerfile**: Railway's builder refuses cache mounts without service-specific ids; the web runtime is `node:24-alpine` and the build stage deletes sharp from the standalone output (images are `unoptimized`; don't add `next/image` without putting sharp back). Debian's ffmpeg pulls ~200 MB of Mesa/LLVM through libavdevice → SDL2; a static ffmpeg would remove it (owner decision, not done).
+- uvicorn runs with `--timeout-graceful-shutdown 3` (Dockerfile, `make dev`, e2e): SSE streams never end, so without it a stop waits for every open tab and the tabs never reconnect to the new process. Keep it in any new launcher.
 - The API container starts as root only to match `PUID`/`PGID` (default 1000; `make up` passes your ids) and make `/data` and `/downloads` writable, then drops to the `anyget` user (`apps/api/docker-entrypoint.sh`). Without it, Docker-created bind-mount folders are root-owned and SQLite cannot open.
 - `ANYGET_PROXY` is the only proxy used (env `HTTP(S)_PROXY` is ignored on purpose). With a proxy, only the pre-flight DNS check runs.
 - Tests fake DNS (`tests/conftest.py::fake_dns`): every host resolves to a public IP unless a test sets it. Use `respx` for HTTP.
@@ -297,7 +299,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 
 ### Library / watch / settings gotchas
 - Thumbnails (`library/thumbs.py`): made on the first `GET /api/library/{id}/thumb`, cached as `data/thumbs/<id>.webp` (a `.none` marker means "no picture", not retried). No picture answers **204**, and `LibraryIndex` then reports `thumbnail: null` for that item. ffmpeg (`-protocol_whitelist file`) for video frames and audio covers, `pdftoppm` (poppler) for PDFs, Pillow for raster images; SVGs use the file itself. CI's API job installs ffmpeg + poppler for these tests.
-- Tables: `library_item`, `watch`, `setting` live in the same SQLite file; `Database.create_all` imports their models. New nullable columns are still added by `_add_missing_columns`.
+- Tables: `library_item`, `watch`, `setting` live in the same SQLite file; `Database.create_all` imports their models. New nullable columns are still added by `_add_missing_columns`, new indexes (`__table_args__`) by `_add_missing_indexes` (`checkfirst`). `LibraryIndex.search` loads only `_SEARCH_COLUMNS` as plain rows for filters and facets, then full rows for the page; `source_of` caches hosts by netloc.
 - `DownloadQueue.on_done` hooks (the library indexer) run as separate tasks after a job is `done`; `queue.stop()` waits for them (`wait_hooks`, 60 s). Never await slow work inside the job task: cancelling it resets the job to `queued`.
 - Folder templates (`core/templates.py`) are rendered once per job after the probe and stored in `job.options["_folder"]`; `queue.job_dir(job)` is where its files and partials live. Conversions (`anyget:` links) don't use templates.
 - `SettingsStore.load()` runs in `Services.build` and overrides env with saved values; only `settings_store.EDITABLE` fields can be saved. Secrets are write-only (`SettingsView.secrets` is a set/unset map). Concurrency changes call `queue.reconfigure()` (new jobs only); proxy changes need a restart (`restart_needed`).
@@ -342,24 +344,25 @@ Personal use only. Download only what the user owns, what is public domain or op
 - The viewer (`components/viewer/`) is lazy; pdf.js only loads for PDFs (`pdf-view.tsx`; worker via `new URL(…, import.meta.url)`; `useWasm: false` because CSP has no wasm). Scroll areas with an `aria-label` need `role="region"` (axe).
 - Audio: one `<audio>` in `PlayerHost` (app layout) so it survives in-app navigation; `playTrack()` must run inside the click handler (phones). Full page loads (`window.location`, plain `<a href>` to internal pages) stop audio: use `Link`/`router.push`. `onlyOnePlayer` pauses other media on any `play`. Positions: `lib/positions.ts` (localStorage). Background playback on locked phones is browser-dependent: never claim it without a real-device check (docs/hosted.md lists the steps).
 - Job list sync: `lib/jobs-sync.ts` journals stream events and `useJobs`'s queryFn reconciles each response with events after its start; the bridge doesn't write a partial list before the first response. Downloads hides counts until data exists.
-- Downloads is near the 170 KB budget: it uses plain async handlers, not `useMutation` (TanStack's mutation code costs ~1 KB there).
+- Downloads uses plain async handlers, not `useMutation` (it was the page closest to the budget).
 - Job rows (`components/jobs/job-item.tsx`): titles are `h2` (right under the Downloads `h1`). Only `upstream` errors show the server's text inline; every other code shows its translated message with the raw text under Details (`wrap-anywhere`, so long paths never widen the page on phones).
 - Retention (`library/retention.py`): `retention_days` (default 0 = off; strangers' files are never removed unless they opt in), grace via the `_retention_since` state row (`SettingsStore.get_state/set_state`), `added_at` not mtime, skips active jobs/`keep`/symlinks, refuses when the data dir is inside the downloads dir. The scheduler starts only in the API (`Services.start(recover=True)`). Never run `--apply` against real files in tests or demos.
 - AI issues: `LlmUnavailable.code` → `OpenRouter.last_issue` → `Brain.issue()` → `/api/llm.issue` and the stream's `done.ai_issue`. TMDB 401/403 → `bad_key`, 429 → `rate_limited`.
 
 ### Frontend gotchas
-- First-load JS budget 170 KB (now: shell ≈163.5 KB, Home ≈168, Downloads ≈169.3 with jobs, Library ≈168.6, Settings ≈168.4, others ≈164–168). `e2e/budget.spec.ts` checks every page and fails CI if one goes over. Downloads was already ≈169.9 KB with real jobs before v2 (the convert menu's lazy chunk counts); keep `lib/api-convert.ts` separate from `lib/api-books.ts` and the 401 redirect lazily imported (`lib/sign-in.ts`). Keep client JS out of the shell (nav, layout). The Phase 6 rail fit only because the small `createApiClient` freed ~2.5 KB. New sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
+- First-load JS budget 170 KB, and keep **10 KB of headroom** on every page (OS Phase 7: shell ≈152.5 KB, Home ≈157.7, Downloads ≈159.6 with jobs, Library ≈158.1, Settings ≈157.9, others ≈152.5–158.2). `e2e/budget.spec.ts` checks every page and fails CI if one goes over 170. TanStack Query (~11 KB in the shell) was replaced by `lib/query.tsx` (~2 KB, same API for what we use: `useQuery`, `useInfiniteQuery`, `useMutation`, `useQueryClient`, `getQueryData`/`setQueryData`/`invalidateQueries`; no `select`, do that in `queryFn`); its behaviour is pinned in `lib/query.test.tsx`. The convert menu's lazy chunk counts on Downloads with jobs; keep `lib/api-convert.ts` separate from `lib/api-books.ts` and the 401 redirect lazily imported (`lib/sign-in.ts`). Keep client JS out of the shell (nav, layout). The Phase 6 rail fit only because the small `createApiClient` freed ~2.5 KB. New sections go in the Ctrl+K menu and in Home's server-rendered "More sources" list; lazy-load anything not needed on first paint (`next/dynamic`, like the preview sheet, media preview, files preview, convert menu, format picker, video card and playlist view).
 - `Button` has no `asChild` (Radix Slot was dropped to save bytes): style links with `buttonVariants()`.
 - Media pills (`components/media/choice.tsx`) are native radios/checkboxes hidden inside labels; in Playwright click the label (`pick()` in `e2e/youtube.spec.ts`), not the input.
 - No `tailwind-merge`: `cn()` is plain `clsx`, so components must not receive classes that conflict with their own (add a prop instead, see `NativeSelect.iconOnlyOnPhone`).
 - Toasts are our own (`lib/toast.ts` + `components/ui/toaster.tsx`), not sonner. Language and theme use styled native `<select>` (`components/ui/native-select.tsx`), not Radix menus.
 - next-intl messages are precompiled at build time (`next.config.ts`); ICU plurals need all Arabic forms (zero, one, two, few, many, other).
 - RTL: wrap LTR values (sizes, speeds, hosts) with `isolate()` from `lib/format.ts`; don't rely on `<bdi>` auto-direction for strings that mix Arabic with numbers (Chrome resolves them as LTR).
-- Live updates: one EventSource in `JobEventsBridge` writes into the TanStack Query `["jobs"]` cache; refetches are merged by `updated_at` (`mergeJobs`) so they never undo a newer live event. It refetches the list on every (re)connect, so a job that changed between the list request and the connection is not left stale.
+- Live updates: one EventSource in `JobEventsBridge` writes into the query cache's `["jobs"]` entry; refetches are merged by `updated_at` (`mergeJobs`) so they never undo a newer live event. It refetches the list on every (re)connect, so a job that changed between the list request and the connection is not left stale.
 - The shadcn registry may be unreachable from sandboxes; components in `components/ui` are written by hand in shadcn style.
 - Docs: user-facing pages live in `docs/` (index `docs/README.md`); the README's screenshots are `docs/images/*.webp` (real downloads of the public-domain/CC examples, under 300 KB each). Keep the README's `## Support AnyGet`, `## Disclaimer` and `## What it won't do` headings (linked from the app and the FAQ).
 - The repository URL lives in `lib/project.ts` (`REPO_URL`): Legal links the LICENSE, Help links `#support-anyget` in the README. Keep that README heading if you rename sections.
 - User-facing hints for keys and accounts link to `/connections#<site>` (a library's `key_setting` minus `_key` is its Connections id), never to env variable names or `.env`; env names belong only under Settings → Advanced and the self-hosted sign-in.
+- The language menu (`.lang-select`, `styles/globals.css`) uses system fonts for the other languages' scripts: Chrome measures every `<option>`, and the full stack made every page download the Devanagari and Arabic fonts (~100 KB).
 - `<summary>` must not be `flex` (that hides the disclosure arrow): use `min-h-11 cursor-pointer content-center`. Likewise a `<li>` that is `flex` loses its bullet or number: space list items with `space-y-*` on the list.
 - Home's first-run hint (`components/home/first-run-hint.tsx`) is server-rendered; Hide is a plain form POST to `/<locale>/hide-hint` (route handler) that sets the `anyget_hint` cookie. Redirects from route handlers use a **relative** `Location`: `request.url` can name another host (`next start -H 127.0.0.1` reports `localhost`) and the cookie would be lost.
 - The sign-in page shows `OwnerSetup` (exact `anyget hash-password` steps) when `/api/auth/me` says `login_required` and not `owner_configured`.

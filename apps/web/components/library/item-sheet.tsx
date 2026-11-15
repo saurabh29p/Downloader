@@ -1,7 +1,7 @@
 "use client";
 
 import type { LibraryItem } from "@anyget/shared";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@/lib/query";
 import {
   DownloadIcon,
   ExternalLinkIcon,
@@ -121,7 +121,8 @@ export function ItemSheet({
               <img
                 src={item.thumbnail}
                 alt=""
-                className="max-h-56 w-full rounded bg-muted object-contain"
+                // A fixed box (not max-h): the sheet doesn't jump when the picture arrives.
+                className="h-56 w-full rounded bg-muted object-contain"
               />
             )}
             {item.kind === "audio" ? (

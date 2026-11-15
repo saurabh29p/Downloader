@@ -3,6 +3,7 @@
 import shutil
 from collections.abc import AsyncIterator
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 from pikepdf import Dictionary, Name, Pdf
@@ -11,6 +12,8 @@ from anyget.core.jobs import JobState
 from anyget.core.services import Services
 from anyget.core.settings import Settings
 from anyget.library.fulltext import fts_query, text_of
+from anyget.library.index import source_of
+from anyget.library.models import LibraryItem
 from tests.test_phase8 import make_epub
 
 
@@ -125,3 +128,20 @@ async def test_pdf_text_layer_is_searchable(services: Services) -> None:
     pdf.save(root / "paper.pdf")
     await services.library.scan()
     assert [i.title for i in services.library.search(q="chronicling").items] == ["paper"]
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.YouTube.com/watch?v=1",
+        "https://archive.org/details/x",
+        "http://user:pw@Host.Example:8080/p",
+        "https://[2001:db8::1]:443/x",
+        "https://example.org?x=//y",
+        "https://example.org#frag/x",
+    ],
+)
+def test_source_host_matches_urlsplit(url: str) -> None:
+    # source_of caches by netloc for speed; it must name the same host as urlsplit.
+    item = LibraryItem(rel_path="a", kind="video", title="a", source_url=url)
+    assert source_of(item) == ((urlsplit(url).hostname or "").removeprefix("www.") or None)

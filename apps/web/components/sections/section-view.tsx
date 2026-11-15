@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@/lib/query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 

@@ -41,6 +41,9 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(here, "../.."),
+  // No next/image anywhere (thumbnails are plain <img> with fixed sizes): the image
+  // optimizer never runs, so the web Dockerfile can leave sharp out of the image.
+  images: { unoptimized: true },
   transpilePackages: ["@anyget/shared"],
   poweredByHeader: false,
   async headers() {

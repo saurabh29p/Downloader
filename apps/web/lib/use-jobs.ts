@@ -1,7 +1,7 @@
 "use client";
 
 import type { Job } from "@anyget/shared";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@/lib/query";
 
 import { listJobs } from "@/lib/api";
 import { reconcile } from "@/lib/jobs-sync";
