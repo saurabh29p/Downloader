@@ -9,7 +9,14 @@ import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { checkYtDlp, getLlm, getRetention, getSettings, putSettings } from "@/lib/api-library";
+import {
+  checkYtDlp,
+  getLlm,
+  getRetention,
+  getSettings,
+  putSettings,
+  updateYtDlp,
+} from "@/lib/api-library";
 import { errorMessage } from "@/lib/errors";
 import { isolate } from "@/lib/format";
 import { toast } from "@/lib/toast";
@@ -341,9 +348,16 @@ function SettingsForm({ initial }: { initial: SettingsView }) {
   );
 }
 
-function YtDlpCheck() {
+export function YtDlpCheck() {
   const t = useTranslations("Settings");
+  const tErrors = useTranslations("Errors");
+  const queryClient = useQueryClient();
   const check = useQuery({ queryKey: ["settings", "ytdlp"], queryFn: checkYtDlp, enabled: false });
+  const update = useMutation({
+    mutationFn: updateYtDlp,
+    onSuccess: (result) => queryClient.setQueryData(["settings", "ytdlp"], result),
+  });
+  const data = check.data;
   return (
     <Section title={t("ytdlp")}>
       <div className="flex flex-wrap items-center gap-3">
@@ -351,17 +365,29 @@ function YtDlpCheck() {
           type="button"
           variant="outline"
           onClick={() => check.refetch()}
-          disabled={check.isFetching}
+          disabled={check.isFetching || update.isPending}
         >
           {check.isFetching && <Loader2Icon className="animate-spin" aria-hidden="true" />}
           {t("checkUpdates")}
         </Button>
-        {check.data && (
+        {data?.update_available && (
+          <Button
+            type="button"
+            variant="signal"
+            onClick={() => update.mutate()}
+            disabled={update.isPending}
+            data-testid="ytdlp-update"
+          >
+            {update.isPending && <Loader2Icon className="animate-spin" aria-hidden="true" />}
+            {update.isPending ? t("updating") : t("updateNow")}
+          </Button>
+        )}
+        {data && (
           <p className="text-sm" role="status">
-            {t("installed", { version: check.data.installed ?? "?" })}{" "}
-            {check.data.update_available ? (
-              <Badge>{t("updateAvailable", { version: check.data.latest ?? "?" })}</Badge>
-            ) : check.data.latest ? (
+            {t("ytdlpInUse", { version: data.installed ?? "?" })}{" "}
+            {data.update_available ? (
+              <Badge>{t("updateAvailable", { version: data.latest ?? "?" })}</Badge>
+            ) : data.latest ? (
               t("upToDate")
             ) : (
               t("couldNotCheck")
@@ -369,9 +395,22 @@ function YtDlpCheck() {
           </p>
         )}
       </div>
-      {check.data?.update_available && (
+      {data?.restart_needed && (
+        <p className="text-sm font-medium" role="status" data-testid="ytdlp-restart">
+          {t("restartToUse", { version: data.updated ?? "?" })}
+        </p>
+      )}
+      {data && !data.restart_needed && data.updated && data.updated === data.installed && (
+        <p className="text-sm text-muted-foreground">{t("usingUpdated")}</p>
+      )}
+      {update.error && (
+        <p className="text-sm text-destructive" role="alert">
+          {errorMessage(tErrors, update.error)}
+        </p>
+      )}
+      {data?.update_available && (
         <p className="text-sm text-muted-foreground">
-          {t("updateHow")} <code dir="ltr">{check.data.command}</code>
+          {t("updateHow")} <code dir="ltr">{data.command}</code>
         </p>
       )}
     </Section>

@@ -238,8 +238,14 @@ async def test_wayback_raw_html_download(settings: Settings) -> None:
 # ----- API -----------------------------------------------------------------------
 
 
+class MockedClient(TestClient):
+    """The app's test client plus the respx router behind it."""
+
+    mock: respx.MockRouter
+
+
 @pytest.fixture
-def client(settings: Settings) -> Iterator[TestClient]:
+def client(settings: Settings) -> Iterator[MockedClient]:
     with respx.mock(assert_all_called=False) as mock:
         mock_archive(mock)
         mock.get(url__startswith="https://archive.org/advancedsearch.php").mock(
@@ -251,12 +257,12 @@ def client(settings: Settings) -> Iterator[TestClient]:
         mock.get(url__startswith="https://web.archive.org/cdx/search/cdx").mock(
             return_value=httpx.Response(200, json=load("cdx_example.json"))
         )
-        with TestClient(create_app(settings)) as test_client:
+        with MockedClient(create_app(settings)) as test_client:
             test_client.mock = mock
             yield test_client
 
 
-def test_search_endpoint(client: TestClient) -> None:
+def test_search_endpoint(client: MockedClient) -> None:
     body = client.get(
         "/api/archive/search", params={"q": "alice", "mediatype": "texts", "year_from": 1860}
     ).json()

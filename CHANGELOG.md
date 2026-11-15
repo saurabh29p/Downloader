@@ -5,7 +5,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
-**Planned as 2.0.0: the first open-source release.** Everything below ships together: the v2
+## [2.0.0] - 2026-11-15
+
+**The first open-source release (MIT).** Everything below ships together: the v2
 features (owner sign-in, Connections, universal search, Sections, the optional AI helper,
 in-app previews and the audio player), the Darkroom look, safer defaults and the
 open-source documentation.
@@ -17,8 +19,23 @@ action from people who run AnyGet, so semantic versioning calls for a new major 
 - keys and cookies moved from Settings to the encrypted Connections page (old values are
   migrated on first start).
 
-A `2.0.0` heading existed here earlier but was never tagged, so the number is free to use.
-The package versions are now 2.0.0.
+A `2.0.0` heading existed here earlier but was never tagged, so the number was free to use.
+
+### Added (final polish)
+- **Update yt-dlp from Settings** (Settings → Advanced → yt-dlp) and from the command line (`anyget update-engine`, `--check` to only compare). AnyGet downloads the latest yt-dlp and its matching yt-dlp-ejs from PyPI into the data folder, checks each file against PyPI's SHA-256, and checks in a separate process that its network guard still covers the new version. If any check fails, nothing changes. The update is used after a restart; a newer AnyGet image always wins over an older update.
+- **Multi-arch releases:** a version tag now builds the API and web images for amd64 and arm64 on native runners and publishes one multi-arch tag per version (plus `latest`). Release notes are the CHANGELOG section followed by GitHub's generated notes, and the extension zips are attached.
+- A social preview image for the repository (`docs/images/social-preview.png`, 1280×640, Darkroom colours).
+
+### Changed (final polish)
+- **Simpler menu:** the rail and the phone bar show the five main places (Home, Sections, Downloads, Library, Settings). Tools, Watches and Connections are under **More** in the rail, and the Sections page has a **Tools** part with every other page (phones too). No address changed, so bookmarks keep working.
+- Plain words: the Manuscripts section no longer says "IIIF", and Hindi uses one name for Sections ("सेक्शन") everywhere.
+- The network guard refuses to run yt-dlp when it can't hook every networking module, instead of carrying on unguarded after a yt-dlp change.
+- `.editorconfig` states the 100-character line length that Prettier and ruff use.
+- Security and conduct reports go through GitHub's private reporting (or an issue asking for a private contact); no personal email is published. AnyGet takes no donations yet, so the README's "Support AnyGet" lists other ways to help.
+- The API tests use `httpx2` with Starlette's test client, so the test run has no warnings.
+
+### Removed (final polish)
+- Unused code, each checked with knip / vulture and a search of the whole repository: `components/ui/textarea.tsx`, `universalSearch`, `epubPreview` and the `SearchTab` type in the web app; `site_or_none` and `net_guard.is_installed` in the API.
 
 ### Security
 - **Open redirect after sign-in fixed:** a `?next=` link with a tab or newline (`/%09/evil.example`) sent people to another site after signing in, because the URL parser deletes those characters. The sign-in page now refuses control characters and checks that the address stays on AnyGet.
@@ -86,7 +103,7 @@ The package versions are now 2.0.0.
 - `LICENSE` (MIT); `"license": "MIT"` in every `package.json` and `license = "MIT"` (PEP 639) in the Python projects.
 - `THIRD_PARTY_NOTICES.md`: what AnyGet runs or ships and under which licence, plus generated npm/PyPI tables (`make notices`, `scripts/third_party_notices.py`). Two copyleft packages are flagged: gallery-dl (run only as a separate process) and mutagen (GPL-2.0-or-later, loaded in-process by yt-dlp; see the notes).
 - `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), issue forms (bug, site stopped working, feature) and a pull request template.
-- A disclaimer on the Legal page (en, hi, ar) and in the README; a "Support the project" link on Help; `.github/FUNDING.yml` and a README "Support AnyGet" section with placeholders for the owner.
+- A disclaimer on the Legal page (en, hi, ar) and in the README; a "Support the project" link on Help; `.github/FUNDING.yml` (no donation links yet) and a README "Support AnyGet" section.
 
 ### Fixed (v2 Phase 7 — polish)
 - **Empty files** (0 bytes) are saved instead of failing with an internal error.
@@ -386,5 +403,6 @@ First release: everything below, plus worldwide access.
 - Live progress could be dropped by the browser after a page refresh (stale timestamps); job times are now always sent as UTC.
 - API container could not create its database when Docker created the `data` folder as root (CI Docker job). The container now adopts `PUID`/`PGID` and fixes folder ownership before dropping privileges.
 
-[Unreleased]: https://github.com/saurabh29p/Downloader/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/saurabh29p/Downloader/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/saurabh29p/Downloader/releases/tag/v2.0.0
 [1.0.0]: https://github.com/saurabh29p/Downloader/releases/tag/v1.0.0

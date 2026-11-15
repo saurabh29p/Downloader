@@ -34,9 +34,6 @@ export async function deleteLibraryItem(id: string, deleteFile: boolean): Promis
 export const redownload = (id: string) =>
   call(api.POST("/api/library/{item_id}/redownload", { params: { path: { item_id: id } } }));
 
-export const epubPreview = (id: string) =>
-  call(api.GET("/api/library/{item_id}/preview", { params: { path: { item_id: id } } }));
-
 export const libraryFileUrl = (id: string, download = false) =>
   `/api/library/${encodeURIComponent(id)}/file${download ? "?download=true" : ""}`;
 
@@ -60,6 +57,8 @@ export const getSettings = () => call(api.GET("/api/settings"));
 export const putSettings = (body: SettingsUpdate) => call(api.PUT("/api/settings", { body }));
 
 export const checkYtDlp = () => call(api.GET("/api/settings/ytdlp"));
+
+export const updateYtDlp = () => call(api.POST("/api/settings/ytdlp/update"));
 
 export const getLlm = () => call(api.GET("/api/llm"));
 

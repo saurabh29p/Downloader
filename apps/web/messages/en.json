@@ -16,7 +16,9 @@
       "library": "Library",
       "watch": "Watches",
       "settings": "Settings",
-      "quick": "Jump to…"
+      "quick": "Jump to…",
+      "more": "More",
+      "tools": "All tools"
     },
     "theme": {
       "label": "Theme",
@@ -75,6 +77,14 @@
       "libraries": {
         "title": "Libraries",
         "text": "National libraries worldwide, page by page"
+      },
+      "watch": {
+        "title": "Watches",
+        "text": "Check channels, playlists and collections on a schedule"
+      },
+      "connections": {
+        "title": "Connections",
+        "text": "Your own accounts and keys for sites that need them"
       }
     },
     "sectionsHeading": "The catalogue",
@@ -242,7 +252,8 @@
     "too_large": "That request was too large for AnyGet to accept.",
     "starting": "AnyGet is still starting. Try again in a few seconds.",
     "auth_expired": "Your sign-in has expired. Reload the page to sign in again.",
-    "auth_unavailable": "AnyGet can't check your sign-in right now. Try again in a minute."
+    "auth_unavailable": "AnyGet can't check your sign-in right now. Try again in a minute.",
+    "engine_check_failed": "The new yt-dlp didn't pass AnyGet's safety check, so it wasn't installed. The current one keeps working."
   },
   "Downloads": {
     "title": "Downloads",
@@ -414,7 +425,12 @@
     "retentionStarts": "Nothing is removed before {date} (grace period).",
     "retentionLast": "Last cleanup: {date}.",
     "retentionBlocked": "Cleanup is off: the downloads and data folders overlap.",
-    "aiIssue": "Last problem: {issue}"
+    "aiIssue": "Last problem: {issue}",
+    "updateNow": "Update yt-dlp",
+    "updating": "Updating…",
+    "restartToUse": "yt-dlp {version} is installed. Restart AnyGet to use it (Docker: docker compose restart api).",
+    "usingUpdated": "Using the updated yt-dlp from the data folder.",
+    "ytdlpInUse": "yt-dlp {version} in use."
   },
   "Archive": {
     "title": "archive.org",
@@ -997,7 +1013,7 @@
     "manuscripts": {
       "title": "Manuscripts",
       "text": "Old manuscripts, page by page.",
-      "hero": "Manuscripts from national libraries through IIIF, downloadable page by page or as a PDF."
+      "hero": "Manuscripts from national libraries, downloadable page by page or as a PDF."
     },
     "presets": {
       "classic-hindi": "Classic Hindi films (public domain)",
@@ -1036,7 +1052,11 @@
       "sanskrit": "Sanskrit manuscripts",
       "illuminated": "Illuminated manuscripts"
     },
-    "suggested": "Suggested by the AI helper"
+    "suggested": "Suggested by the AI helper",
+    "tools": {
+      "title": "Tools",
+      "text": "Everything else AnyGet can do."
+    }
   },
   "Player": {
     "label": "Audio player",

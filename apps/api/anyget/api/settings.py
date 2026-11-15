@@ -1,13 +1,11 @@
 """Settings endpoints. Cookies and API keys live in Connections (api/connections.py)."""
 
-import httpx
 from fastapi import APIRouter
 from pydantic import BaseModel
 
 from anyget.api.deps import ERROR_RESPONSES, ServicesDep
-from anyget.core.net import BlockedURLError
+from anyget.core import engine
 from anyget.core.settings_store import SettingsUpdate, SettingsView
-from anyget.core.tools import tool_versions
 
 router = APIRouter(tags=["settings"])
 
@@ -27,26 +25,39 @@ async def put_settings(body: SettingsUpdate, services: ServicesDep) -> SettingsV
 
 
 class YtDlpVersion(BaseModel):
+    # The yt-dlp this server runs now.
     installed: str | None
     latest: str | None
     update_available: bool
+    # The yt-dlp in the image; and one installed by "Update yt-dlp" (data/engine).
+    bundled: str | None = None
+    updated: str | None = None
+    # An update is installed but AnyGet hasn't restarted to use it yet.
+    restart_needed: bool = False
+    # The other way to update: a newer image.
     command: str
+
+
+def _version_out(status: engine.EngineStatus) -> YtDlpVersion:
+    return YtDlpVersion(
+        installed=status.running,
+        latest=status.latest,
+        update_available=status.update_available,
+        bundled=status.bundled,
+        updated=status.updated,
+        restart_needed=status.restart_needed,
+        command="docker compose build --pull api && docker compose up -d  (or: uv lock -P yt-dlp)",
+    )
 
 
 @router.get("/settings/ytdlp", operation_id="checkYtDlp")
 async def ytdlp_version(services: ServicesDep) -> YtDlpVersion:
-    """Compare the installed yt-dlp with PyPI. AnyGet never updates itself."""
-    installed = tool_versions().yt_dlp
-    latest = None
-    try:
-        response = await services.net.request("GET", "https://pypi.org/pypi/yt-dlp/json")
-        if response.status_code == 200:
-            latest = str(response.json().get("info", {}).get("version") or "") or None
-    except (httpx.HTTPError, ValueError, BlockedURLError):
-        latest = None
-    return YtDlpVersion(
-        installed=installed,
-        latest=latest,
-        update_available=bool(installed and latest and installed != latest),
-        command="docker compose build --pull api && docker compose up -d  (or: uv lock -P yt-dlp)",
-    )
+    """Compare the yt-dlp in use with the latest on PyPI."""
+    return _version_out(await engine.status(services.net, services.settings.data_dir))
+
+
+@router.post("/settings/ytdlp/update", operation_id="updateYtDlp", responses=ERROR_RESPONSES)
+async def update_ytdlp(services: ServicesDep) -> YtDlpVersion:
+    """Install the latest yt-dlp into the data folder (SHA-256 checked, guard checked).
+    It is used after AnyGet restarts."""
+    return _version_out(await engine.update(services.net, services.settings.data_dir))

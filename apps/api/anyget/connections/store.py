@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel, select
 
-from anyget.connections.sites import BY_ID, COOKIE_SITES, KEY_SETTINGS, SITES, Site, host_matches
+from anyget.connections.sites import COOKIE_SITES, KEY_SETTINGS, SITES, Site, host_matches
 from anyget.core.db import Database
 from anyget.core.settings import Settings
 from anyget.core.users import OWNER_ID
@@ -391,7 +391,3 @@ def _utc(value: datetime | None) -> datetime | None:
     if value is not None and value.tzinfo is None:
         return value.replace(tzinfo=UTC)
     return value
-
-
-def site_or_none(site_id: str) -> Site | None:
-    return BY_ID.get(site_id)

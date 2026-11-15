@@ -56,13 +56,18 @@ def _guard(original: Callable[..., Any]) -> Callable[..., Any]:
     return create_connection
 
 
-def _replace_everywhere(module: Any, original: Any, replacement: Any) -> None:
+def _replace_everywhere(module: Any, original: Any, replacement: Any) -> int:
+    """Swap every reference to `original` in the module; returns how many were swapped."""
+    swapped = 0
     if getattr(module, "create_connection", None) is original:
         module.create_connection = replacement
+        swapped += 1
     for _name, cls in inspect.getmembers(module, inspect.isclass):
         for attr, value in list(vars(cls).items()):
             if value is original:
                 setattr(cls, attr, replacement)
+                swapped += 1
+    return swapped
 
 
 def install(allowlist: Iterable[str] = ()) -> None:
@@ -75,12 +80,21 @@ def install(allowlist: Iterable[str] = ()) -> None:
     helper = importlib.import_module("yt_dlp.networking._helper")
     original = helper.create_connection
     guarded = _guard(original)
+    unhooked = []
     for name in YTDLP_MODULES:
         try:
             module = importlib.import_module(name)
         except ImportError:  # optional handler dependency not installed
             continue
-        _replace_everywhere(module, original, guarded)
+        if not _replace_everywhere(module, original, guarded):
+            unhooked.append(name)
+    # A yt-dlp whose networking no longer goes through create_connection where we look
+    # would open sockets with no guard: refuse it. (An updated yt-dlp must pass this in a
+    # fresh process before AnyGet uses it, see core/engine.py.)
+    if unhooked:
+        raise RuntimeError(
+            f"net_guard could not hook {', '.join(unhooked)}; refusing to run yt-dlp unguarded"
+        )
 
     import urllib3.util.connection as urllib3_connection
 
@@ -115,7 +129,3 @@ def _guard_ffmpeg_downloads() -> None:
         return original(self, tmpfilename, info_dict)
 
     FFmpegFD._call_downloader = guarded_call
-
-
-def is_installed() -> bool:
-    return _installed

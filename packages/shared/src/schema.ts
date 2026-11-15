@@ -840,11 +840,32 @@ export interface paths {
         };
         /**
          * Ytdlp Version
-         * @description Compare the installed yt-dlp with PyPI. AnyGet never updates itself.
+         * @description Compare the yt-dlp in use with the latest on PyPI.
          */
         get: operations["checkYtDlp"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/ytdlp/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Ytdlp
+         * @description Install the latest yt-dlp into the data folder (SHA-256 checked, guard checked).
+         *     It is used after AnyGet restarts.
+         */
+        post: operations["updateYtDlp"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2077,14 +2098,23 @@ export interface components {
         };
         /** YtDlpVersion */
         YtDlpVersion: {
+            /** Bundled */
+            bundled?: string | null;
             /** Command */
             command: string;
             /** Installed */
             installed: string | null;
             /** Latest */
             latest: string | null;
+            /**
+             * Restart Needed
+             * @default false
+             */
+            restart_needed: boolean;
             /** Update Available */
             update_available: boolean;
+            /** Updated */
+            updated?: string | null;
         };
     };
     responses: never;
@@ -4884,6 +4914,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["YtDlpVersion"];
+                };
+            };
+        };
+    };
+    updateYtDlp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YtDlpVersion"];
+                };
+            };
+            /** @description Blocked or invalid link */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Action does not fit the job state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Link not supported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The remote server failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

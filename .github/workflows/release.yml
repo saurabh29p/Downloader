@@ -1,75 +1,147 @@
 name: Release
 
-# Push a tag like v2.0.0: builds and pushes the Docker images to GitHub Container
-# Registry, builds the browser extension, and publishes a GitHub release with the
-# CHANGELOG section for that version.
+# Push a tag like v2.0.0: builds the Docker images for amd64 and arm64 and pushes them
+# to GitHub Container Registry (one multi-arch tag per version, plus latest), builds the
+# browser extension, and publishes a GitHub release: the CHANGELOG section for that
+# version, then GitHub's generated notes (merged pull requests), with the extension zips.
 #
 # No third-party actions here: images are built with the runner's own docker buildx and
 # the release is made with the GitHub CLI (gh). The only actions are GitHub's and pnpm's,
 # pinned to full commit SHAs.
+#
+# Two ways to release: push a tag (git tag v2.0.0 && git push origin v2.0.0), or Actions →
+# Release → Run workflow with a version (2.0.0): it checks CHANGELOG.md has that section,
+# tags the commit it runs on (main) and releases it.
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the v, for example 2.0.0 (CHANGELOG.md needs its section)"
+        required: true
 
 # Nothing by default; each job asks only for what it needs.
 permissions: {}
 
 jobs:
-  images:
-    name: Docker images (ghcr.io)
+  tag:
+    name: Version and tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - id: tag
+        env:
+          INPUT: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            tag="$GITHUB_REF_NAME"
+          else
+            [[ "$INPUT" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::version must look like 2.0.0"; exit 1; }
+            grep -q "^## \[$INPUT\]" CHANGELOG.md || { echo "::error::CHANGELOG.md has no [$INPUT] section"; exit 1; }
+            tag="v$INPUT"
+            # A tag made with this workflow's token doesn't start another run of this workflow.
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+  images:
+    name: Docker image ${{ matrix.image.name }} (${{ matrix.platform.arch }})
+    needs: tag
+    # Native runners for each architecture (ARM runners are free for public
+    # repositories): no emulation, so the arm64 build is as fast as the amd64 one.
+    runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
       packages: write
     strategy:
       matrix:
-        include:
-          - name: api
-            context: apps/api
-            file: apps/api/Dockerfile
-            target: runtime
-          - name: web
-            context: .
-            file: apps/web/Dockerfile
-            target: ""
+        platform:
+          - { arch: amd64, runner: ubuntu-latest }
+          - { arch: arm64, runner: ubuntu-24.04-arm }
+        image:
+          - { name: api, context: apps/api, file: apps/api/Dockerfile, target: runtime }
+          - { name: web, context: ., file: apps/web/Dockerfile, target: "" }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ needs.tag.outputs.tag }}
           persist-credentials: false
       - id: meta
+        env:
+          TAG: ${{ needs.tag.outputs.tag }}
         run: |
           echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
-          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
       - name: Log in to ghcr.io
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: echo "$TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-      - name: Build and push
+      - name: Build and push (one architecture)
         env:
-          IMAGE: ghcr.io/${{ steps.meta.outputs.owner }}/anyget-${{ matrix.name }}
+          IMAGE: ghcr.io/${{ steps.meta.outputs.owner }}/anyget-${{ matrix.image.name }}
           VERSION: ${{ steps.meta.outputs.version }}
-          CONTEXT: ${{ matrix.context }}
-          FILE: ${{ matrix.file }}
-          TARGET: ${{ matrix.target }}
+          ARCH: ${{ matrix.platform.arch }}
+          CONTEXT: ${{ matrix.image.context }}
+          FILE: ${{ matrix.image.file }}
+          TARGET: ${{ matrix.image.target }}
         run: |
           docker buildx build "$CONTEXT" --file "$FILE" ${TARGET:+--target "$TARGET"} \
+            --platform "linux/$ARCH" \
             --build-arg API_URL=http://api:8000 \
             --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
             --label "org.opencontainers.image.version=$VERSION" \
-            --tag "$IMAGE:$VERSION" --tag "$IMAGE:latest" \
+            --label "org.opencontainers.image.licenses=MIT" \
+            --tag "$IMAGE:$VERSION-$ARCH" \
             --push
+      - if: always()
+        run: docker logout ghcr.io
+
+  manifests:
+    name: Multi-arch tags (amd64 + arm64)
+    runs-on: ubuntu-latest
+    needs: [tag, images]
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        name: [api, web]
+    steps:
+      - name: Log in to ghcr.io
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+      - name: One tag for both architectures (version and latest)
+        env:
+          NAME: ${{ matrix.name }}
+          TAG: ${{ needs.tag.outputs.tag }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/anyget-$NAME"
+          version="${TAG#v}"
+          docker buildx imagetools create \
+            --tag "$image:$version" --tag "$image:latest" \
+            "$image:$version-amd64" "$image:$version-arm64"
+          docker buildx imagetools inspect "$image:$version"
       - if: always()
         run: docker logout ghcr.io
 
   release:
     name: GitHub release
     runs-on: ubuntu-latest
-    needs: images
+    needs: [tag, manifests]
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ needs.tag.outputs.tag }}
           persist-credentials: false
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
@@ -79,8 +151,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @anyget/extension build
       - name: Release notes from CHANGELOG.md
+        env:
+          TAG: ${{ needs.tag.outputs.tag }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="${TAG#v}"
           awk -v v="$version" '
             $0 ~ "^## \\[" v "\\]" {on=1; next}
             on && /^## \[/ {exit}
@@ -90,7 +164,8 @@ jobs:
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.tag.outputs.tag }}
         run: >-
-          gh release create "$GITHUB_REF_NAME" apps/extension/dist/*.zip
-          --repo "$GITHUB_REPOSITORY" --title "AnyGet ${GITHUB_REF_NAME#v}"
-          --notes-file notes.md --verify-tag
+          gh release create "$TAG" apps/extension/dist/*.zip
+          --repo "$GITHUB_REPOSITORY" --title "AnyGet ${TAG#v}"
+          --notes-file notes.md --generate-notes --verify-tag

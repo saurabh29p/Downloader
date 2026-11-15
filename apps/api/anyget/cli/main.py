@@ -57,6 +57,51 @@ def llm_models() -> None:
         raise typer.Exit(1)
 
 
+@app.command("update-engine")
+def update_engine(
+    check: bool = typer.Option(False, "--check", help="Only show the versions, change nothing."),
+) -> None:
+    """Update yt-dlp (sites change often) without a new AnyGet image.
+
+    Downloads the latest yt-dlp from PyPI into the data folder, checks its SHA-256 and that
+    AnyGet's network guard still covers it, and uses it after AnyGet restarts.
+    """
+    from anyget.core import engine
+    from anyget.core.net import Net
+
+    settings = get_settings()
+    engine.activate(settings.data_dir)
+
+    async def run() -> engine.EngineStatus:
+        net = Net(settings)
+        try:
+            if check:
+                return await engine.status(net, settings.data_dir)
+            return await engine.update(net, settings.data_dir)
+        finally:
+            await net.aclose()
+
+    try:
+        status = asyncio.run(run())
+    except HandlerError as exc:
+        console.print(f"[red]Not updated:[/red] {exc.message}")
+        raise typer.Exit(1) from exc
+    console.print(f"yt-dlp in use: {status.running or '?'} (image: {status.bundled or '?'})")
+    if status.latest:
+        console.print(f"latest on PyPI: {status.latest}")
+    else:
+        console.print("[yellow]Couldn't reach PyPI to check the latest version.[/yellow]")
+    if status.restart_needed:
+        console.print(
+            f"[green]yt-dlp {status.updated} is installed.[/green] Restart AnyGet to use it "
+            "(Docker: docker compose restart api)."
+        )
+    elif status.update_available:
+        console.print("An update is available: run [bold]anyget update-engine[/bold].")
+    else:
+        console.print("yt-dlp is up to date.")
+
+
 @app.command("gen-key")
 def gen_key() -> None:
     """Print a new key for ANYGET_SECRETS_KEY (encrypts saved Connections)."""

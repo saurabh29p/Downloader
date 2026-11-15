@@ -113,12 +113,24 @@ owner sign-in ([docs/hosted.md](docs/hosted.md)).
 ## Keep yt-dlp up to date
 
 Video sites change often, and most "it stopped working" problems are fixed by a newer
-yt-dlp. **Settings → Advanced → yt-dlp → Check for updates** shows the installed and latest
-versions. To update:
+yt-dlp. You don't need a new AnyGet for that:
+
+1. **Settings → Advanced → yt-dlp → Check for updates** shows the version in use and the
+   latest one.
+2. **Update yt-dlp** downloads the latest yt-dlp from PyPI into your data folder. AnyGet
+   checks the files against PyPI's published SHA-256 and checks that its network guard
+   still covers the new version; if either check fails, nothing changes.
+3. Restart AnyGet (`docker compose restart api`) to use it.
+
+From the command line: `anyget update-engine` (or `--check` to only compare versions). In
+Docker: `docker compose exec --user anyget api anyget update-engine`.
+
+A newer AnyGet image with a newer yt-dlp always wins over an older update in the data folder.
+To update AnyGet itself:
 
 ```sh
 git pull && make up                                         # Docker: rebuild with the newest AnyGet
-cd apps/api && uv lock --upgrade-package yt-dlp && uv sync  # from source, or before make up
+cd apps/api && uv lock --upgrade-package yt-dlp && uv sync  # from source
 ```
 
 ## Backups
@@ -185,15 +197,14 @@ Contributions are welcome: read [CONTRIBUTING.md](CONTRIBUTING.md) and the
 
 ## Support AnyGet
 
-AnyGet is free and has no ads. If it saves you time, you can support its development:
+AnyGet is free and has no ads, and it doesn't take donations yet. If it saves you time,
+the best ways to help are:
 
-<!-- TODO(owner): replace the placeholders below (and in .github/FUNDING.yml) before the repository is public. -->
-- GitHub Sponsors: `<github-sponsors-username>`
-- Buy Me a Coffee: `<bmc-username>`
-- Ko-fi: `<kofi-username>`
-- Other: `<optional crypto or other donation page URL>`
-
-Starring the repository, reporting bugs and fixing a site that broke help just as much.
+- star the repository, so others can find it;
+- report bugs, and open a ["Site stopped working"](https://github.com/saurabh29p/Downloader/issues/new/choose)
+  issue when a site breaks;
+- send a fix: see [CONTRIBUTING.md](CONTRIBUTING.md);
+- translate: English, Hindi and Arabic are done, and more languages are welcome.
 
 ## License
 
