@@ -38,6 +38,6 @@ button {
   cursor: pointer;
 }
 :focus-visible {
-  outline: 3px solid #2563eb;
+  outline: 3px solid #0e5a5c;
   outline-offset: 2px;
 }
