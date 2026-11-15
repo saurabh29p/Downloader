@@ -1,0 +1,25 @@
+name: Feature request
+description: An idea that would make AnyGet more useful.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are welcome! AnyGet will not add DRM removal, shadow libraries, piracy sources, or ways around paywalls, logins or region blocks. Those requests are closed.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: The problem or use case, in your own words.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could AnyGet help?
+      description: Your idea for a solution. Screenshots or sketches welcome.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything else?
+      description: Workarounds you use today, other tools that do this, links to a site's public API.

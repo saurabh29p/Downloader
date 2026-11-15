@@ -6,6 +6,7 @@ import { use } from "react";
 import { ApiStatus } from "@/components/api-status";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
+import { REPO_URL } from "@/lib/project";
 
 export async function generateMetadata({
   params,
@@ -82,6 +83,16 @@ export default function HelpPage({ params }: { params: Promise<{ locale: Locale 
         <Link href="/legal" className="font-medium text-primary underline-offset-4 hover:underline">
           {t("legalLink")}
         </Link>
+      </p>
+      <p>
+        <a
+          href={`${REPO_URL}#support-anyget`}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-primary underline-offset-4 hover:underline"
+        >
+          {t("supportLink")}
+        </a>
       </p>
     </article>
   );

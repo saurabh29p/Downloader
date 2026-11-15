@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas (Discussions)
+    url: https://github.com/saurabh29p/Downloader/discussions
+    about: Ask how to do something, share setups, or talk through an idea first.
+  - name: Report a security problem privately
+    url: https://github.com/saurabh29p/Downloader/security/policy
+    about: Please do not open public issues for security problems.

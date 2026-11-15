@@ -1,5 +1,6 @@
 {
   "name": "anyget",
+  "license": "MIT",
   "private": true,
   "packageManager": "pnpm@10.28.0",
   "engines": {
