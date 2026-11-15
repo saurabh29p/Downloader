@@ -1,79 +1,125 @@
 # AnyGet
 
-Paste any public link, get the file. A universal downloader and legal-copy finder that runs on your own computer: no ads, no tracking.
+[![CI](https://github.com/saurabh29p/Downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/saurabh29p/Downloader/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0e5a5c.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/saurabh29p/Downloader?label=release&color=0e5a5c)](https://github.com/saurabh29p/Downloader/releases)
+[![Docker images](https://img.shields.io/badge/docker-ghcr.io-0e5a5c?logo=docker&logoColor=white)](https://github.com/saurabh29p?tab=packages&repo_name=Downloader)
 
-AnyGet is free, open-source software (MIT). You run it yourself, on your own computer or server; nothing is sent to us.
+**Paste any public link, get the file.** Videos and audio from 1,800+ sites, archive.org and
+the Wayback Machine, public-domain books, the world's libraries, code and image galleries,
+all saved on your own computer, in a library you can search, read, watch and listen to.
+Free and open source (MIT). No ads, no tracking, no account with us.
 
-- **Core:** FastAPI + SQLite job queue with live progress (SSE), a URL router that sends each link to the best handler (yt-dlp, archive.org, gallery-dl, git, IIIF libraries, plain HTTP …).
-- **Website:** Next.js + Tailwind + shadcn/ui, English / Hindi / Arabic (RTL), installable as a phone app.
-- **CLI:** `anyget` (Typer + Rich).
-- **Search everything:** one box for links, searches and questions, across legal sources, with Sections (Movies, Books, Music, Video, Declassified, More). An optional AI helper (OpenRouter) improves it; everything works without it.
-- **Read, watch and listen in the app:** saved files open in AnyGet itself: video (speed, subtitles), PDF, EPUB, text and pictures, and audio in a player that keeps going while you move between pages.
-- **Access from anywhere:** hosted (Railway + Vercel, owner sign-in: [docs/hosted.md](docs/hosted.md)), or Cloudflare Tunnel + Access, or Tailscale.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.webp">
+  <img alt="AnyGet's Home page: a box to paste a link or search, section chips, and three public-domain examples to try" src="docs/images/hero-light.webp">
+</picture>
 
-> Personal use only. Download what you own, what is public domain or openly licensed, or what the site allows. No DRM, no shadow libraries, no geo-block or paywall bypass. See `CLAUDE.md`.
+## What it does
+
+- **Video and audio from 1,800+ sites** (through [yt-dlp](https://github.com/yt-dlp/yt-dlp)):
+  pick the quality or just the audio as MP3, with subtitles, playlists and channels.
+- **archive.org and the Wayback Machine:** search items and pick the files you want, or get
+  any saved version of a page or file exactly as it was captured.
+- **Public-domain books, best legal copy first:** one search across Project Gutenberg,
+  Standard Ebooks, Open Library, HathiTrust and national libraries. Books still in
+  copyright get borrow and buy links instead.
+- **The world's libraries (IIIF):** Gallica, the Library of Congress, NDL Japan, Europeana
+  and more: every page at full size, or merged into one PDF.
+- **An offline library:** search inside your files (even scanned PDFs after OCR), with
+  previews for video, audio, PDF, EPUB, text and pictures, plus tags and duplicate finding.
+- **Works on your phone:** install it like an app; on Android, share any link to it.
+- **English · हिन्दी · العربية** (right to left), light and dark.
+
+Also: code from GitHub, GitLab, Codeberg and Bitbucket; public Google Drive, Dropbox,
+OneDrive and MEGA links; image galleries; Hugging Face models; **watches** that save new
+uploads from a channel or collection on a schedule; a command line; a browser extension;
+plugins; and an optional AI helper (everything works without it).
+
+## What it won't do
+
+AnyGet only downloads what you are allowed to download. It never:
+
+- removes DRM (paid streaming, music services, paid ebooks);
+- gets around paywalls, logins, members-only content, region blocks or lending limits;
+- uses shadow libraries (LibGen, Z-Library, Anna's Archive and similar) or piracy sources.
+
+When something can't be downloaded legally, AnyGet says so ("borrow only", "not available
+in your region") and, for books, shows where to borrow or buy them.
+
+## See it
+
+| Paste a link | Search everything |
+|---|---|
+| ![The preview of a Creative Commons video: quality choices, audio only, file type](docs/images/paste-link.webp) | ![Search results for "Hokusai" from archive.org, books and libraries, each with its licence](docs/images/search.webp) |
+| **Read, watch and listen in your library** | **On your phone** |
+| ![The Great Wave by Hokusai open in AnyGet's picture viewer](docs/images/library-preview.webp) | ![AnyGet on a phone: Home in light mode and Downloads in dark mode](docs/images/phone.webp) |
 
 ## Quick start
 
-```sh
-cp .env.example .env
-make setup     # install deps (uv + pnpm)
-make dev       # api on :8000, web on :3000
-# or, with Docker:
-make up        # http://127.0.0.1:3000
-```
-
-## Video and audio sites
-
-The YouTube page (or `uv run anyget get <link> -q 720`, `-x mp3`) downloads videos, Shorts, playlists and channels from YouTube, Vimeo, Bilibili, SoundCloud and many more through yt-dlp, with ffmpeg for merging/conversion and Deno for YouTube's challenges. Members-only, paid, DRM, private and region-blocked videos are reported, never bypassed.
-
-Sites change often, so keep yt-dlp current:
+You need [Docker](https://docs.docker.com/get-docker/) (on Windows, Docker Desktop with WSL2)
+and Git.
 
 ```sh
-cd apps/api && uv lock --upgrade-package yt-dlp && uv sync   # local
-make up                                                      # rebuilds the Docker image with the new lock
+git clone https://github.com/saurabh29p/Downloader.git anyget && cd anyget
+cp .env.example .env     # optional: every setting is explained inside
+make up                  # builds and starts AnyGet
 ```
 
-Then run `make live` (real downloads of Creative Commons/test media in the Docker test image) to check it still works.
+Open **http://127.0.0.1:3000** and paste a link, or try one of the public-domain examples on
+Home. Downloads are saved in `./downloads`; the database and settings live in `./data`.
 
-## Previews and listening
-
-Open a file from **Downloads** or the **Library**:
-
-- **Video:** your browser's player (play, seek, volume, full screen), plus speed, subtitles from `.srt`/`.vtt` files saved next to the video, and "resume where you left off". Some formats (MKV, MOV) don't play in every browser. AnyGet says so and offers Download; it never transcodes on its own.
-- **Audio:** plays in a mini-player at the bottom that survives page changes, with lock-screen controls where the browser supports them. On phones, playback with the screen locked depends on the browser and the OS. See Help → Listening and watching.
-- **PDF** (pages, zoom, search), **EPUB** (contents, font size, remembers your place; the book's own HTML and scripts never run), **text** (paged, search) and **pictures** (zoom, full screen, previous/next).
-- Office files, archives and unknown types get a short reason plus Download / Open.
-
-## How long files are kept
-
-Downloaded files are **kept forever** by default. To have old files removed, set a number of days in Settings → Downloads (or `ANYGET_RETENTION_DAYS`; `0` turns cleanup off again).
-
-- The first removals happen that many days after you switch it on, so turning it on never deletes old files at once.
-- Files tagged `keep`, and downloads still running, are never removed.
-- Only files AnyGet saved and indexed are considered; nothing outside the downloads folder is touched.
-- The Library keeps an entry for each removed file, with **Download again**.
-- Preview a cleanup with `uv run anyget cleanup` (it lists, deletes nothing); `--apply` runs it.
-
-## Torrents (off by default)
-
-Magnet links and `.torrent` files are **off by default**. Torrent peers are other people's computers, outside AnyGet's network guard, so use them only for files you may share (Linux images, public-domain films, Creative Commons releases). To allow them when you run AnyGet from source, install the optional engine (`cd apps/api && uv sync --extra torrent`; the Docker image does not include it) and switch them on in Settings → Advanced.
-
-## Common commands
+Without `make`:
 
 ```sh
-make check     # lint + typecheck + tests
-make e2e       # Playwright + axe
-make gen       # regenerate the typed API client after API changes
-make up / make down / make logs
+PUID=$(id -u) PGID=$(id -g) docker compose up -d --build
 ```
 
-## Use it from your phone
+(`PUID`/`PGID` make your user the owner of the downloaded files; `make up` sets them for you.)
 
-- **From anywhere:** Cloudflare Tunnel + Access with an email code: [docs/deploy.md](docs/deploy.md). Then `make up-public`.
-- **No domain:** Tailscale: [docs/tailscale.md](docs/tailscale.md).
-- **Android:** install the web app (Settings → Install AnyGet) to share links to it, or use Termux: [docs/termux.md](docs/termux.md).
-- **Desktop browsers:** the extension in `apps/extension` (`make extension`; releases attach the zips).
+**Prebuilt images:** each tagged release publishes `ghcr.io/saurabh29p/anyget-api` and
+`ghcr.io/saurabh29p/anyget-web` (the version and `latest`); see
+[Releases](https://github.com/saurabh29p/Downloader/releases). **From source** (for
+development): `make setup && make dev`. More in [docs/install.md](docs/install.md),
+including Windows, macOS, Linux and Raspberry Pi.
+
+## Use it on your phone
+
+AnyGet runs on a computer or a small server; your phone uses it like an app.
+
+- **Same Wi-Fi or a tunnel:** open AnyGet in your phone's browser and install it (Settings →
+  Install AnyGet, or the browser menu: *Install app* on Android, *Add to Home Screen* on
+  iPhone).
+- **On Android**, the installed app appears in the **Share** menu: share any link to AnyGet
+  to download it.
+- **Away from home:** [Tailscale](docs/tailscale.md) is the easiest (no domain needed);
+  [Cloudflare Tunnel + Access](docs/deploy.md) gives a web address protected by an email
+  code. Either way, only you can reach it.
+- **Advanced Android users** can run AnyGet in [Termux](docs/termux.md).
+
+More in [docs/phone.md](docs/phone.md).
+
+## Configuration
+
+Most things are set in the app: **Settings** (downloads, AI helper, advanced options) and
+**Connections** (your own accounts and free API keys, stored encrypted). Everything can also
+be set in `.env`; [`.env.example`](.env.example) explains every variable in one line, and
+[docs/configuration.md](docs/configuration.md) covers the important ones.
+
+Good defaults out of the box: downloaded files are kept forever, torrents are off, and a
+copy of AnyGet that is reachable from the internet refuses every request until you set an
+owner sign-in ([docs/hosted.md](docs/hosted.md)).
+
+## Keep yt-dlp up to date
+
+Video sites change often, and most "it stopped working" problems are fixed by a newer
+yt-dlp. **Settings → Advanced → yt-dlp → Check for updates** shows the installed and latest
+versions. To update:
+
+```sh
+git pull && make up                                         # Docker: rebuild with the newest AnyGet
+cd apps/api && uv lock --upgrade-package yt-dlp && uv sync  # from source, or before make up
+```
 
 ## Backups
 
@@ -82,24 +128,54 @@ make backup                                   # backups/anyget-<date>.tar.gz (ke
 make down && make restore FILE=backups/anyget-<date>.tar.gz
 ```
 
-A backup holds the database (jobs, library, watches, saved settings and keys), cookies.txt and the download archives. It does not hold the downloaded files themselves.
+A backup holds the database (jobs, library, watches, saved settings and keys), cookies and
+the download archives, not the downloaded files themselves.
 
-## Plugins
+## Command line, browser extension and plugins
 
-Extra sites can be added as Python packages: see [examples/anyget-plugin-example](examples/anyget-plugin-example). Enable them with `ANYGET_PLUGINS`.
+```sh
+cd apps/api
+uv run anyget get https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg   # download (Ctrl+C pauses; run again to resume)
+uv run anyget get <video link> -q 720        # a video at 720p; -x mp3 for audio only
+uv run anyget search "Pride and Prejudice"   # the best legal copy of a book
+uv run anyget watch list                     # scheduled watches
+```
 
-## Docs
+Every command is in [docs/cli.md](docs/cli.md). The **browser extension** (`make extension`;
+releases attach the zips) sends the page or link you're on to your AnyGet.
+**Plugins** add sites from their own Python package: see [docs/plugins.md](docs/plugins.md).
 
-- `CLAUDE.md`: architecture, rules and roadmap (also read by Claude Code)
-- `docs/setup.md`: install the tools
-- `docs/hosted.md`: one hosting example (Railway + Vercel) with the owner sign-in: every variable, and safe checks after a deploy
-- `docs/deploy.md`, `docs/tailscale.md`, `docs/termux.md`: reaching AnyGet from elsewhere
-- `docs/dev/`: build history: the research tables (`plan.md`) and one prompt per build phase (`prompts/`)
-- `CHANGELOG.md`: what changed in each version
+## FAQ
 
-## Status
+**A site stopped working.** Update yt-dlp first (above). If it still fails, open a
+[“Site stopped working” issue](https://github.com/saurabh29p/Downloader/issues/new/choose)
+with the error from the download's Details.
 
-The latest release is 1.0.0. Everything since (sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room UI, previews, the audio player and retention) is listed under **Unreleased** in `CHANGELOG.md` and goes into the next release.
+**YouTube asks me to sign in or says I'm a bot.** YouTube limits downloads, especially from
+servers and data centres. Run AnyGet from home, or connect your own account on the
+**Connections** page (a `cookies.txt` from your browser; it stays on your machine).
+AnyGet never gets around members-only or paid videos.
+
+**Where are my files?** In `./downloads` next to `docker-compose.yml` (or in
+`ANYGET_DOWNLOADS_DIR` when you run from source). Every file is also in the **Library**, with
+a Download button.
+
+**Is this legal?** AnyGet is a tool, like a browser. Downloading public-domain and openly
+licensed works, your own uploads, or anything a site lets you download is fine in most
+places; the rules differ by country and by site. AnyGet is built not to break them: see
+[What it won't do](#what-it-wont-do) and the [Disclaimer](#disclaimer).
+
+**Can I use it from the internet?** Yes, behind a sign-in: [docs/hosted.md](docs/hosted.md)
+(one hosting example), [docs/deploy.md](docs/deploy.md) (Cloudflare) or
+[docs/tailscale.md](docs/tailscale.md).
+
+More answers in [docs/troubleshooting.md](docs/troubleshooting.md).
+
+## Documentation
+
+[docs/README.md](docs/README.md) is the index: install, phone, configuration, the user
+guide, command line, API, architecture, troubleshooting and plugins.
+[CHANGELOG.md](CHANGELOG.md) lists what changed in each version.
 
 ## Contributing
 
@@ -135,3 +211,15 @@ projects; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for their licence
 - AnyGet is provided "as is", without warranty of any kind (see [LICENSE](LICENSE)). The
   authors are not affiliated with any site AnyGet can download from; all trademarks belong
   to their owners.
+
+## Acknowledgements
+
+AnyGet stands on the shoulders of [yt-dlp](https://github.com/yt-dlp/yt-dlp),
+[FFmpeg](https://ffmpeg.org), [gallery-dl](https://github.com/mikf/gallery-dl),
+[Deno](https://deno.com), [OCRmyPDF](https://github.com/ocrmypdf/OCRmyPDF) and
+[Tesseract](https://github.com/tesseract-ocr/tesseract), [pdf.js](https://mozilla.github.io/pdf.js/),
+[FastAPI](https://fastapi.tiangolo.com) and [Next.js](https://nextjs.org), and on the open
+collections that make the public domain reachable: the [Internet Archive](https://archive.org),
+[Project Gutenberg](https://www.gutenberg.org), [Standard Ebooks](https://standardebooks.org),
+[Wikimedia Commons](https://commons.wikimedia.org) and the libraries that publish their
+collections through [IIIF](https://iiif.io). Full list: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

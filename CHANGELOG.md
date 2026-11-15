@@ -5,7 +5,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
-The v2 work and the open-source release: owner sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room look, in-app previews and the audio player. (The `2.0.0` heading that was here was never tagged; this release gets its version when it is tagged.)
+**Planned as 2.0.0: the first open-source release.** Everything below ships together: the v2
+features (owner sign-in, Connections, universal search, Sections, the optional AI helper,
+in-app previews and the audio player), the Darkroom look, safer defaults and the
+open-source documentation.
+
+Why 2.0.0: 1.0.0 is the last version in this changelog, and some changes since then need
+action from people who run AnyGet, so semantic versioning calls for a new major version:
+
+- a hosted AnyGet now refuses every request until an owner sign-in is set;
+- keys and cookies moved from Settings to the encrypted Connections page (old values are
+  migrated on first start).
+
+A `2.0.0` heading existed here earlier but was never tagged, so the number is free to use.
+The package versions are now 2.0.0.
+
+### Docs (open source)
+- **README rewritten for newcomers:** what AnyGet does and won't do, screenshots (light and dark), a three-command Docker quick start, phone use, configuration, keeping yt-dlp up to date, backups, the command line, FAQ, acknowledgements.
+- **`docs/README.md` index** and new pages: install (Docker on Windows/WSL2, macOS, Linux, Raspberry Pi; from source; updating; removing), user guide, phone, configuration, troubleshooting, API (with examples), architecture (with a diagram) and plugins. `docs/setup.md` is now the development setup.
+- `docs/cli.md`, generated from the Typer CLI (`make cli-docs`).
+- Screenshots in `docs/images/`, taken from a real AnyGet with real public-domain and Creative Commons downloads (WebP, under 160 KB each).
 
 ### Changed (safer defaults)
 - **Files are kept forever by default** (`ANYGET_RETENTION_DAYS=0`). Cleanup of old files is opt-in in Settings → Downloads; Help, the README and the hosting guide say so.
