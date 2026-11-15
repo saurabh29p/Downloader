@@ -13,8 +13,14 @@ from anyget.handlers.ytdlp_support.archive import archive_path
 from anyget.main import create_app
 
 
+class SeenClient(TestClient):
+    """The app's test client plus the options the fake probe received."""
+
+    seen: list[dict[str, Any] | None]
+
+
 @pytest.fixture
-def client(settings: Settings, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+def client(settings: Settings, monkeypatch: pytest.MonkeyPatch) -> Iterator[SeenClient]:
     seen: list[dict[str, Any] | None] = []
 
     async def fake_probe(
@@ -30,12 +36,12 @@ def client(settings: Settings, monkeypatch: pytest.MonkeyPatch) -> Iterator[Test
 
     monkeypatch.setattr(YtDlpHandler, "probe", fake_probe)
     monkeypatch.setattr(YtDlpHandler, "download", never_finish)
-    with TestClient(create_app(settings)) as test_client:
+    with SeenClient(create_app(settings)) as test_client:
         test_client.seen = seen
         yield test_client
 
 
-def test_probe_passes_options(client: TestClient) -> None:
+def test_probe_passes_options(client: SeenClient) -> None:
     body = {"url": "https://www.youtube.com/@BlenderStudio", "options": {"tab": "shorts"}}
     response = client.post("/api/probe", json=body)
     assert response.status_code == 200

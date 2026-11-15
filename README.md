@@ -197,15 +197,14 @@ Contributions are welcome: read [CONTRIBUTING.md](CONTRIBUTING.md) and the
 
 ## Support AnyGet
 
-AnyGet is free and has no ads. If it saves you time, you can support its development:
+AnyGet is free and has no ads, and it doesn't take donations yet. If it saves you time,
+the best ways to help are:
 
-<!-- TODO(owner): replace the placeholders below (and in .github/FUNDING.yml) before the repository is public. -->
-- GitHub Sponsors: `<github-sponsors-username>`
-- Buy Me a Coffee: `<bmc-username>`
-- Ko-fi: `<kofi-username>`
-- Other: `<optional crypto or other donation page URL>`
-
-Starring the repository, reporting bugs and fixing a site that broke help just as much.
+- star the repository, so others can find it;
+- report bugs, and open a ["Site stopped working"](https://github.com/saurabh29p/Downloader/issues/new/choose)
+  issue when a site breaks;
+- send a fix: see [CONTRIBUTING.md](CONTRIBUTING.md);
+- translate: English, Hindi and Arabic are done, and more languages are welcome.
 
 ## License
 

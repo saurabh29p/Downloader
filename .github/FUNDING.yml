@@ -1,7 +1,6 @@
-# Donation links shown on the repository's "Sponsor" button.
-# TODO(owner): fill in your usernames and uncomment the lines you use before the
-# repository is public. Keep the same links in the README's "Support AnyGet" section.
-# github: [<github-sponsors-username>]
-# buy_me_a_coffee: <bmc-username>
-# ko_fi: <kofi-username>
-# custom: ["<optional crypto or other donation page URL>"]
+# Donation links for the repository's "Sponsor" button. AnyGet has none yet, so the
+# button stays hidden. To add one, uncomment a line with a real account and put the same
+# link in the README's "Support AnyGet" section.
+# github: [username]
+# ko_fi: username
+# buy_me_a_coffee: username

@@ -16,7 +16,9 @@ Please update to the latest release before reporting.
 
 - Preferred: GitHub's private vulnerability reporting. Open the repository's **Security**
   tab and choose **Report a vulnerability**.
-- Or email `<security contact email>`. <!-- TODO(owner): fill in before the repository is public. -->
+- If the Security tab has no **Report a vulnerability** button, open an issue titled
+  "Security contact" with **no details**, and a maintainer will reply with a private way to
+  send them.
 
 Please include what you found, the steps to reproduce it (a small proof of concept
 helps), which version or commit you tested, and how you run AnyGet (Docker, from source,
