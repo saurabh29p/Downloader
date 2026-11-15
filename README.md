@@ -2,7 +2,7 @@
 
 Paste any public link, get the file. A universal downloader and legal-copy finder that runs on your own computer: no ads, no tracking.
 
-AnyGet is becoming a desktop app (Windows, macOS, Linux) and an Android app, with a free tier and paid plans. The plan, prices and roadmap are in [docs/business-plan.md](docs/business-plan.md). Running it yourself from this repository (below) stays available as an advanced option.
+AnyGet is free, open-source software (MIT). You run it yourself, on your own computer or server; nothing is sent to us.
 
 - **Core:** FastAPI + SQLite job queue with live progress (SSE), a URL router that sends each link to the best handler (yt-dlp, archive.org, gallery-dl, git, IIIF libraries, plain HTTP …).
 - **Website:** Next.js + Tailwind + shadcn/ui, English / Hindi / Arabic (RTL), installable as a phone app.
@@ -88,12 +88,11 @@ Extra sites can be added as Python packages: see [examples/anyget-plugin-example
 
 - `CLAUDE.md`: architecture, rules and roadmap (also read by Claude Code)
 - `docs/setup.md`: install the tools
-- `docs/hosted.md`: Railway + Vercel with the owner sign-in: every variable, and safe checks after a deploy
+- `docs/hosted.md`: one hosting example (Railway + Vercel) with the owner sign-in: every variable, and safe checks after a deploy
 - `docs/deploy.md`, `docs/tailscale.md`, `docs/termux.md`: reaching AnyGet from elsewhere
-- `docs/plan.md`: research tables: sources, endpoints, features
-- `prompts/`: one prompt per build phase
+- `docs/dev/`: build history: the research tables (`plan.md`) and one prompt per build phase (`prompts/`)
 - `CHANGELOG.md`: what changed in each version
 
 ## Status
 
-Version 1.0.0 plus the v2 phases in `CHANGELOG.md` (Unreleased): sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room UI, previews, the audio player and retention.
+Version 2.0.0 (see `CHANGELOG.md`): sign-in, Connections, universal search, Sections, the optional AI helper, the Reading Room UI, previews, the audio player and retention.

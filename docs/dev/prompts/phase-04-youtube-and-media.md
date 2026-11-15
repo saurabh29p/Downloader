@@ -1,6 +1,6 @@
 # Phase 4 — YouTube and media (yt-dlp + ffmpeg)
 
-Read `CLAUDE.md` and the YouTube table in `docs/plan.md` first.
+Read `CLAUDE.md` and the YouTube table in `docs/dev/plan.md` first.
 
 Deliverables:
 - `handlers/ytdlp.py`: probe via `extract_info(url, download=False)`; choices: best, 2160p, 1440p, 1080p, 720p, 480p, audio only (mp3/m4a), subtitles (manual + auto, languages, srt or embed). Format selectors like `bv*[height<=1080]+ba/b`; merge with ffmpeg; MP3 via `-x --audio-format mp3 --audio-quality 0` with embedded thumbnail and tags; `info.json`, chapters.

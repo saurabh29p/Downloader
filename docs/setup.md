@@ -39,7 +39,7 @@ claude --version
 
 ## Running each phase with Claude Code
 
-1. Start `claude` in the repo and paste the matching `prompts/phase-NN-*.md`.
+1. Start `claude` in the repo and paste the matching `docs/dev/prompts/phase-NN-*.md`.
 2. Read the summary, run `make check` (and `make e2e`), try the app, ask Claude to fix anything failing.
 3. Commit with a clear message (for example `feat: phase 2 core and security`) and push.
 4. Start the next phase in a fresh session (`/clear`). Repeat until phase 10.

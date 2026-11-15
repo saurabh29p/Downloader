@@ -798,7 +798,7 @@
   },
   "Legal": {
     "title": "Legal and fair use",
-    "intro": "These rules are built into AnyGet on every plan and cannot be turned off.",
+    "intro": "AnyGet is free, open-source software. These rules are built in and cannot be turned off.",
     "rules": {
       "personal": {
         "title": "Personal use",

@@ -1,6 +1,6 @@
 # Phase 10 — Deploy and release
 
-Read `CLAUDE.md` (security) and the deployment section of `docs/plan.md` first.
+Read `CLAUDE.md` (security) and the deployment section of `docs/dev/plan.md` first.
 
 Deliverables:
 - `docker-compose.tunnel.yml`: cloudflared `2026.10.7`, `tunnel --no-autoupdate run`, token from `TUNNEL_TOKEN`; `make up-public`.

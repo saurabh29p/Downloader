@@ -1,8 +1,8 @@
 # AnyGet — project memory for Claude Code
 
-One tool: paste any public link, get the file. A FastAPI core (URL router → handlers → SQLite job queue with SSE progress), a Next.js website and a Typer CLI. Runs on the user's own computer with Docker Compose (`make up`), or hosted (web on Vercel `downloader-web`, API on Railway `anyget-api` with a `/data` volume) behind the owner sign-in; Cloudflare Tunnel + Access and Tailscale remain options. **v3 turns it into a commercial desktop product** (Electron app + Android app, free tier + paid licence keys, global English launch): no ads, no tracking, no selling data, and every download still runs on the user's own device. Free and open-source tools in the stack; paid services only where selling needs them (code signing, payments). **LLM is optional** (v2: OpenRouter, Phase 5): every feature must work without a key, and no cookies, secrets or file contents are ever sent to it.
+One tool: paste any public link, get the file. A FastAPI core (URL router → handlers → SQLite job queue with SSE progress), a Next.js website and a Typer CLI. Runs on the user's own computer with Docker Compose (`make up`), or hosted (one documented example: web on Vercel, API on Railway with a `/data` volume) behind the owner sign-in; Cloudflare Tunnel + Access and Tailscale remain options. **AnyGet is free, open-source software under the MIT License**, self-hosted by each user: no ads, no tracking, no accounts with us, and every download runs on the user's own machine. Free and open-source tools only. **LLM is optional** (v2: OpenRouter, Phase 5): every feature must work without a key, and no cookies, secrets or file contents are ever sent to it.
 
-Read this file at the start of every session. The full research doc lives in `docs/plan.md`; the business and launch plan (positioning, plans and prices, economics, risks) lives in `docs/business-plan.md`; phase prompts live in `prompts/` (v3 prompts are `prompts/v3-phase-NN-*.md`).
+Read this file at the start of every session (it is also the rulebook for AI-assisted contributors; `CONTRIBUTING.md` points here). Build history lives in `docs/dev/`: the research doc `docs/dev/plan.md` and the phase prompts `docs/dev/prompts/`.
 
 ## Current status
 
@@ -27,15 +27,16 @@ v2 (prompt: "AnyGet v2 — Final Build Prompt"; one PR per phase from `feat/v2-u
 - [x] v2 Phase 6 — "The Reading Room" UI
 - [x] v2 Phase 7 — polish and ship (v2.0.0)
 
-v3 "Launch" (plan: `docs/business-plan.md`; prompts: `prompts/v3-phase-NN-*.md`):
-- [x] v3 Phase 0 — business plan, prices and phase prompts
-- [x] v3 Phase 1 — finish v2 (tag v2.0.0) and commercial rules
-- [ ] v3 Phase 2 — licence keys, plan limits, free engine updater
-- [ ] v3 Phase 3 — desktop app (Electron, signed, auto-update)
-- [ ] v3 Phase 4 — phone remote and Android app
-- [ ] v3 Phase 5 — website, pricing, checkout, licence worker
-- [ ] v3 Phase 6 — opt-in telemetry, crash reports, support
-- [ ] v3 Phase 7 — beta and launch (v3.0.0)
+Open-source release (one PR per phase, stacked branches `release/os-NN-*`):
+- [x] OS Phase 1 — pivot from commercial to open source
+- [ ] OS Phase 2 — license, legal and community files
+- [ ] OS Phase 3 — Darkroom theme
+- [ ] OS Phase 4 — safer defaults for strangers
+- [ ] OS Phase 5 — documentation
+- [ ] OS Phase 6 — correctness and bugs
+- [ ] OS Phase 7 — performance
+- [ ] OS Phase 8 — security review and hardening
+- [ ] OS Phase 9 — final polish
 
 Update this checklist at the end of every phase.
 
@@ -97,8 +98,7 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 │   │   └── e2e/              # Playwright specs
 │   └── extension/            # browser extension (phase 9)
 ├── packages/shared/          # OpenAPI types (openapi-typescript) + openapi-fetch client
-├── prompts/                  # one Claude Code prompt per phase
-├── docs/                     # setup, plan, deploy guides
+├── docs/                     # setup and deploy guides; docs/dev/ = build history (plan, phase prompts)
 └── examples/
 ```
 
@@ -180,14 +180,11 @@ Personal use only. Download only what the user owns, what is public domain or op
 - In-copyright out-of-print books are shown as "not legally downloadable" with library/buy links.
 - Optional `cookies.txt` import only for sites the user is legally logged in to.
 
-## Commercial rules (v3, non-negotiable)
-- No ads, no selling or sharing user data, no tracking. Telemetry and crash reports are opt-in and never carry URLs, titles, cookies, keys, file names or IPs.
-- Downloads always run on the user's own device (desktop or Android). We do not run servers that download for users.
-- Plan limits live only in `anyget/licensing` (`Entitlements`); handlers, queue and web ask it, never hard-code plans. Licence keys are Ed25519-signed and checked offline; the private key never enters the repo.
-- Site fixes (engine/yt-dlp updates) are free on every plan, forever, and ship separately from app releases.
-- Marketing, store listings and the website never use other sites' trademarks ("YouTube to MP3" etc.); say "1,800+ video and audio sites".
-- Upgrade prompts appear only when a limit is hit: one calm card, no pop-ups or nagging.
-- The legal rules above apply to every plan; a paid plan never unlocks DRM, geo-bypass, paywalls or shadow libraries.
+## Project rules (non-negotiable)
+- No ads, no tracking, no selling or sharing user data. Nothing phones home.
+- Downloads always run on the user's own machine (their computer or server). The project never runs servers that download for users.
+- Docs, README and any listing never use other sites' trademarks as a selling point ("YouTube to MP3" and similar); say "1,800+ video and audio sites".
+- The legal rules above apply everywhere; no option, plugin or setting may unlock DRM removal, geo-block / paywall / login bypass or shadow libraries.
 
 ## Frontend rules
 - Next.js App Router, TypeScript strict, Tailwind 4 tokens in `styles/globals.css` (color, type scale, 4px grid, radius, shadow, motion; light + dark, system default).
@@ -361,7 +358,7 @@ Personal use only. Download only what the user owns, what is public domain or op
 - E2E downloads come from `e2e/fixture-server.mjs` (Range, Content-MD5, `?slow=1`), reachable because Playwright starts the API with `ANYGET_NET_ALLOWLIST=127.0.0.1:8200`.
 
 ## Working agreement for each phase
-1. Read this file and `prompts/phase-NN-*.md`.
+1. Read this file and the task's prompt (historical phase prompts are in `docs/dev/prompts/`).
 2. Build only that phase's deliverables. Keep handlers one-per-file.
 3. Run `make check` (and `make e2e` when web changed). Fix everything red.
 4. Update `CHANGELOG.md` and the status checklist above.

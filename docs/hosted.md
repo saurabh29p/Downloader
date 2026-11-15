@@ -1,5 +1,9 @@
 # Hosted AnyGet: Railway (API) + Vercel (website)
 
+This is one worked example of hosting AnyGet on the internet. Any host that runs the two
+Docker images (or the API and the Next.js app) works the same way; the names below
+(`anyget-api`, `anyget-web`, `anyget.example.com`) are placeholders for your own.
+
 The website runs on Vercel and sends every `/api/*` request to the API on Railway
 (`API_URL`). Both are on the internet, so AnyGet needs a sign-in. Without one, the API
 refuses every request except `/api/health`. It detects Railway from Railway's own
@@ -19,7 +23,7 @@ uv run anyget hash-password
 Type a long password twice. The command prints a line that starts with `$argon2id$`.
 Keep the password in your password manager. The hash is safe to store in Railway.
 
-## 2. Railway: service `anyget-api`
+## 2. Railway: an API service (for example `anyget-api`)
 
 ### Required
 
@@ -48,11 +52,11 @@ Keep the volume mounted at `/data`: the database, thumbnails and keys live there
 
 Don't set `ANYGET_NET_ALLOWLIST` (tests only) or `ANYGET_AUTH_MODE` (the default is right).
 
-## 3. Vercel: project `downloader-web`
+## 3. Vercel: a website project (for example `anyget-web`)
 
 | Variable | Required | Value |
 |---|---|---|
-| `API_URL` | yes | your Railway address, e.g. `https://anyget-api-production.up.railway.app` |
+| `API_URL` | yes | your Railway address, e.g. `https://anyget-api.example.com` (your Railway service's public address) |
 
 It is read at build time for the `/api` rewrite and at run time to check whether sign-in
 is on. Nothing else is needed on Vercel. Redeploy after changing it.
@@ -84,7 +88,7 @@ removals start, and `GET /api/retention` answers the policy (read-only). The CLI
 
 1. `https://<your-railway-domain>/api/health` answers `"status": "ok"`. Any other API path
    opened in a private window answers `401`.
-2. Open `https://downloader-web-neon.vercel.app`. You land on **Sign in**. Sign in; you
+2. Open your Vercel address, e.g. `https://anyget.example.com`. You land on **Sign in**. Sign in; you
    come back to the page you asked for, and Settings shows **Sign out**.
 3. **Settings → AI helper** shows today's calls and, if something is wrong, the reason
    (for example "credits have run out"). No key value is ever shown.

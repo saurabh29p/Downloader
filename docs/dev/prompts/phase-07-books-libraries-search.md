@@ -1,6 +1,6 @@
 # Phase 7 — Books, worldwide libraries, universal search, OCR, conversion
 
-Read `CLAUDE.md` (legal rules) and the books + regions tables in `docs/plan.md` first.
+Read `CLAUDE.md` (legal rules) and the books + regions tables in `docs/dev/plan.md` first.
 
 Deliverables:
 - `anyget/books/`: one adapter per source (Internet Archive, Open Library, Gutenberg/Gutendex, Standard Ebooks OPDS, Wikisource, HathiTrust, Google Books free-ebooks, LoC, DPLA, Europeana, Gallica, NDL, NDLI, BHL, Wayback) + a ranker: full-view first, then EPUB → text PDF → scanned PDF → page images, then quality/completeness. `handlers/books.py` ties them together. In-copyright books show "not legally downloadable" with library/buy links. No shadow libraries, ever.
