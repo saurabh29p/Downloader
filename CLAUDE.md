@@ -131,7 +131,7 @@ Engines: yt-dlp (video/audio, 1,800+ sites), ffmpeg (merge/convert/embed), galle
 | `uv run --extra desktop anyget watch-clipboard [--auto]` | offer copied links as downloads (desktop) |
 | `make extension` | build the browser extension zips (`apps/extension/dist/`) |
 | `make backup` / `make restore FILE=…` | back up / restore `data/` (stop AnyGet before restoring) |
-| `git tag vX.Y.Z && git push origin vX.Y.Z` | release: amd64 + arm64 images to ghcr.io (native runners, one multi-arch tag) + GitHub release with CHANGELOG notes, generated notes and extension zips (`.github/workflows/release.yml`) |
+| `git tag vX.Y.Z && git push origin vX.Y.Z`, or Actions → Release → Run workflow (version) | release: amd64 + arm64 images to ghcr.io (native runners, one multi-arch tag) + GitHub release with CHANGELOG notes, generated notes and extension zips (`.github/workflows/release.yml`) |
 | `cd examples/anyget-plugin-example && uv run pytest` | example plugin tests (also part of `make test`) |
 
 ## Architecture rules
