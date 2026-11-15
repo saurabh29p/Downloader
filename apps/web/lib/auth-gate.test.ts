@@ -22,6 +22,11 @@ describe("auth gate", () => {
     expect(safeNext("//evil.example")).toBe("/");
     expect(safeNext("https://evil.example")).toBe("/");
     expect(safeNext("/\\evil.example")).toBe("/");
+    // The URL parser deletes tabs and newlines: "/\t/evil.example" would be "//evil.example".
+    for (const sneaky of ["/\t/evil.example", "/\n/evil.example", "/\r/evil.example", "/\u0000x"]) {
+      expect(safeNext(sneaky)).toBe("/");
+    }
+    expect(safeNext("/en/library?q=a#top")).toBe("/en/library?q=a#top");
     expect(safeNext(null)).toBe("/");
     expect(loginPath("hi", "/hi/watch")).toBe("/hi/login?next=%2Fhi%2Fwatch");
   });

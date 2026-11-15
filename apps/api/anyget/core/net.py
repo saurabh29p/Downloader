@@ -39,6 +39,14 @@ class BlockedURLError(ValueError):
     """The URL points somewhere AnyGet must not fetch (private network, bad scheme…)."""
 
 
+# IPv6 prefixes that carry an IPv4 address in their last 32 bits: NAT64 (RFC 6052, so
+# 64:ff9b::a9fe:a9fe reaches 169.254.169.254 through a NAT64 gateway) and SIIT
+# (::ffff:0:a.b.c.d). The embedded IPv4 address must pass the same checks.
+_EMBEDS_IPV4 = (ipaddress.IPv6Network("64:ff9b::/96"), ipaddress.IPv6Network("::ffff:0:0:0/96"))
+# Never used for public hosts: IPv4-compatible (::a.b.c.d, deprecated) and site-local.
+_NEVER_PUBLIC = (ipaddress.IPv6Network("::/96"), ipaddress.IPv6Network("fec0::/10"))
+
+
 def is_public_ip(ip: IPAddress) -> bool:
     """True only for globally routable unicast addresses."""
     if isinstance(ip, ipaddress.IPv6Address):
@@ -47,6 +55,10 @@ def is_public_ip(ip: IPAddress) -> bool:
         if ip.sixtofour is not None:
             return is_public_ip(ip.sixtofour)
         if ip.teredo is not None:
+            return False
+        if any(ip in net for net in _EMBEDS_IPV4):
+            return is_public_ip(ipaddress.IPv4Address(int(ip) & 0xFFFFFFFF))
+        if any(ip in net for net in _NEVER_PUBLIC):
             return False
     return ip.is_global and not ip.is_multicast
 

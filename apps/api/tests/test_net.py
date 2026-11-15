@@ -41,13 +41,20 @@ from tests.conftest import PUBLIC_IP, FakeDNS
         "2002:7f00:0001::",  # 6to4 wrapping 127.0.0.1
         "2001:0000:4136:e378:8000:63bf:3fff:fdd2",  # Teredo
         "ff02::1",
+        "64:ff9b::7f00:1",  # NAT64 wrapping 127.0.0.1
+        "64:ff9b::a9fe:a9fe",  # NAT64 wrapping the cloud metadata address
+        "::ffff:0:7f00:1",  # SIIT (IPv4-translated) 127.0.0.1
+        "::127.0.0.1",  # IPv4-compatible (deprecated)
+        "fec0::1",  # site-local (deprecated)
     ],
 )
 def test_private_ips_are_blocked(ip: str) -> None:
     assert not is_public_ip(ipaddress.ip_address(ip))
 
 
-@pytest.mark.parametrize("ip", ["93.184.215.14", "1.1.1.1", "2606:4700:4700::1111"])
+@pytest.mark.parametrize(
+    "ip", ["93.184.215.14", "1.1.1.1", "2606:4700:4700::1111", "64:ff9b::101:101"]
+)
 def test_public_ips_are_allowed(ip: str) -> None:
     assert is_public_ip(ipaddress.ip_address(ip))
 

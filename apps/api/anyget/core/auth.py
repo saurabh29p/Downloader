@@ -48,6 +48,9 @@ CLOUDFLARE_HEADERS = (b"cf-connecting-ip", b"cf-ray", b"cf-access-jwt-assertion"
 JWKS_TTL = 3600.0
 JWKS_RETRY = 60.0
 WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+# The largest request AnyGet expects is a cookies.txt upload (1 MiB, sent as JSON).
+# Bodies are read into memory before validation, so bigger ones are refused up front.
+MAX_BODY = 4 * 1024 * 1024
 # Answered without a signed-in user (the auth endpoints report who is signed in).
 PUBLIC_PATHS = {"/api/health", "/api/auth/login", "/api/auth/logout", "/api/auth/me"}
 
@@ -188,6 +191,23 @@ def client_ip(headers: dict[bytes, bytes], scope: Scope, settings: Settings | No
     return str(client[0]) if client else "unknown"
 
 
+def limited_receive(receive: Receive, limit: int = MAX_BODY) -> Receive:
+    """Counts body bytes as they arrive (chunked bodies have no Content-Length): past the
+    limit the app sees a disconnect, so it never reads more into memory."""
+    received = 0
+
+    async def wrapped() -> Message:
+        nonlocal received
+        message = await receive()
+        if message["type"] == "http.request":
+            received += len(message.get("body", b""))
+            if received > limit:
+                return {"type": "http.disconnect"}
+        return message
+
+    return wrapped
+
+
 class SecurityMiddleware:
     """Access control, rate limits and security headers for the API."""
 
@@ -266,6 +286,9 @@ class SecurityMiddleware:
                     wait = self.limiter.hit(client, "write", settings.rate_limit_writes_per_minute)
                 if wait is not None:
                     raise AuthError("rate_limited", "too many requests; slow down", 429)
+            length = headers.get(b"content-length")
+            if length is not None and (not length.strip().isdigit() or int(length) > MAX_BODY):
+                raise AuthError("too_large", "the request is too large", 413)
             public = path in PUBLIC_PATHS
             try:
                 user, how = await self._identify(scope, services, headers)
@@ -301,7 +324,7 @@ class SecurityMiddleware:
                 message["headers"] = [*message.get("headers", []), *added]
             await send(message)
 
-        await self.app(scope, receive, send_with_headers)
+        await self.app(scope, limited_receive(receive), send_with_headers)
 
     async def _deny(self, send: Send, exc: AuthError, extra: list[tuple[bytes, bytes]]) -> None:
         body = json.dumps({"code": exc.code, "message": exc.message}).encode()

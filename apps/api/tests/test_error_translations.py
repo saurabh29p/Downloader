@@ -23,6 +23,7 @@ PATTERNS = (
     r'\bcode="([a-z_]+)"',
     r'\bcode = "([a-z_]+)" if',
     r'ConnectionValueError\(\s*f?"[^"]*",\s*"([a-z_]+)"',
+    r'AuthError\(\s*"([a-z_]+)"',
 )
 pytestmark = pytest.mark.skipif(not MESSAGES.exists(), reason="only in a repository checkout")
 

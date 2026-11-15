@@ -1,0 +1,4 @@
+# Findings checked by hand (gitleaks reads this file; one fingerprint per line).
+# docs/deploy.md once showed an example Cloudflare Access AUD tag (a public audience id
+# from Cloudflare's JWT docs, not a credential); the docs now use a placeholder.
+46dd61f373c6e0c7b0541a78d95ea369a382d94b:docs/deploy.md:generic-api-key:59

@@ -1,0 +1,43 @@
+# Weekly dependency updates, grouped so each ecosystem opens at most a couple of pull
+# requests a week. Security updates are separate and immediate (enable "Dependabot
+# security updates" in the repository settings).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: uv
+    directories: [/apps/api, /examples/anyget-plugin-example]
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      python-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directories: [/apps/api, /apps/web]
+    schedule:
+      interval: weekly
+    groups:
+      docker-images:
+        patterns: ["*"]
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly

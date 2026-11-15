@@ -94,9 +94,9 @@ Notes:
 | @jridgewell/resolve-uri | 3.1.2 | MIT |  |
 | @jridgewell/sourcemap-codec | 1.6.0 | MIT |  |
 | @jridgewell/trace-mapping | 0.3.31 | MIT |  |
-| @napi-rs/canvas | 0.1.100 | MIT |  |
-| @napi-rs/canvas-linux-x64-gnu | 0.1.100 | MIT |  |
-| @napi-rs/canvas-linux-x64-musl | 0.1.100 | MIT |  |
+| @napi-rs/canvas | 1.1.1 | MIT |  |
+| @napi-rs/canvas-linux-x64-gnu | 1.1.1 | MIT |  |
+| @napi-rs/canvas-linux-x64-musl | 1.1.1 | MIT |  |
 | @next/env | 16.4.5 | MIT |  |
 | @next/swc-linux-x64-gnu | 16.4.5 | MIT |  |
 | @next/swc-linux-x64-musl | 16.4.5 | MIT |  |
@@ -211,7 +211,7 @@ Notes:
 | node-releases | 2.0.63 | MIT |  |
 | openapi-fetch | 0.17.0 | MIT |  |
 | openapi-typescript-helpers | 0.1.0 | MIT |  |
-| pdfjs-dist | 5.7.284 | Apache-2.0 |  |
+| pdfjs-dist | 6.4.299 | Apache-2.0 |  |
 | picocolors | 1.1.1 | ISC |  |
 | picomatch | 4.0.7 | MIT |  |
 | playwright | 1.64.1 | Apache-2.0 |  |
@@ -279,7 +279,7 @@ Notes:
 | pydantic-settings | 2.16.2 | MIT |  |
 | pydantic_core | 2.50.2 | MIT |  |
 | Pygments | 2.21.0 | BSD-2-Clause |  |
-| PyJWT | 2.10.1 | MIT License |  |
+| PyJWT | 2.15.1 | MIT |  |
 | python-dotenv | 1.2.4 | BSD-3-Clause |  |
 | PyYAML | 6.0.3 | MIT License |  |
 | requests | 2.34.2 | Apache Software License |  |

@@ -49,6 +49,14 @@ internet, so these matter most:
 - **Secret leaks:** cookies, API keys, tokens or passwords reaching logs, error messages,
   API responses or the optional AI helper.
 
+## How the repository is kept safe
+
+- Every pull request runs a secret scan over the whole git history (gitleaks), dependency
+  audits (`pnpm audit`, `pip-audit`) and, once the repository is public, CodeQL.
+- GitHub Actions are pinned to full commit SHAs, workflows get the least permissions they
+  need, and nothing runs `pull_request_target`. Docker base images are pinned by digest.
+- Dependabot proposes weekly updates for npm, Python (uv), GitHub Actions and Docker.
+
 ## Not security issues
 
 - Downloading copyrighted content. AnyGet follows strict legal rules (see the Legal page
