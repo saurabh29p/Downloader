@@ -201,6 +201,36 @@ async def test_short_body_is_incomplete(handler: HttpGenericHandler, tmp_path: P
 
 
 @respx.mock
+async def test_resume_past_4_gib(handler: HttpGenericHandler, tmp_path: Path) -> None:
+    # Offsets beyond 32 bits: a 4.5 GiB partial file (sparse, so it costs no disk) resumes
+    # with the right Range header and the file ends at the right size.
+    size = 4_500_000_000 + 10
+    out = tmp_path / "out"
+    out.mkdir()
+    part = part_path(out, "big1")
+    with part.open("wb") as fh:
+        fh.truncate(size - 10)
+    respx.head(URL).mock(
+        return_value=httpx.Response(
+            200, headers={"Content-Length": str(size), "Accept-Ranges": "bytes"}
+        )
+    )
+    get = respx.get(URL).mock(
+        return_value=httpx.Response(
+            206,
+            headers={"Content-Range": f"bytes {size - 10}-{size - 1}/{size}"},
+            content=b"0123456789",
+        )
+    )
+    result = await handler.download(job(tmp_path, "big1"), {}, lambda _p: None)
+    assert get.calls[-1].request.headers["range"] == f"bytes={size - 10}-"
+    assert result.paths[0].stat().st_size == size
+    with result.paths[0].open("rb") as fh:
+        fh.seek(size - 10)
+        assert fh.read() == b"0123456789"
+
+
+@respx.mock
 async def test_empty_file_is_saved(handler: HttpGenericHandler, tmp_path: Path) -> None:
     # A 0-byte file is a real file (an empty .keep, a placeholder): save it, don't crash.
     respx.head(URL).mock(return_value=httpx.Response(200, headers={"Content-Length": "0"}))

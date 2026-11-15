@@ -1,5 +1,6 @@
 """Job endpoints: create (single or batch), list, control, delete, fetch the file."""
 
+import json
 import re
 from typing import Annotated, Any
 
@@ -14,7 +15,7 @@ from anyget.core.jobs import JobOut, JobState
 from anyget.core.net import BlockedURLError
 from anyget.core.router import normalize
 from anyget.core.users import OWNER_ID
-from anyget.handlers.ytdlp_support.archive import archive_path, contains
+from anyget.handlers.ytdlp_support.archive import archive_path, contains, kind_key
 
 router = APIRouter(tags=["jobs"])
 
@@ -89,9 +90,12 @@ async def create_jobs(body: CreateJobs, services: ServicesDep, user: UserDep) ->
         except BlockedURLError as exc:
             rejected.append(RejectedUrl(url=raw, code="blocked_url", message=str(exc)))
             continue
-        if url in seen:
+        # The same link with other options (its MP3, another quality) is another download;
+        # only an exact repeat in one request is dropped.
+        key = json.dumps([url, options], sort_keys=True, default=str)
+        if key in seen:
             continue
-        seen.add(url)
+        seen.add(key)
         if _already_saved(services, options):
             skipped.append(
                 RejectedUrl(url=raw, code="already_downloaded", message="saved before; skipped")
@@ -114,6 +118,7 @@ def _already_saved(services: Any, options: dict[str, Any]) -> bool:
         return False
     if not re.fullmatch(r"[\w.-]{1,160}", key):
         return False
+    key = kind_key(key, options.get("preset") == "audio")
     return contains(archive_path(services.settings.data_dir, key), entry)
 
 

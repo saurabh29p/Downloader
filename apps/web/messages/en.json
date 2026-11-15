@@ -226,7 +226,19 @@
     "auth_required": "Sign in to use AnyGet.",
     "auth_invalid": "Wrong email, password or token.",
     "owner_required": "No sign-in is set up on this AnyGet yet.",
-    "csrf": "That request was refused. Reload the page and try again."
+    "csrf": "That request was refused. Reload the page and try again.",
+    "internal": "Something went wrong inside AnyGet. Try again; if it keeps failing, please report it with the details.",
+    "disk_full": "The disk is full. Free some space, then press Try again: AnyGet continues where it stopped.",
+    "already_downloaded": "Already saved before, so it was skipped.",
+    "bad_key": "The site refused the saved key. Check it on the Connections page.",
+    "protected": "This file is DRM-protected, so AnyGet can't open it.",
+    "not_cookies_txt": "This isn't a cookies.txt file. Export one with a cookies.txt extension while you are signed in.",
+    "no_cookies": "This cookies.txt file is empty. Export it again while you are signed in to the site.",
+    "cookies_wrong_site": "This file has no cookies for this site. Export it while you are signed in to the site itself.",
+    "missing_fields": "Fill in every field first (for example the key).",
+    "not_connected": "Connect the site first.",
+    "server_unavailable": "AnyGet's server isn't answering. Check that it is running, then try again.",
+    "http": "AnyGet's server gave an unexpected answer. Try again."
   },
   "Downloads": {
     "title": "Downloads",

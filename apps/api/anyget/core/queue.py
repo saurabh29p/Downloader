@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import errno
 import logging
 import time
 from collections.abc import Awaitable, Callable
@@ -237,6 +238,13 @@ class DownloadQueue:
         except httpx.HTTPError as exc:
             message = f"network error: {exc}" if str(exc) else "network error"
             self._update(job_id, state=JobState.failed, error=message, error_code="network")
+        except OSError as exc:
+            if exc.errno != errno.ENOSPC:
+                log.exception("job %s crashed", job_id)
+            # A full disk is the user's to fix (free space, then Retry: the partial file is
+            # kept); anything else is a bug worth a log line.
+            code = "disk_full" if exc.errno == errno.ENOSPC else "internal"
+            self._update(job_id, state=JobState.failed, error=str(exc), error_code=code)
         except Exception as exc:  # never let one job crash the queue
             log.exception("job %s crashed", job_id)
             self._update(job_id, state=JobState.failed, error=str(exc), error_code="internal")

@@ -20,7 +20,10 @@ function toApiError(error: unknown, response?: Response): ApiError {
   if (body && typeof body.code === "string") {
     return new ApiError(body.code, body.message ?? body.code, response?.status);
   }
-  return new ApiError(response ? "http" : "network", "request failed", response?.status);
+  if (!response) return new ApiError("network", "request failed");
+  // No JSON code: the API is down (the /api forwarding fails) or crashed.
+  const code = response.status >= 500 ? "server_unavailable" : "http";
+  return new ApiError(code, "request failed", response.status);
 }
 
 export async function call<T>(

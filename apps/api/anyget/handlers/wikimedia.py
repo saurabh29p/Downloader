@@ -99,7 +99,7 @@ class WikimediaHandler:
         return Probe(
             url=url,
             handler=self.name,
-            title=filename.rsplit(".", 1)[0],
+            title=filename.rsplit(".", 1)[0].replace("_", " "),  # Commons titles use spaces
             size=size,
             thumbnail=info.get("thumburl") if kind in ("image", "video") else None,
             choices=[

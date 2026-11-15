@@ -6816,6 +6816,9 @@
           "200": {
             "description": "Successful Response"
           },
+          "204": {
+            "description": "This file has no picture"
+          },
           "400": {
             "content": {
               "application/json": {

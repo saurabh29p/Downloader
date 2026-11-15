@@ -3,6 +3,7 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
@@ -75,6 +76,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.exception_handler(HandlerError)
     async def handler_error(_: Request, exc: HandlerError) -> JSONResponse:
         return _error(HANDLER_ERROR_STATUS.get(exc.code, 502), exc.code, exc.message)
+
+    @app.exception_handler(httpx.HTTPError)
+    async def network_error(_: Request, exc: httpx.HTTPError) -> JSONResponse:
+        # The other site couldn't be reached (DNS, refused, reset, timeout): a clean 502
+        # with the same code a failed job gets, not a 500 "Internal Server Error".
+        message = f"network error: {exc}" if str(exc) else "network error"
+        return _error(502, "network", message)
 
     @app.exception_handler(InvalidStateError)
     async def invalid_state(_: Request, exc: InvalidStateError) -> JSONResponse:

@@ -74,7 +74,14 @@ class ConnectionsView(BaseModel):
 
 
 class ConnectionValueError(ValueError):
-    """A connection value that can't be used (bad cookies file, missing field…)."""
+    """A connection value that can't be used (bad cookies file, missing field…).
+
+    `code` is the API error code; each one has a plain-words message in the web app.
+    """
+
+    def __init__(self, message: str, code: str = "invalid_connection") -> None:
+        super().__init__(message)
+        self.code = code
 
 
 # ----- cookies.txt ---------------------------------------------------------------
@@ -89,10 +96,10 @@ def parse_cookies(text: str) -> list[list[str]]:
             continue
         parts = line.split("\t")
         if len(parts) != 7:
-            raise ConnectionValueError("this is not a Netscape cookies.txt file")
+            raise ConnectionValueError("this is not a Netscape cookies.txt file", "not_cookies_txt")
         rows.append(parts)
     if not rows:
-        raise ConnectionValueError("this cookies.txt file has no cookies")
+        raise ConnectionValueError("this cookies.txt file has no cookies", "no_cookies")
     return rows
 
 
@@ -222,7 +229,9 @@ class ConnectionStore:
     def save_cookies(self, user_id: str, site: Site, text: str, proxy: str | None = None) -> int:
         rows = rows_for(site, parse_cookies(text))
         if not rows:
-            raise ConnectionValueError(f"this file has no cookies for {site.domains[0]}")
+            raise ConnectionValueError(
+                f"this file has no cookies for {site.domains[0]}", "cookies_wrong_site"
+            )
         self._put(
             user_id,
             site,
@@ -256,7 +265,7 @@ class ConnectionStore:
         clean = {name: (values.get(name) or "").strip() for name in site.fields}
         missing = [name for name, value in clean.items() if not value]
         if missing:
-            raise ConnectionValueError(f"fill in: {', '.join(missing)}")
+            raise ConnectionValueError(f"fill in: {', '.join(missing)}", "missing_fields")
         self._put(user_id, site, {"fields": clean, "proxy": proxy or None})
         self.apply()
 

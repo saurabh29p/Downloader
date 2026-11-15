@@ -175,9 +175,9 @@ async def get_file(
     "/library/{item_id}/thumb",
     operation_id="getLibraryThumb",
     response_class=FileResponse,
-    responses=ERROR_RESPONSES,
+    responses={**ERROR_RESPONSES, 204: {"description": "This file has no picture"}},
 )
-async def get_thumb(item_id: str, services: ServicesDep, user: UserDep) -> FileResponse:
+async def get_thumb(item_id: str, services: ServicesDep, user: UserDep) -> Response:
     """A 320 px WebP picture of the file (video frame, PDF page, cover art, image)."""
     item = _item(services, item_id, user)
     try:
@@ -186,9 +186,9 @@ async def get_thumb(item_id: str, services: ServicesDep, user: UserDep) -> FileR
         raise _missing() from exc
     thumb = await thumbnail_for(services.settings.data_dir, item.id, source, item.kind)
     if thumb is None:
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND, {"code": "not_found", "message": "no thumbnail"}
-        )
+        # "No picture" is an answer, not an error: an empty 204 (cached) instead of a 404
+        # that browsers log as a failed request. Unknown items still answer 404.
+        return Response(status_code=204, headers={"Cache-Control": "private, max-age=86400"})
     return FileResponse(
         thumb, media_type="image/webp", headers={"Cache-Control": "private, max-age=86400"}
     )
